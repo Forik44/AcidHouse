@@ -1,9 +1,8 @@
 #include "AcidHouseBasePawn.h"
 #include "Components/SphereComponent.h"
 #include "Engine/CollisionProfile.h"
-#include "GameFramework/FloatingPawnMovement.h"
 #include "GameFramework/PawnMovementComponent.h"
-
+#include "../Components/MovementComponents/AHBasePawnMovementComponent.h"
 // Sets default values
 AAcidHouseBasePawn::AAcidHouseBasePawn()
 {
@@ -15,7 +14,8 @@ AAcidHouseBasePawn::AAcidHouseBasePawn()
 	CollisionComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	RootComponent = CollisionComponent;
 
-	MovementComponent = CreateDefaultSubobject<UPawnMovementComponent, UFloatingPawnMovement>(TEXT("MovementComponent"));
+	//MovementComponent = CreateDefaultSubobject<UPawnMovementComponent, UFloatingPawnMovement>(TEXT("MovementComponent"));
+	MovementComponent = CreateDefaultSubobject<UPawnMovementComponent, UAHBasePawnMovementComponent>(TEXT("MovementComponent"));
 	MovementComponent->SetUpdatedComponent(CollisionComponent);
 }
 
