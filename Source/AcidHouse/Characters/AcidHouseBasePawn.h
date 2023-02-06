@@ -16,7 +16,7 @@ public:
 	AAcidHouseBasePawn();
 
 	UPROPERTY(VisibleAnywhere)
-	class UPawnMovementComponent* MovementComponent;
+	class UPawnMovementComponent* PawnMovementComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	class USphereComponent* CollisionComponent;
@@ -28,4 +28,5 @@ public:
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
+	void Jump();
 };

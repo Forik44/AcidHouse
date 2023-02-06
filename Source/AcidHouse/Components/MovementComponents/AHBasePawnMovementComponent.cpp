@@ -15,12 +15,36 @@ void UAHBasePawnMovementComponent::TickComponent(float DeltaTime, enum ELevelTic
 	Velocity = PendingInput * MaxSpeed;
 	ConsumeInputVector();
 
+	if (bEnableGravity)
+	{
+		FHitResult HitResult;
+		FVector StartPoint = UpdatedComponent->GetComponentLocation();
+		float TraceDepth = 1.0f;
+		float SphereRadius = 50.0f;
+		FVector EndPoint = StartPoint - TraceDepth * FVector::UpVector;
+		FCollisionQueryParams CollisionParams;
+		CollisionParams.AddIgnoredActor(GetOwner());
+
+		bool bWasFalling = bIsFalling;
+		FCollisionShape Sphere = FCollisionShape::MakeSphere(SphereRadius);
+		bIsFalling = !GetWorld()->SweepSingleByChannel(HitResult, StartPoint, EndPoint, FQuat::Identity, ECC_Visibility, Sphere, CollisionParams);
+		if (bIsFalling)
+		{
+			VerticalVelocity += GetGravityZ() * FVector::UpVector * DeltaTime;
+		}
+		else if (bWasFalling && VerticalVelocity.Z < 0.0f)
+		{
+			VerticalVelocity = FVector::ZeroVector;
+		}
+	}
+
+	Velocity += VerticalVelocity;
 	FVector Delta = Velocity * DeltaTime;
 	if (!Delta.IsNearlyZero(1e-6f))
 	{
-		FQuat Rotation = UpdatedComponent->GetComponentQuat();
+		FQuat Rot = UpdatedComponent->GetComponentQuat();
 		FHitResult Hit(1.f);
-		SafeMoveUpdatedComponent(Delta, Rotation, true, Hit);
+		SafeMoveUpdatedComponent(Delta, Rot, true, Hit);
 
 		if (Hit.IsValidBlockingHit())
 		{
@@ -31,4 +55,9 @@ void UAHBasePawnMovementComponent::TickComponent(float DeltaTime, enum ELevelTic
 	}
 
 	UpdateComponentVelocity();
+}
+
+void UAHBasePawnMovementComponent::JumpStart()
+{
+	VerticalVelocity += InitialJumpVelocity * FVector::UpVector;
 }
