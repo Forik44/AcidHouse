@@ -28,4 +28,8 @@ private:
 	void Turn(float Value);
 	void LookUp(float Value);
 	void Jump();
+	void ChangeCrouchState();
+
+	void StartSprint();
+	void StopSprint();
 };
