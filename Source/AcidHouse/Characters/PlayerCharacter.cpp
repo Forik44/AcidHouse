@@ -37,7 +37,7 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::MoveForward(float Value)
 {
-	if (!FMath::IsNearlyZero(Value, 1e-6f))
+	if ((GetBaseCharacterMovementComponent()->IsMovingOnGround() || GetBaseCharacterMovementComponent()->IsFalling()) && !FMath::IsNearlyZero(Value, 1e-6f))
 	{
 		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
 		FVector ForwardVector = YawRotator.RotateVector(FVector::ForwardVector);
@@ -47,7 +47,7 @@ void APlayerCharacter::MoveForward(float Value)
 
 void APlayerCharacter::MoveRight(float Value)
 {
-	if (!FMath::IsNearlyZero(Value, 1e-6f))
+	if ((GetBaseCharacterMovementComponent()->IsMovingOnGround() || GetBaseCharacterMovementComponent()->IsFalling()) && !FMath::IsNearlyZero(Value, 1e-6f))
 	{
 		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
 		FVector RightVector = YawRotator.RotateVector(FVector::RightVector);
@@ -77,17 +77,79 @@ void APlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeigh
 	SpringArmComponent->TargetOffset -= FVector(0.0f, 0.0f, HalfHeightAdjust);
 }
 
+void APlayerCharacter::OnStartProne(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnStartProne(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	SpringArmComponent->TargetOffset += FVector(0.0f, 0.0f, HalfHeightAdjust);
+}
+
+void APlayerCharacter::OnEndProne(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnEndProne(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	SpringArmComponent->TargetOffset -= FVector(0.0f, 0.0f, HalfHeightAdjust);
+}
+
+void APlayerCharacter::SwimForward(float Value)
+{
+	if (GetBaseCharacterMovementComponent()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
+	{
+		FRotator PitchYawRotator(GetControlRotation().Pitch, GetControlRotation().Yaw, 0.0f);
+		FVector ForwardVector = PitchYawRotator.RotateVector(FVector::ForwardVector);
+		AddMovementInput(ForwardVector, Value);
+	}
+}
+
+void APlayerCharacter::SwimRight(float Value)
+{
+	if (GetBaseCharacterMovementComponent()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
+	{
+		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
+		FVector RightVector = YawRotator.RotateVector(FVector::RightVector);
+		AddMovementInput(RightVector, Value);
+	}
+}
+
+void APlayerCharacter::SwimUp(float Value)
+{
+	if (GetBaseCharacterMovementComponent()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
+	{
+		AddMovementInput(FVector::UpVector, Value);
+	}
+}
+
+void APlayerCharacter::OnFastSwimStart_Implementation()
+{
+	bIsFastSwimStarted = true;
+}
+
+void APlayerCharacter::OnFastSwimEnd_Implementation()
+{
+	bIsFastSwimStarted = false;
+}
+
+void APlayerCharacter::OnSwimStart_Implementation()
+{
+	/*Super::OnSwimStart_Implementation();
+	SpringArmComponent->TargetOffset += FVector(0.0f, 0.0f, AHBaseCharacterMovementComponent->GetSwimmingCapsuleHalfHeight());*/
+}
+
+void APlayerCharacter::OnSwimEnd_Implementation()
+{
+	Super::OnSwimStart_Implementation();
+	SpringArmComponent->TargetOffset += FVector(0.0f, 0.0f, AHBaseCharacterMovementComponent->GetSwimmingCapsuleHalfHeight()/2);
+}
+
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsSprintStarted && CurrentSpringArmTime < 0.5)
+	if ((bIsFastSwimStarted || bIsSprintStarted) && CurrentSpringArmTime < 0.5)
 	{
 		AddCurrentSpringArmTime(DeltaTime);
 		Alpha = SpringArmChangingFromTime(CurrentSpringArmTime);
 		SpringArmComponent->TargetArmLength = FMath::Lerp(DefaultSpringArmDistance, MaxSprintSpringArmDistance, Alpha);
 	}
-	else if (!bIsSprintStarted && CurrentSpringArmTime > 0)
+	else if (!bIsFastSwimStarted && !bIsSprintStarted && CurrentSpringArmTime > 0)
 	{
 		DeleteCurrentSpringArmTime(DeltaTime);
 		Alpha = SpringArmChangingFromTime(CurrentSpringArmTime);

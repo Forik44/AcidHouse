@@ -14,10 +14,16 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveRight", this, &AAHBasePlayerController::MoveRight);
 	InputComponent->BindAxis("Turn", this, &AAHBasePlayerController::Turn);
 	InputComponent->BindAxis("LookUp", this, &AAHBasePlayerController::LookUp);
+	InputComponent->BindAxis("SwimForward", this, &AAHBasePlayerController::SwimForward);
+	InputComponent->BindAxis("SwimRight", this, &AAHBasePlayerController::SwimRight);
+	InputComponent->BindAxis("SwimUp", this, &AAHBasePlayerController::SwimUp);
 	InputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Jump);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartSprint);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopSprint);
 	InputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::ChangeCrouchState);
+	InputComponent->BindAction("Prone", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::ChangeProneState);
+	InputComponent->BindAction("FastSwim", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartFastSwim);
+	InputComponent->BindAction("FastSwim", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopFastSwim);
 }
 
 void AAHBasePlayerController::MoveForward(float Value)
@@ -56,7 +62,7 @@ void AAHBasePlayerController::Jump()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->Jump();
+		CachedBaseCharacter->TryJump();
 	}
 }
 
@@ -65,6 +71,14 @@ void AAHBasePlayerController::ChangeCrouchState()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->ChangeCrouchState();
+	}
+}
+
+void AAHBasePlayerController::ChangeProneState()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->ChangeProneState();
 	}
 }
 
@@ -81,5 +95,45 @@ void AAHBasePlayerController::StopSprint()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->StopSprint();
+	}
+}
+
+void AAHBasePlayerController::SwimForward(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SwimForward(Value);
+	}
+}
+
+void AAHBasePlayerController::SwimRight(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SwimRight(Value);
+	}
+}
+
+void AAHBasePlayerController::SwimUp(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SwimUp(Value);
+	}
+}
+
+void AAHBasePlayerController::StartFastSwim()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StartFastSwim();
+	}
+}
+
+void AAHBasePlayerController::StopFastSwim()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StopFastSwim();
 	}
 }

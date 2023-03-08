@@ -25,6 +25,9 @@ void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsFalling = CharacterMovement->IsFalling();
 	bIsCrouching = CharacterMovement->IsCrouching();
 	bIsSprinting = CharacterMovement->IsSprinting();
+	bIsOutOfStamina = CharacterMovement->IsOutOfStamina();
+	bIsProning = CharacterMovement->IsProning();
+	bIsSwimming = CharacterMovement->IsSwimming();
 
 	RightFootEffectorLocation = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKRightFootOffset());
 	LeftFootEffectorLocation = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKLeftFootOffset());
