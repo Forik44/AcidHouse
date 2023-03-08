@@ -40,4 +40,6 @@ private:
 
 	void StartFastSwim();
 	void StopFastSwim();
+
+	void Mantle();
 };

@@ -64,6 +64,8 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void Mantle();
+
 	FORCEINLINE UAHBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() { return AHBaseCharacterMovementComponent; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -119,6 +121,9 @@ protected:
 	virtual bool CanSprint();
 	virtual bool CanFastSwim();
 	UAHBaseCharacterMovementComponent* AHBaseCharacterMovementComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
+	class ULedgeDetectorComponent* LedgeDetectorComponent;
 
 private:
 	bool bIsSprintRequested = false;

@@ -17,6 +17,7 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAxis("SwimForward", this, &AAHBasePlayerController::SwimForward);
 	InputComponent->BindAxis("SwimRight", this, &AAHBasePlayerController::SwimRight);
 	InputComponent->BindAxis("SwimUp", this, &AAHBasePlayerController::SwimUp);
+	InputComponent->BindAction("Mantle", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Mantle);
 	InputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Jump);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartSprint);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopSprint);
@@ -135,5 +136,13 @@ void AAHBasePlayerController::StopFastSwim()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->StopFastSwim();
+	}
+}
+
+void AAHBasePlayerController::Mantle()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Mantle();
 	}
 }

@@ -7,6 +7,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "../Components/LedgeDetectorComponent.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -14,15 +15,17 @@ AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UAHBaseCharacterMovementComponent> (ACharacter::CharacterMovementComponentName))
 {
 	AHBaseCharacterMovementComponent = StaticCast<UAHBaseCharacterMovementComponent*>(GetCharacterMovement());
+	CurrentStamina = MaxStamina;
 
 	IKTraceDistance = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+	LedgeDetectorComponent = CreateDefaultSubobject<ULedgeDetectorComponent>(TEXT("LedgeDetector"));
 }
 
 void AAHBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CurrentStamina = MaxStamina;
 }
 
 void AAHBaseCharacter::TryJump()
@@ -187,6 +190,15 @@ void AAHBaseCharacter::Tick(float DeltaTime)
 	}
 }
 
+void AAHBaseCharacter::Mantle()
+{
+	FLedgeDescription LedgeDescription;
+	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
+	{
+		// TODO activate mantling
+	}
+}
+
 void AAHBaseCharacter::OnSprintStart_Implementation()
 {
 
@@ -214,7 +226,7 @@ bool AAHBaseCharacter::CanSprint()
 
 bool AAHBaseCharacter::CanFastSwim()
 {
-	return GetBaseCharacterMovementComponent()->MovementMode == MOVE_Swimming && !çGetBaseCharacterMovementComponent()->IsOutOfStamina();
+	return GetBaseCharacterMovementComponent()->MovementMode == MOVE_Swimming && !GetBaseCharacterMovementComponent()->IsOutOfStamina();
 
 }
 
