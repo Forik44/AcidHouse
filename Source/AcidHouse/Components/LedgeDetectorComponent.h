@@ -35,7 +35,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Detection settings", meta = (UIMin = 0, ClampMin = 0))
 	float MaximumLedgeHeight = 200.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Detection settings", meta = (UIMin = 0, ClampMin = 0))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly , Category = "Detection settings", meta = (UIMin = 0, ClampMin = 0))
 	float ForwardCheckDistance = 100.0f;
 		
 private:
