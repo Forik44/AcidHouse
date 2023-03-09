@@ -4,6 +4,10 @@
 #include "../AcidHouseTypes.h"
 #include "DrawDebugHelpers.h"
 #include "../Utils/AHTraceUtils.h"
+#include "../Characters/AHBaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "../AHGameInstance.h"
+#include "../Subsystems/DebugSubsystem.h"
 
 void ULedgeDetectorComponent::BeginPlay()
 {
@@ -21,6 +25,9 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 	QueryParams.bTraceComplex = true;
 	QueryParams.AddIgnoredActor(GetOwner());
 
+	UDebugSubsystem* DebugSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UDebugSubsystem>();
+	bool bIsDebugEnabled = DebugSubsystem->IsCategoryEnabled(DebugCategoryLedgeDetection);
+
 	float BottomZOffset = 2.0f;
 	FVector CharacterBottom = CashedCharacterOwner->GetActorLocation() - (CapsuleComponent->GetScaledCapsuleHalfHeight() - BottomZOffset) * FVector::UpVector;
 
@@ -34,7 +41,7 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 
 	float DrawTime = 2.0f;
 
-	if (!AHTraceUtils::SweepCapsuleSingleByChanel(GetWorld(), ForwardCheckHitResult, ForwardStartLocation, ForwardEndLocation, ForwardCheckCapsuleRadius, ForwardCheckCapsuleHalfHeight, FQuat::Identity, ECC_Climbing, QueryParams, FCollisionResponseParams::DefaultResponseParam, true, DrawTime))
+	if (!AHTraceUtils::SweepCapsuleSingleByChanel(GetWorld(), ForwardCheckHitResult, ForwardStartLocation, ForwardEndLocation, ForwardCheckCapsuleRadius, ForwardCheckCapsuleHalfHeight, FQuat::Identity, ECC_Climbing, QueryParams, FCollisionResponseParams::DefaultResponseParam, bIsDebugEnabled, DrawTime))
 	{
 		return false; 
 	}
@@ -48,7 +55,7 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 	DownwardStartLocation.Z = CharacterBottom.Z + MaximumLedgeHeight + DownwardSphereCheckRadius;
 	FVector DownwardEndLocation(DownwardStartLocation.X, DownwardStartLocation.Y, CharacterBottom.Z);
 
-	if (!AHTraceUtils::SweepSphereSingleByChanel(GetWorld(), DownwardCheckHitResult, DownwardStartLocation, DownwardEndLocation, DownwardSphereCheckRadius, ECC_Climbing, QueryParams, FCollisionResponseParams::DefaultResponseParam, true, DrawTime ))
+	if (!AHTraceUtils::SweepSphereSingleByChanel(GetWorld(), DownwardCheckHitResult, DownwardStartLocation, DownwardEndLocation, DownwardSphereCheckRadius, ECC_Climbing, QueryParams, FCollisionResponseParams::DefaultResponseParam, bIsDebugEnabled, DrawTime ))
 	{
 		return false;
 	}
@@ -59,7 +66,7 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 	float OverlapCapsuleFloorOffset = 2.0f;
 	FVector OverlapLocation = DownwardCheckHitResult.ImpactPoint + (OverlapCapsuleHalfHeight + OverlapCapsuleFloorOffset) * FVector::UpVector;
 
-	if (AHTraceUtils::OverlapCapsuleAnyByProfile(GetWorld(), OverlapLocation, OverlapCapsuleRadius, OverlapCapsuleHalfHeight, FQuat::Identity, FName("Pawn"), QueryParams, true, DrawTime))
+	if (AHTraceUtils::OverlapCapsuleAnyByProfile(GetWorld(), OverlapLocation, OverlapCapsuleRadius, OverlapCapsuleHalfHeight, FQuat::Identity, CollisionProfilePawn, QueryParams, bIsDebugEnabled, DrawTime))
 	{
 		return false;
 	}

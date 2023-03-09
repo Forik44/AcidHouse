@@ -77,6 +77,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
 
+	bool IsLedgeDetectionDebugDrawEnabled() const { return bIsLedgeDetectionDebugDrawEnabled; }
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Movement")
 	float SprintSpeed = 800.0f;
@@ -135,6 +137,11 @@ private:
 	float IKLeftFootOffset = 0.0f;
 	
 	float IKTraceDistance = 0.0f;
+
+	bool bIsLedgeDetectionDebugDrawEnabled = false;
+
+	UFUNCTION(exec)
+	void ToggleLedgeDetectionDebugDraw() { bIsLedgeDetectionDebugDrawEnabled = !bIsLedgeDetectionDebugDrawEnabled; }
 
 	void TryChangeSprintState(float DeltaTime);
 
