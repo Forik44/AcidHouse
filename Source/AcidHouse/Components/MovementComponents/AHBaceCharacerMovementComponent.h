@@ -4,8 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "../LedgeDetectorComponent.h"
 #include "AHBaceCharacerMovementComponent.generated.h"
 
+UENUM(BlueprintType)
+enum class ECustomMovementMode : uint8
+{
+	CMOVE_None = 0 UMETA(DisplayName = "None"),
+	CMOVE_Mantling UMETA(DisplayName = "Mantling"),
+	CMOVE_Max UMETA(Hidden)
+};
 /**
  * 
  */
@@ -58,6 +66,10 @@ public:
 	virtual void Prone();
 	virtual void UnProne();
 
+	void StartMantle(const FLedgeDescription& LedgeDescription);
+	void EndMantle();
+	bool IsMantling() const;
+
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Movement: sprint", meta = (ClampMin = 0.0f, UIMin = 0.0f))
@@ -95,10 +107,20 @@ protected:
 
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode) override;
 
+	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
+
 private:
 	bool bIsSprinting = false;
 	bool bIsOutOfStamina = false;
 	bool bIsFastSwimming = false;
 
 	class AAHBaseCharacter* CachedAHBaseCharacter;
+
+	FLedgeDescription TargetLedge;
+	FVector InitialMantlingLocation;
+	FRotator InitialMantlingRotation;
+
+	float TargetMantlingTime = 0.25;
+
+	FTimerHandle MantlingTimer;
 };

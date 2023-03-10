@@ -4,6 +4,8 @@
 #include "AHBaceCharacerMovementComponent.h"
 #include "../../Characters/AHBaseCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "../LedgeDetectorComponent.h"
+#include "Math/UnrealMathUtility.h"
 
 void UAHBaseCharacterMovementComponent::BeginPlay()
 {
@@ -247,6 +249,22 @@ void UAHBaseCharacterMovementComponent::UnProne()
 	CachedAHBaseCharacter->OnEndProne(HalfHeightAdjust, ScaledHalfHeightAdjust);
 }
 
+void UAHBaseCharacterMovementComponent::StartMantle(const FLedgeDescription& LedgeDescription)
+{
+	TargetLedge = LedgeDescription;
+	SetMovementMode(EMovementMode::MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Mantling);
+}
+
+void UAHBaseCharacterMovementComponent::EndMantle()
+{
+	SetMovementMode(MOVE_Walking);
+}
+
+bool UAHBaseCharacterMovementComponent::IsMantling() const
+{
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Mantling;
+}
+
 void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode)
 {
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviusCustomMode);
@@ -272,6 +290,46 @@ void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 		CachedAHBaseCharacter->GetCapsuleComponent()->SetCapsuleSize(DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight(), true);
 		CachedAHBaseCharacter->GetCapsuleComponent()->SetWorldRotation(FQuat(0, 0, 0, 0));
 	}
+
+	if (MovementMode == MOVE_Custom)
+	{
+		switch (CustomMovementMode)
+		{
+			case (uint8)ECustomMovementMode::CMOVE_Mantling:
+			{
+				InitialMantlingLocation = GetActorLocation();
+				InitialMantlingRotation = GetOwner()->GetActorRotation();
+				GetWorld()->GetTimerManager().SetTimer(MantlingTimer, this, &UAHBaseCharacterMovementComponent::EndMantle, TargetMantlingTime, false);
+				break;
+			}
+
+			default: 
+				break;
+		}
+	}
+}
+
+void UAHBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterations)
+{
+	switch (CustomMovementMode)
+	{
+		case (uint8)ECustomMovementMode::CMOVE_Mantling:
+		{
+			float ProgressRatio = GetWorld()->GetTimerManager().GetTimerElapsed(MantlingTimer) / TargetMantlingTime;
+			FVector NewLocation = FMath::Lerp(InitialMantlingLocation, TargetLedge.Location, ProgressRatio);
+			FRotator NewRotation = FMath::Lerp(InitialMantlingRotation, TargetLedge.Rotation, ProgressRatio);
+
+			FVector Delta = NewLocation - GetActorLocation();
+
+			FHitResult Hit;
+			SafeMoveUpdatedComponent(Delta, NewRotation, false, Hit);
+			break;
+		}
+		default:
+			break;
+	}
+
+	Super::PhysCustom(DeltaTime, Iterations); 
 }
 
 bool UAHBaseCharacterMovementComponent::CanAttemptJump() const

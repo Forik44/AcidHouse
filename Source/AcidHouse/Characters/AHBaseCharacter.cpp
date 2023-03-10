@@ -195,8 +195,13 @@ void AAHBaseCharacter::Mantle()
 	FLedgeDescription LedgeDescription;
 	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
 	{
-		// TODO activate mantling
+		GetBaseCharacterMovementComponent()->StartMantle(LedgeDescription);
 	}
+}
+
+bool AAHBaseCharacter::CanJumpInternal_Implementation() const
+{
+	return Super::CanJumpInternal_Implementation() && !GetBaseCharacterMovementComponent()->IsMantling();
 }
 
 void AAHBaseCharacter::OnSprintStart_Implementation()

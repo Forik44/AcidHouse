@@ -66,7 +66,9 @@ public:
 
 	virtual void Mantle();
 
-	FORCEINLINE UAHBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() { return AHBaseCharacterMovementComponent; }
+	virtual bool CanJumpInternal_Implementation() const override;
+
+	FORCEINLINE UAHBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return AHBaseCharacterMovementComponent; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetIKRightFootOffset() const { return IKRightFootOffset; }
@@ -76,8 +78,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
-
-	bool IsLedgeDetectionDebugDrawEnabled() const { return bIsLedgeDetectionDebugDrawEnabled; }
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Movement")
@@ -137,11 +137,6 @@ private:
 	float IKLeftFootOffset = 0.0f;
 	
 	float IKTraceDistance = 0.0f;
-
-	bool bIsLedgeDetectionDebugDrawEnabled = false;
-
-	UFUNCTION(exec)
-	void ToggleLedgeDetectionDebugDraw() { bIsLedgeDetectionDebugDrawEnabled = !bIsLedgeDetectionDebugDrawEnabled; }
 
 	void TryChangeSprintState(float DeltaTime);
 
