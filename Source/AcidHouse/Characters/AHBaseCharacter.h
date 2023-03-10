@@ -6,6 +6,30 @@
 #include "GameFramework/Character.h"
 #include "AHBaseCharacter.generated.h"
 
+USTRUCT(BlueprintType)
+struct FMantlingSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UAnimMontage* MantlingMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UCurveVector* MantlingCurve;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float MaxHeight = 200.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float MinHeight = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float MaxHeightStartTime = 0.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float MinHeightStartTime = 0.5f;
+};
+
 class UAHBaseCharacterMovementComponent;
 UCLASS(Abstract, NotBlueprintable)
 class ACIDHOUSE_API AAHBaseCharacter : public ACharacter
@@ -128,7 +152,7 @@ protected:
 	class ULedgeDetectorComponent* LedgeDetectorComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
-	class UAnimMontage* HightMantleMontage;
+	FMantlingSettings HightMantleSettings;
 
 private:
 	bool bIsSprintRequested = false;

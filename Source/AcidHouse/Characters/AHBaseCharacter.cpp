@@ -8,6 +8,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "../Components/LedgeDetectorComponent.h"
+#include "Curves/CurveVector.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -195,8 +196,30 @@ void AAHBaseCharacter::Mantle()
 	FLedgeDescription LedgeDescription;
 	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
 	{
-		GetBaseCharacterMovementComponent()->StartMantle(LedgeDescription);
-		PlayAnimMontage(HightMantleMontage);
+		FMantlingMovementParameters MantlingParametrs;
+
+		MantlingParametrs.MantlingCurve = HightMantleSettings.MantlingCurve;
+		MantlingParametrs.InitialLocation = GetActorLocation();
+		MantlingParametrs.InitialRotation = GetActorRotation();
+		MantlingParametrs.TargetLocation = LedgeDescription.Location;
+		MantlingParametrs.TargetRotation = LedgeDescription.Rotation;
+
+		float MinRange;
+		float MaxRange;
+		HightMantleSettings.MantlingCurve->GetTimeRange(MinRange, MaxRange);
+
+		MantlingParametrs.Duration = MaxRange - MinRange;
+
+		float MantlingHeight = (MantlingParametrs.TargetLocation - MantlingParametrs.InitialLocation).Z;
+
+		FVector2D SourceRange(HightMantleSettings.MinHeight, HightMantleSettings.MaxHeight);
+		FVector2D TargetRange(HightMantleSettings.MinHeightStartTime, HightMantleSettings.MaxHeightStartTime);
+		MantlingParametrs.StartTime = FMath::GetMappedRangeValueClamped(SourceRange, TargetRange, MantlingHeight);
+
+		GetBaseCharacterMovementComponent()->StartMantle(MantlingParametrs);
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		AnimInstance->Montage_Play(HightMantleSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
 	}
 }
 

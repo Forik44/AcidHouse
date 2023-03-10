@@ -7,6 +7,20 @@
 #include "../LedgeDetectorComponent.h"
 #include "AHBaceCharacerMovementComponent.generated.h"
 
+struct FMantlingMovementParameters
+{
+	FVector InitialLocation = FVector::ZeroVector;
+	FRotator InitialRotation = FRotator::ZeroRotator;
+
+	FVector TargetLocation = FVector::ZeroVector;
+	FRotator TargetRotation = FRotator::ZeroRotator;
+
+	float Duration = 1.0f;
+	float StartTime = 0.0f;
+
+	UCurveVector* MantlingCurve;
+};
+
 UENUM(BlueprintType)
 enum class ECustomMovementMode : uint8
 {
@@ -66,7 +80,7 @@ public:
 	virtual void Prone();
 	virtual void UnProne();
 
-	void StartMantle(const FLedgeDescription& LedgeDescription);
+	void StartMantle(const FMantlingMovementParameters& MantlingParameters);
 	void EndMantle();
 	bool IsMantling() const;
 
@@ -116,11 +130,7 @@ private:
 
 	class AAHBaseCharacter* CachedAHBaseCharacter;
 
-	FLedgeDescription TargetLedge;
-	FVector InitialMantlingLocation;
-	FRotator InitialMantlingRotation;
-
-	float TargetMantlingTime = 0.25;
+	FMantlingMovementParameters CurrentMantlingParametrs;
 
 	FTimerHandle MantlingTimer;
 };

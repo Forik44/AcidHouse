@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "../LedgeDetectorComponent.h"
 #include "Math/UnrealMathUtility.h"
+#include "Curves/CurveVector.h"
 
 void UAHBaseCharacterMovementComponent::BeginPlay()
 {
@@ -249,9 +250,9 @@ void UAHBaseCharacterMovementComponent::UnProne()
 	CachedAHBaseCharacter->OnEndProne(HalfHeightAdjust, ScaledHalfHeightAdjust);
 }
 
-void UAHBaseCharacterMovementComponent::StartMantle(const FLedgeDescription& LedgeDescription)
+void UAHBaseCharacterMovementComponent::StartMantle(const FMantlingMovementParameters& MantlingParameters)
 {
-	TargetLedge = LedgeDescription;
+	CurrentMantlingParametrs = MantlingParameters;
 	SetMovementMode(EMovementMode::MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Mantling);
 }
 
@@ -297,9 +298,8 @@ void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 		{
 			case (uint8)ECustomMovementMode::CMOVE_Mantling:
 			{
-				InitialMantlingLocation = GetActorLocation();
-				InitialMantlingRotation = GetOwner()->GetActorRotation();
-				GetWorld()->GetTimerManager().SetTimer(MantlingTimer, this, &UAHBaseCharacterMovementComponent::EndMantle, TargetMantlingTime, false);
+
+				GetWorld()->GetTimerManager().SetTimer(MantlingTimer, this, &UAHBaseCharacterMovementComponent::EndMantle, CurrentMantlingParametrs.Duration, false);
 				break;
 			}
 
@@ -315,9 +315,13 @@ void UAHBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 	{
 		case (uint8)ECustomMovementMode::CMOVE_Mantling:
 		{
-			float ProgressRatio = GetWorld()->GetTimerManager().GetTimerElapsed(MantlingTimer) / TargetMantlingTime;
-			FVector NewLocation = FMath::Lerp(InitialMantlingLocation, TargetLedge.Location, ProgressRatio);
-			FRotator NewRotation = FMath::Lerp(InitialMantlingRotation, TargetLedge.Rotation, ProgressRatio);
+			float ElapsedTime = GetWorld()->GetTimerManager().GetTimerElapsed(MantlingTimer) + CurrentMantlingParametrs.StartTime;
+			
+			FVector MantlingCurveValue = CurrentMantlingParametrs.MantlingCurve->GetVectorValue(ElapsedTime);
+			float PositionAlpha = MantlingCurveValue.X; 
+
+			FVector NewLocation = FMath::Lerp(CurrentMantlingParametrs.InitialLocation, CurrentMantlingParametrs.TargetLocation, PositionAlpha);
+			FRotator NewRotation = FMath::Lerp(CurrentMantlingParametrs.InitialRotation, CurrentMantlingParametrs.TargetRotation, PositionAlpha);
 
 			FVector Delta = NewLocation - GetActorLocation();
 
