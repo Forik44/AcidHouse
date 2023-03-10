@@ -15,6 +15,8 @@ struct FMantlingMovementParameters
 	FVector TargetLocation = FVector::ZeroVector;
 	FRotator TargetRotation = FRotator::ZeroRotator;
 
+	FVector InitialAimationLocation = FVector::ZeroVector;
+
 	float Duration = 1.0f;
 	float StartTime = 0.0f;
 

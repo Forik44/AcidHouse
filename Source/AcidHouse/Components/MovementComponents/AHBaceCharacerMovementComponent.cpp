@@ -318,9 +318,15 @@ void UAHBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 			float ElapsedTime = GetWorld()->GetTimerManager().GetTimerElapsed(MantlingTimer) + CurrentMantlingParametrs.StartTime;
 			
 			FVector MantlingCurveValue = CurrentMantlingParametrs.MantlingCurve->GetVectorValue(ElapsedTime);
-			float PositionAlpha = MantlingCurveValue.X; 
 
-			FVector NewLocation = FMath::Lerp(CurrentMantlingParametrs.InitialLocation, CurrentMantlingParametrs.TargetLocation, PositionAlpha);
+			float PositionAlpha = MantlingCurveValue.X; 
+			float XYCorrectionAlpha = MantlingCurveValue.Y;
+			float ZCorrectionAlpha = MantlingCurveValue.Z;
+
+			FVector CorrectedInitialLocation = FMath::Lerp(CurrentMantlingParametrs.InitialLocation, CurrentMantlingParametrs.InitialAimationLocation, XYCorrectionAlpha);
+			CorrectedInitialLocation.Z = FMath::Lerp(CurrentMantlingParametrs.InitialLocation.Z, CurrentMantlingParametrs.InitialAimationLocation.Z, ZCorrectionAlpha);
+
+			FVector NewLocation = FMath::Lerp(CorrectedInitialLocation, CurrentMantlingParametrs.TargetLocation, PositionAlpha);
 			FRotator NewRotation = FMath::Lerp(CurrentMantlingParametrs.InitialRotation, CurrentMantlingParametrs.TargetRotation, PositionAlpha);
 
 			FVector Delta = NewLocation - GetActorLocation();
