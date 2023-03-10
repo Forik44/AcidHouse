@@ -127,6 +127,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
 	class ULedgeDetectorComponent* LedgeDetectorComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
+	class UAnimMontage* HightMantleMontage;
+
 private:
 	bool bIsSprintRequested = false;
 	bool bIsFastSwimRequested = false;
