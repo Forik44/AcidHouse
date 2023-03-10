@@ -158,7 +158,13 @@ protected:
 	class ULedgeDetectorComponent* LedgeDetectorComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
-	FMantlingSettings HightMantleSettings;
+	FMantlingSettings HighMantleSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
+	FMantlingSettings LowMantleSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float LowMantleMaxHeight = 125.0f;
 
 private:
 	bool bIsSprintRequested = false;
@@ -176,4 +182,6 @@ private:
 	void TryChangeFastSwimState(float DeltaTime);
 
 	float GetIKOffsetForASocket(const FName& SocketName);
+
+	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
 };

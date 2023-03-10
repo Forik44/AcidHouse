@@ -198,30 +198,32 @@ void AAHBaseCharacter::Mantle()
 	{
 		FMantlingMovementParameters MantlingParametrs;
 
-		MantlingParametrs.MantlingCurve = HightMantleSettings.MantlingCurve;
 		MantlingParametrs.InitialLocation = GetActorLocation();
 		MantlingParametrs.InitialRotation = GetActorRotation();
 		MantlingParametrs.TargetLocation = LedgeDescription.Location;
 		MantlingParametrs.TargetRotation = LedgeDescription.Rotation;
 
+		float MantlingHeight = (MantlingParametrs.TargetLocation - MantlingParametrs.InitialLocation).Z;
+		const FMantlingSettings& MantlingSettings = GetMantlingSettings(MantlingHeight);
+
 		float MinRange;
 		float MaxRange;
-		HightMantleSettings.MantlingCurve->GetTimeRange(MinRange, MaxRange);
+		MantlingSettings.MantlingCurve->GetTimeRange(MinRange, MaxRange);
 
 		MantlingParametrs.Duration = MaxRange - MinRange;
 
-		float MantlingHeight = (MantlingParametrs.TargetLocation - MantlingParametrs.InitialLocation).Z;
+		MantlingParametrs.MantlingCurve = MantlingSettings.MantlingCurve;
 
-		FVector2D SourceRange(HightMantleSettings.MinHeight, HightMantleSettings.MaxHeight);
-		FVector2D TargetRange(HightMantleSettings.MinHeightStartTime, HightMantleSettings.MaxHeightStartTime);
+		FVector2D SourceRange(MantlingSettings.MinHeight, MantlingSettings.MaxHeight);
+		FVector2D TargetRange(MantlingSettings.MinHeightStartTime, MantlingSettings.MaxHeightStartTime);
 		MantlingParametrs.StartTime = FMath::GetMappedRangeValueClamped(SourceRange, TargetRange, MantlingHeight);
 
-		MantlingParametrs.InitialAimationLocation = MantlingParametrs.TargetLocation - HightMantleSettings.AnimationCorrectionZ * FVector::UpVector + HightMantleSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
+		MantlingParametrs.InitialAimationLocation = MantlingParametrs.TargetLocation - MantlingSettings.AnimationCorrectionZ * FVector::UpVector + MantlingSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
 
 		GetBaseCharacterMovementComponent()->StartMantle(MantlingParametrs);
 
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		AnimInstance->Montage_Play(HightMantleSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
+		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
 	}
 }
 
@@ -331,5 +333,10 @@ float AAHBaseCharacter::GetIKOffsetForASocket(const FName& SocketName)
 	}
 
 	return Result;
+}
+
+const FMantlingSettings& AAHBaseCharacter::GetMantlingSettings(float LedgeHeight) const
+{
+	return LedgeHeight > LowMantleMaxHeight ? HighMantleSettings : LowMantleSettings;
 }
 
