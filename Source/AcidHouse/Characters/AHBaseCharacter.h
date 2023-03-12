@@ -152,6 +152,7 @@ protected:
 
 	virtual bool CanSprint();
 	virtual bool CanFastSwim();
+	virtual bool CanMantle();
 	UAHBaseCharacterMovementComponent* AHBaseCharacterMovementComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")

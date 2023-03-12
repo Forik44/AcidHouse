@@ -21,6 +21,10 @@ struct FMantlingMovementParameters
 	float StartTime = 0.0f;
 
 	UCurveVector* MantlingCurve;
+
+	TWeakObjectPtr<class AActor> LedgeActor;
+	
+	FVector TargetOffset = FVector::ZeroVector;
 };
 
 UENUM(BlueprintType)
@@ -44,7 +48,7 @@ public:
 	bool bWantsToProne = false;
 
 	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
-	FORCEINLINE bool IsProning();
+	FORCEINLINE bool IsProning() const;
 	FORCEINLINE bool CanEverProne() { return bCanEverProne; }
 	FORCEINLINE bool IsFastSwimming() const { return bIsFastSwimming; }
 
@@ -85,6 +89,7 @@ public:
 	void StartMantle(const FMantlingMovementParameters& MantlingParameters);
 	void EndMantle();
 	bool IsMantling() const;
+	virtual bool CanAttemptMantle() const;
 
 
 protected:

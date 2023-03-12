@@ -31,7 +31,7 @@ void AAHBaseCharacter::BeginPlay()
 
 void AAHBaseCharacter::TryJump()
 {
-	if (!AHBaseCharacterMovementComponent->IsProning() && !AHBaseCharacterMovementComponent->IsCrouching())
+	if (!AHBaseCharacterMovementComponent->IsProning() && !AHBaseCharacterMovementComponent->IsCrouching() && !AHBaseCharacterMovementComponent->IsFalling() && !AHBaseCharacterMovementComponent->IsSwimming())
 	{
 		Jump();
 		return;
@@ -194,7 +194,7 @@ void AAHBaseCharacter::Tick(float DeltaTime)
 void AAHBaseCharacter::Mantle()
 {
 	FLedgeDescription LedgeDescription;
-	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
+	if (LedgeDetectorComponent->DetectLedge(LedgeDescription) && CanMantle())
 	{
 		FMantlingMovementParameters MantlingParametrs;
 
@@ -202,6 +202,8 @@ void AAHBaseCharacter::Mantle()
 		MantlingParametrs.InitialRotation = GetActorRotation();
 		MantlingParametrs.TargetLocation = LedgeDescription.Location;
 		MantlingParametrs.TargetRotation = LedgeDescription.Rotation;
+		MantlingParametrs.LedgeActor = LedgeDescription.LedgeActor;
+		MantlingParametrs.TargetOffset = LedgeDescription.LedgeActor->GetActorLocation() - LedgeDescription.Location;
 
 		float MantlingHeight = (MantlingParametrs.TargetLocation - MantlingParametrs.InitialLocation).Z;
 		const FMantlingSettings& MantlingSettings = GetMantlingSettings(MantlingHeight);
@@ -225,6 +227,11 @@ void AAHBaseCharacter::Mantle()
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
 	}
+}
+
+bool AAHBaseCharacter::CanMantle()
+{
+	return GetBaseCharacterMovementComponent() && GetBaseCharacterMovementComponent()->CanAttemptMantle();
 }
 
 bool AAHBaseCharacter::CanJumpInternal_Implementation() const

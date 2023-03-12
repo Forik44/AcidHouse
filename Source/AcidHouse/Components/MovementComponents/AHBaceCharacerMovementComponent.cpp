@@ -7,6 +7,7 @@
 #include "../LedgeDetectorComponent.h"
 #include "Math/UnrealMathUtility.h"
 #include "Curves/CurveVector.h"
+#include "DrawDebugHelpers.h"
 
 void UAHBaseCharacterMovementComponent::BeginPlay()
 {
@@ -14,7 +15,7 @@ void UAHBaseCharacterMovementComponent::BeginPlay()
 	CachedAHBaseCharacter = Cast<AAHBaseCharacter>(GetOwner());
 }
 
-FORCEINLINE bool UAHBaseCharacterMovementComponent::IsProning()
+FORCEINLINE bool UAHBaseCharacterMovementComponent::IsProning() const
 {
 	return CachedAHBaseCharacter && CachedAHBaseCharacter->bIsProning;
 }
@@ -266,6 +267,11 @@ bool UAHBaseCharacterMovementComponent::IsMantling() const
 	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Mantling;
 }
 
+bool UAHBaseCharacterMovementComponent::CanAttemptMantle() const
+{
+	return !IsMantling() && !IsProning() && !IsCrouching();
+}
+
 void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode)
 {
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviusCustomMode);
@@ -325,6 +331,10 @@ void UAHBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 
 			FVector CorrectedInitialLocation = FMath::Lerp(CurrentMantlingParametrs.InitialLocation, CurrentMantlingParametrs.InitialAimationLocation, XYCorrectionAlpha);
 			CorrectedInitialLocation.Z = FMath::Lerp(CurrentMantlingParametrs.InitialLocation.Z, CurrentMantlingParametrs.InitialAimationLocation.Z, ZCorrectionAlpha);
+
+			FVector NewTargetOffset = CurrentMantlingParametrs.LedgeActor->GetActorLocation() - CurrentMantlingParametrs.TargetLocation;
+
+			CurrentMantlingParametrs.TargetLocation += NewTargetOffset - CurrentMantlingParametrs.TargetOffset;
 
 			FVector NewLocation = FMath::Lerp(CorrectedInitialLocation, CurrentMantlingParametrs.TargetLocation, PositionAlpha);
 			FRotator NewRotation = FMath::Lerp(CurrentMantlingParametrs.InitialRotation, CurrentMantlingParametrs.TargetRotation, PositionAlpha);

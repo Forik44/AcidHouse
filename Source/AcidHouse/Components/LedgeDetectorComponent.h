@@ -19,6 +19,9 @@ struct FLedgeDescription
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ledge description")
 	FRotator Rotation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ledge description")
+	TWeakObjectPtr<class AActor> LedgeActor;
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
