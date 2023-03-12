@@ -7,6 +7,26 @@
 #include "../LedgeDetectorComponent.h"
 #include "AHBaceCharacerMovementComponent.generated.h"
 
+struct FMantlingMovementParameters
+{
+	FVector InitialLocation = FVector::ZeroVector;
+	FRotator InitialRotation = FRotator::ZeroRotator;
+
+	FVector TargetLocation = FVector::ZeroVector;
+	FRotator TargetRotation = FRotator::ZeroRotator;
+
+	FVector InitialAimationLocation = FVector::ZeroVector;
+
+	float Duration = 1.0f;
+	float StartTime = 0.0f;
+
+	UCurveVector* MantlingCurve;
+
+	TWeakObjectPtr<class AActor> LedgeActor;
+	
+	FVector TargetOffset = FVector::ZeroVector;
+};
+
 UENUM(BlueprintType)
 enum class ECustomMovementMode : uint8
 {
@@ -28,7 +48,7 @@ public:
 	bool bWantsToProne = false;
 
 	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
-	FORCEINLINE bool IsProning();
+	FORCEINLINE bool IsProning() const;
 	FORCEINLINE bool CanEverProne() { return bCanEverProne; }
 	FORCEINLINE bool IsFastSwimming() const { return bIsFastSwimming; }
 
@@ -66,9 +86,10 @@ public:
 	virtual void Prone();
 	virtual void UnProne();
 
-	void StartMantle(const FLedgeDescription& LedgeDescription);
+	void StartMantle(const FMantlingMovementParameters& MantlingParameters);
 	void EndMantle();
 	bool IsMantling() const;
+	virtual bool CanAttemptMantle() const;
 
 
 protected:
@@ -116,11 +137,7 @@ private:
 
 	class AAHBaseCharacter* CachedAHBaseCharacter;
 
-	FLedgeDescription TargetLedge;
-	FVector InitialMantlingLocation;
-	FRotator InitialMantlingRotation;
-
-	float TargetMantlingTime = 0.25;
+	FMantlingMovementParameters CurrentMantlingParametrs;
 
 	FTimerHandle MantlingTimer;
 };

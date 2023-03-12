@@ -200,5 +200,5 @@ void APlayerCharacter::OnJumped_Implementation()
 
 bool APlayerCharacter::CanJumpInternal_Implementation() const
 {
-	return bIsCrouched || Super::CanJumpInternal_Implementation();
+	return !GetBaseCharacterMovementComponent()->IsMantling() || bIsCrouched || Super::CanJumpInternal_Implementation();
 }

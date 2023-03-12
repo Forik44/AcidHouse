@@ -6,6 +6,36 @@
 #include "GameFramework/Character.h"
 #include "AHBaseCharacter.generated.h"
 
+USTRUCT(BlueprintType)
+struct FMantlingSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UAnimMontage* MantlingMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UCurveVector* MantlingCurve;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float AnimationCorrectionXY = 65.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float AnimationCorrectionZ = 200.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float MaxHeight = 200.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float MinHeight = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float MaxHeightStartTime = 0.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
+	float MinHeightStartTime = 0.5f;
+};
+
 class UAHBaseCharacterMovementComponent;
 UCLASS(Abstract, NotBlueprintable)
 class ACIDHOUSE_API AAHBaseCharacter : public ACharacter
@@ -122,10 +152,20 @@ protected:
 
 	virtual bool CanSprint();
 	virtual bool CanFastSwim();
+	virtual bool CanMantle();
 	UAHBaseCharacterMovementComponent* AHBaseCharacterMovementComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
 	class ULedgeDetectorComponent* LedgeDetectorComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
+	FMantlingSettings HighMantleSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
+	FMantlingSettings LowMantleSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float LowMantleMaxHeight = 125.0f;
 
 private:
 	bool bIsSprintRequested = false;
@@ -143,4 +183,6 @@ private:
 	void TryChangeFastSwimState(float DeltaTime);
 
 	float GetIKOffsetForASocket(const FName& SocketName);
+
+	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
 };

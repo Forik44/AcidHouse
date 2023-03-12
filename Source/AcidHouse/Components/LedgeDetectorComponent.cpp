@@ -32,13 +32,15 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 	bool bIsDebugEnabled = false;
 #endif
 
-	float DrawTime = 2.0f;
+	float DrawTime = 100.0f;
 
 	float BottomZOffset = 2.0f;
-	FVector CharacterBottom = CashedCharacterOwner->GetActorLocation() - (CapsuleComponent->GetScaledCapsuleHalfHeight() - BottomZOffset) * FVector::UpVector;
+	AAHBaseCharacter* DefaultAHBaseCharacter = CashedCharacterOwner->GetClass()->GetDefaultObject<AAHBaseCharacter>();
+
+	FVector CharacterBottom = CashedCharacterOwner->GetActorLocation() - (DefaultAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() - BottomZOffset) * FVector::UpVector;
 
 	//1. Forward check
-	float ForwardCheckCapsuleRadius = CapsuleComponent->GetScaledCapsuleRadius();
+	float ForwardCheckCapsuleRadius = DefaultAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
 	float ForwardCheckCapsuleHalfHeight = (MaximumLedgeHeight - MinimumLedgeHeight) * 0.5;
 
 	FHitResult ForwardCheckHitResult;
@@ -52,7 +54,7 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 
 	//2. Downward check
 	FHitResult DownwardCheckHitResult;
-	float DownwardSphereCheckRadius = CapsuleComponent->GetScaledCapsuleRadius();
+	float DownwardSphereCheckRadius = DefaultAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
 
 	float DownwardCheckDepthOffset = 10.0f;
 	FVector DownwardStartLocation = ForwardCheckHitResult.ImpactPoint - ForwardCheckHitResult.ImpactNormal * DownwardCheckDepthOffset;
@@ -65,8 +67,8 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 	}
 
 	//3. Overlap check
-	float OverlapCapsuleRadius = CapsuleComponent->GetScaledCapsuleRadius();
-	float OverlapCapsuleHalfHeight = CapsuleComponent->GetScaledCapsuleHalfHeight();
+	float OverlapCapsuleRadius = DefaultAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
+	float OverlapCapsuleHalfHeight = DefaultAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	float OverlapCapsuleFloorOffset = 2.0f;
 	FVector OverlapLocation = DownwardCheckHitResult.ImpactPoint + (OverlapCapsuleHalfHeight + OverlapCapsuleFloorOffset) * FVector::UpVector;
 
@@ -77,6 +79,8 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 
 	LedgeDescription.Location = OverlapLocation;
 	LedgeDescription.Rotation = (ForwardCheckHitResult.ImpactNormal * FVector(-1.0f, -1.0f, 0.0f)).ToOrientationRotator();
+	LedgeDescription.LedgeNormal = ForwardCheckHitResult.ImpactNormal;
+	LedgeDescription.LedgeActor = DownwardCheckHitResult.Actor;
 
 	return true;
 }

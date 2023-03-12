@@ -8,6 +8,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "../Components/LedgeDetectorComponent.h"
+#include "Curves/CurveVector.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -30,7 +31,7 @@ void AAHBaseCharacter::BeginPlay()
 
 void AAHBaseCharacter::TryJump()
 {
-	if (!AHBaseCharacterMovementComponent->IsProning() && !AHBaseCharacterMovementComponent->IsCrouching())
+	if (!AHBaseCharacterMovementComponent->IsProning() && !AHBaseCharacterMovementComponent->IsCrouching() && !AHBaseCharacterMovementComponent->IsFalling() && !AHBaseCharacterMovementComponent->IsSwimming())
 	{
 		Jump();
 		return;
@@ -193,10 +194,44 @@ void AAHBaseCharacter::Tick(float DeltaTime)
 void AAHBaseCharacter::Mantle()
 {
 	FLedgeDescription LedgeDescription;
-	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
+	if (LedgeDetectorComponent->DetectLedge(LedgeDescription) && CanMantle())
 	{
-		GetBaseCharacterMovementComponent()->StartMantle(LedgeDescription);
+		FMantlingMovementParameters MantlingParametrs;
+
+		MantlingParametrs.InitialLocation = GetActorLocation();
+		MantlingParametrs.InitialRotation = GetActorRotation();
+		MantlingParametrs.TargetLocation = LedgeDescription.Location;
+		MantlingParametrs.TargetRotation = LedgeDescription.Rotation;
+		MantlingParametrs.LedgeActor = LedgeDescription.LedgeActor;
+		MantlingParametrs.TargetOffset = LedgeDescription.LedgeActor->GetActorLocation() - LedgeDescription.Location;
+
+		float MantlingHeight = (MantlingParametrs.TargetLocation - MantlingParametrs.InitialLocation).Z;
+		const FMantlingSettings& MantlingSettings = GetMantlingSettings(MantlingHeight);
+
+		float MinRange;
+		float MaxRange;
+		MantlingSettings.MantlingCurve->GetTimeRange(MinRange, MaxRange);
+
+		MantlingParametrs.Duration = MaxRange - MinRange;
+
+		MantlingParametrs.MantlingCurve = MantlingSettings.MantlingCurve;
+
+		FVector2D SourceRange(MantlingSettings.MinHeight, MantlingSettings.MaxHeight);
+		FVector2D TargetRange(MantlingSettings.MinHeightStartTime, MantlingSettings.MaxHeightStartTime);
+		MantlingParametrs.StartTime = FMath::GetMappedRangeValueClamped(SourceRange, TargetRange, MantlingHeight);
+
+		MantlingParametrs.InitialAimationLocation = MantlingParametrs.TargetLocation - MantlingSettings.AnimationCorrectionZ * FVector::UpVector + MantlingSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
+
+		GetBaseCharacterMovementComponent()->StartMantle(MantlingParametrs);
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
 	}
+}
+
+bool AAHBaseCharacter::CanMantle()
+{
+	return GetBaseCharacterMovementComponent() && GetBaseCharacterMovementComponent()->CanAttemptMantle();
 }
 
 bool AAHBaseCharacter::CanJumpInternal_Implementation() const
@@ -305,5 +340,10 @@ float AAHBaseCharacter::GetIKOffsetForASocket(const FName& SocketName)
 	}
 
 	return Result;
+}
+
+const FMantlingSettings& AAHBaseCharacter::GetMantlingSettings(float LedgeHeight) const
+{
+	return LedgeHeight > LowMantleMaxHeight ? HighMantleSettings : LowMantleSettings;
 }
 
