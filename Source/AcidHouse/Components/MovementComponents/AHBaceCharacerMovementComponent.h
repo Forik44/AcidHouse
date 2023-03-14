@@ -43,9 +43,9 @@ class ACIDHOUSE_API UAHBaseCharacterMovementComponent : public UCharacterMovemen
 	GENERATED_BODY()
 
 public:
-	virtual void BeginPlay() override;
-
 	bool bWantsToProne = false;
+
+	virtual void BeginPlay() override;
 
 	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
 	FORCEINLINE bool IsProning() const;
@@ -72,15 +72,7 @@ public:
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 
 	FORCEINLINE bool IsOutOfStamina() const { return bIsOutOfStamina; }
-	void SetIsOutOfStamina(bool bIsOutOfStamina_In)
-	{
-		bIsOutOfStamina = bIsOutOfStamina_In;
-		if (bIsOutOfStamina_In)
-		{
-			bIsSprinting = false;
-			bIsFastSwimming = false;
-		}
-	}
+	void SetIsOutOfStamina(bool bIsOutOfStamina_In);
 
 	virtual bool CanProneInCurrentState() const;
 	virtual void Prone();

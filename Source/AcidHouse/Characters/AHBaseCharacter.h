@@ -45,9 +45,11 @@ class ACIDHOUSE_API AAHBaseCharacter : public ACharacter
 public:
 	AAHBaseCharacter(const FObjectInitializer& ObjectInitializer);
 
+	bool bIsProning = false;
+
 	virtual void BeginPlay() override;
 
-	bool bIsProning = false;
+	virtual void Tick(float DeltaTime) override;
 
 	virtual void MoveForward(float Value) {};
 	virtual void MoveRight(float Value) {};
@@ -66,12 +68,6 @@ public:
 	virtual void Prone();
 	virtual void UnProne();
 
-	virtual void StartSprint();
-	virtual void StopSprint();
-
-	virtual void StartFastSwim();
-	virtual void StopFastSwim();
-
 	virtual void OnStartProne(float HalfHeightAdjust, float ScaledHalfHeightAdjust);
 
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="OnStartProne", ScriptName="OnStartProne"))
@@ -82,6 +78,12 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="OnStartProne", ScriptName="OnStartProne"))
 	void K2_OnEndProne(float HalfHeightAdjust, float ScaledHalfHeightAdjust);
 
+	virtual void StartSprint();
+	virtual void StopSprint();
+
+	virtual void StartFastSwim();
+	virtual void StopFastSwim();
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Character | Movement")
 	void OnSwimStart();
 	virtual void OnSwimStart_Implementation();
@@ -90,13 +92,7 @@ public:
 	void OnSwimEnd();
 	virtual void OnSwimEnd_Implementation();
 
-	virtual bool CanProne();
-
-	virtual void Tick(float DeltaTime) override;
-
 	virtual void Mantle();
-
-	virtual bool CanJumpInternal_Implementation() const override;
 
 	FORCEINLINE UAHBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return AHBaseCharacterMovementComponent; }
 
@@ -134,6 +130,20 @@ protected:
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Character | IK settings", meta = (ClampMin = 0, UIMin = 0))
 	float IKInterpSpeed = 20.0f; 
 
+	UAHBaseCharacterMovementComponent* AHBaseCharacterMovementComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
+	class ULedgeDetectorComponent* LedgeDetectorComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
+	FMantlingSettings HighMantleSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
+	FMantlingSettings LowMantleSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float LowMantleMaxHeight = 125.0f;
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Character | Movement")
 	void OnSprintStart();
 	virtual void OnSprintStart_Implementation();
@@ -153,19 +163,9 @@ protected:
 	virtual bool CanSprint();
 	virtual bool CanFastSwim();
 	virtual bool CanMantle();
-	UAHBaseCharacterMovementComponent* AHBaseCharacterMovementComponent;
+	virtual bool CanProne();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
-	class ULedgeDetectorComponent* LedgeDetectorComponent;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
-	FMantlingSettings HighMantleSettings;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
-	FMantlingSettings LowMantleSettings;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling", meta = (ClampMin = 0.0f, UIMin = 0.0f))
-	float LowMantleMaxHeight = 125.0f;
+	virtual bool CanJumpInternal_Implementation() const override;
 
 private:
 	bool bIsSprintRequested = false;
