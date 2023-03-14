@@ -19,6 +19,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaTime) override;
+
 	virtual void MoveForward(float Value) override;
 	virtual void MoveRight(float Value) override;
 	virtual void Turn(float Value) override;
@@ -34,19 +36,16 @@ public:
 	virtual void SwimRight(float Value) override;
 	virtual void SwimUp(float Value) override;
 
-	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void OnJumped_Implementation() override;
 
 	virtual void OnSprintStart_Implementation() override;
 	virtual void OnSprintEnd_Implementation() override;
 
-	virtual void OnFastSwimStart_Implementation() override;
-	virtual void OnFastSwimEnd_Implementation() override;
-
 	virtual void OnSwimStart_Implementation() override;
 	virtual void OnSwimEnd_Implementation() override;
 
-	virtual void Tick(float DeltaTime) override;
+	virtual void OnFastSwimStart_Implementation() override;
+	virtual void OnFastSwimEnd_Implementation() override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Camera")

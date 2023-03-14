@@ -77,6 +77,16 @@ bool UAHBaseCharacterMovementComponent::CanCrouchInCurrentState() const
 	return Super::CanCrouchInCurrentState() && !bIsOutOfStamina;
 }
 
+void UAHBaseCharacterMovementComponent::SetIsOutOfStamina(bool bIsOutOfStamina_In)
+{
+	bIsOutOfStamina = bIsOutOfStamina_In;
+	if (bIsOutOfStamina_In)
+	{
+		bIsSprinting = false;
+		bIsFastSwimming = false;
+	}
+}
+
 bool UAHBaseCharacterMovementComponent::CanProneInCurrentState() const
 {
 	if (!CanEverCrouch())

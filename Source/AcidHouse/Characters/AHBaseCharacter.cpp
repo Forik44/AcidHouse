@@ -31,18 +31,18 @@ void AAHBaseCharacter::BeginPlay()
 
 void AAHBaseCharacter::TryJump()
 {
-	if (!AHBaseCharacterMovementComponent->IsProning() && !AHBaseCharacterMovementComponent->IsCrouching() && !AHBaseCharacterMovementComponent->IsFalling() && !AHBaseCharacterMovementComponent->IsSwimming())
+	if (CanJump())
 	{
 		Jump();
 		return;
 	} 
 	
-	if(AHBaseCharacterMovementComponent->IsProning())
+	if(GetBaseCharacterMovementComponent()->IsProning())
 	{
 		UnProne();
 	}
 	
-	if (AHBaseCharacterMovementComponent->IsCrouching())
+	if (GetBaseCharacterMovementComponent()->IsCrouching())
 	{
 		UnCrouch();
 	}
@@ -50,11 +50,11 @@ void AAHBaseCharacter::TryJump()
 
 void AAHBaseCharacter::ChangeCrouchState()
 {
-	if (AHBaseCharacterMovementComponent->IsCrouching() && !AHBaseCharacterMovementComponent->CanProneInCurrentState())
+	if (GetBaseCharacterMovementComponent()->IsCrouching() && !GetBaseCharacterMovementComponent()->CanProneInCurrentState())
 	{
 		UnCrouch();
 	}
-	else if (!AHBaseCharacterMovementComponent->IsCrouching())
+	else if (!GetBaseCharacterMovementComponent()->IsCrouching())
 	{
 		Crouch();
 	}
@@ -62,11 +62,11 @@ void AAHBaseCharacter::ChangeCrouchState()
 
 void AAHBaseCharacter::ChangeProneState()
 {
-	if (AHBaseCharacterMovementComponent->IsProning())
+	if (GetBaseCharacterMovementComponent()->IsProning())
 	{
 		UnProne();
 	}
-	else if (AHBaseCharacterMovementComponent->IsCrouching())
+	else if (GetBaseCharacterMovementComponent()->IsCrouching())
 	{
 		Prone();
 	}
@@ -74,20 +74,20 @@ void AAHBaseCharacter::ChangeProneState()
 
 void AAHBaseCharacter::Prone()
 {
-	if (AHBaseCharacterMovementComponent)
+	if (GetBaseCharacterMovementComponent())
 	{
 		if (CanProne())
 		{
-			AHBaseCharacterMovementComponent->bWantsToProne = true;
+			GetBaseCharacterMovementComponent()->bWantsToProne = true;
 		}
 	}
 }
 
 void AAHBaseCharacter::UnProne()
 {
-	if (AHBaseCharacterMovementComponent)
+	if (GetBaseCharacterMovementComponent())
 	{
-		AHBaseCharacterMovementComponent->bWantsToProne = false;
+		GetBaseCharacterMovementComponent()->bWantsToProne = false;
 	}
 }
 
@@ -167,7 +167,7 @@ void AAHBaseCharacter::OnSwimEnd_Implementation()
 
 bool AAHBaseCharacter::CanProne()
 {
-	return !bIsProning && AHBaseCharacterMovementComponent && AHBaseCharacterMovementComponent->CanEverProne();
+	return !bIsProning && GetBaseCharacterMovementComponent() && GetBaseCharacterMovementComponent()->CanEverProne();
 }
 
 void AAHBaseCharacter::Tick(float DeltaTime)
@@ -236,7 +236,9 @@ bool AAHBaseCharacter::CanMantle()
 
 bool AAHBaseCharacter::CanJumpInternal_Implementation() const
 {
-	return Super::CanJumpInternal_Implementation() && !GetBaseCharacterMovementComponent()->IsMantling();
+	return Super::CanJumpInternal_Implementation() && GetBaseCharacterMovementComponent() 
+		&& !GetBaseCharacterMovementComponent()->IsMantling() && !GetBaseCharacterMovementComponent()->IsProning() 
+		&& !GetBaseCharacterMovementComponent()->IsFalling() && !GetBaseCharacterMovementComponent()->IsSwimming();
 }
 
 void AAHBaseCharacter::OnSprintStart_Implementation()
@@ -261,7 +263,7 @@ void AAHBaseCharacter::OnFastSwimEnd_Implementation()
 
 bool AAHBaseCharacter::CanSprint()
 {
-	return AHBaseCharacterMovementComponent->CanEverSprint() && (GetBaseCharacterMovementComponent()->MovementMode != MOVE_Swimming);
+	return GetBaseCharacterMovementComponent()->CanEverSprint() && (GetBaseCharacterMovementComponent()->MovementMode != MOVE_Swimming);
 }
 
 bool AAHBaseCharacter::CanFastSwim()
@@ -282,15 +284,15 @@ void AAHBaseCharacter::TryChangeSprintState(float DeltaTime)
 		}
 	}
 
-	if ((bIsSprintRequested && !AHBaseCharacterMovementComponent->IsSprinting()) || CanSprint())
+	if ((bIsSprintRequested && !GetBaseCharacterMovementComponent()->IsSprinting()) || CanSprint())
 	{
-		AHBaseCharacterMovementComponent->StartSprint();
+		GetBaseCharacterMovementComponent()->StartSprint();
 		OnSprintStart();
 	}
 
-	if ((!bIsSprintRequested && AHBaseCharacterMovementComponent->IsSprinting()) || !CanSprint())
+	if ((!bIsSprintRequested && GetBaseCharacterMovementComponent()->IsSprinting()) || !CanSprint())
 	{
-		AHBaseCharacterMovementComponent->StopSprint();
+		GetBaseCharacterMovementComponent()->StopSprint();
 		OnSprintEnd();
 	}
 }
@@ -307,15 +309,15 @@ void AAHBaseCharacter::TryChangeFastSwimState(float DeltaTime)
 		}
 	}
 
-	if ((bIsFastSwimRequested && !AHBaseCharacterMovementComponent->IsFastSwimming()) || CanFastSwim())
+	if ((bIsFastSwimRequested && !GetBaseCharacterMovementComponent()->IsFastSwimming()) || CanFastSwim())
 	{
-		AHBaseCharacterMovementComponent->StartFastSwim();
+		GetBaseCharacterMovementComponent()->StartFastSwim();
 		OnFastSwimStart();
 	}
 
-	if ((!bIsFastSwimRequested && AHBaseCharacterMovementComponent->IsFastSwimming()) || !CanFastSwim())
+	if ((!bIsFastSwimRequested && GetBaseCharacterMovementComponent()->IsFastSwimming()) || !CanFastSwim())
 	{
-		AHBaseCharacterMovementComponent->StopFastSwim();
+		GetBaseCharacterMovementComponent()->StopFastSwim();
 		OnFastSwimEnd();
 	}
 }
