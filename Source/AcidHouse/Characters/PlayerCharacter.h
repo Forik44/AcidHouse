@@ -17,8 +17,6 @@ class ACIDHOUSE_API APlayerCharacter : public AAHBaseCharacter
 public:
 	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
-	virtual void BeginPlay() override;
-
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void MoveForward(float Value) override;
@@ -48,6 +46,8 @@ public:
 	virtual void OnFastSwimEnd_Implementation() override;
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Camera")
 	class UCameraComponent* CameraComponent;
 

@@ -229,6 +229,16 @@ void AAHBaseCharacter::Mantle()
 	}
 }
 
+void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
+{
+	AvailableInteractiveActors.Add(IntaractiveActor);
+}
+
+void AAHBaseCharacter::UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor)
+{
+	AvailableInteractiveActors.Remove(IntaractiveActor);
+}
+
 bool AAHBaseCharacter::CanMantle()
 {
 	return GetBaseCharacterMovementComponent() && GetBaseCharacterMovementComponent()->CanAttemptMantle();

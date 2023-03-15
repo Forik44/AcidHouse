@@ -45,8 +45,6 @@ class ACIDHOUSE_API UAHBaseCharacterMovementComponent : public UCharacterMovemen
 public:
 	bool bWantsToProne = false;
 
-	virtual void BeginPlay() override;
-
 	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
 	FORCEINLINE bool IsProning() const;
 	FORCEINLINE bool CanEverProne() { return bCanEverProne; }
@@ -85,6 +83,8 @@ public:
 
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Movement: sprint", meta = (ClampMin = 0.0f, UIMin = 0.0f))
 	float SprintSpeed = 1200.0f;
 
