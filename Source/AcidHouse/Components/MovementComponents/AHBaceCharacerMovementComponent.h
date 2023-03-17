@@ -35,6 +35,15 @@ enum class ECustomMovementMode : uint8
 	CMOVE_Ladder UMETA(DisplayName = "Ladder"),
 	CMOVE_Max UMETA(Hidden)
 };
+
+UENUM(BlueprintType)
+enum class EDetachFromLadderMethod : uint8
+{
+	Fall = 0,
+	ReachingTheTop,
+	ReachingTheBottom,
+	JumpOff
+};
 /**
  * 
  */
@@ -76,10 +85,10 @@ public:
 	virtual bool CanAttemptMantle() const;
 
 	void AttachToLadder(const class ALadder* Ladder);
+	void DetachFromLadder(EDetachFromLadderMethod DetachFromLadderMethod = EDetachFromLadderMethod::Fall);
 
 	float GetActorToCurrentLadderProjection(const FVector& Location) const;
 
-	void DetachFromLadder();
 	bool IsOnLadder() const;
 	float GetLadderSpeedRation() const;
 
@@ -145,6 +154,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Ladder", meta = (ClampMin = "0", UIMin = "0"))
 	float MinLadderBottomOffset = 90.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	float JumpOffFromLadderSpeed = 500.0f;
+
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode) override;
 
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
@@ -166,4 +178,7 @@ private:
 	FTimerHandle MantlingTimer;
 
 	const ALadder* CurrentLadder = nullptr;
+
+	FRotator ForceTargetRotation = FRotator::ZeroRotator;
+	bool bForceRotation = false;
 };

@@ -379,7 +379,7 @@ void AAHBaseCharacter::InteractWithLadder()
 {
 	if (GetBaseCharacterMovementComponent()->IsOnLadder())
 	{
-		GetBaseCharacterMovementComponent()->DetachFromLadder();
+		GetBaseCharacterMovementComponent()->DetachFromLadder(EDetachFromLadderMethod::JumpOff);
 	}
 	else
 	{

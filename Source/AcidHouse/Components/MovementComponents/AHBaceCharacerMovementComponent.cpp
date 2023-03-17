@@ -23,6 +23,49 @@ FORCEINLINE bool UAHBaseCharacterMovementComponent::IsProning() const
 
 void UAHBaseCharacterMovementComponent::PhysicsRotation(float DeltaTime)
 {
+	if (bForceRotation)
+	{
+		FRotator CurrentRotation = UpdatedComponent->GetComponentRotation(); // Normalized
+		CurrentRotation.DiagnosticCheckNaN(TEXT("CharacterMovementComponent::PhysicsRotation(): CurrentRotation"));
+
+		FRotator DeltaRot = GetDeltaRotation(DeltaTime);
+		DeltaRot.DiagnosticCheckNaN(TEXT("CharacterMovementComponent::PhysicsRotation(): GetDeltaRotation"));
+
+		const float AngleTolerance = 1e-3f;
+
+		if (!CurrentRotation.Equals(ForceTargetRotation, AngleTolerance))
+		{
+			FRotator DesiredRotation = ForceTargetRotation;
+			// PITCH
+			if (!FMath::IsNearlyEqual(CurrentRotation.Pitch, DesiredRotation.Pitch, AngleTolerance))
+			{
+				DesiredRotation.Pitch = FMath::FixedTurn(CurrentRotation.Pitch, DesiredRotation.Pitch, DeltaRot.Pitch);
+			}
+
+			// YAW
+			if (!FMath::IsNearlyEqual(CurrentRotation.Yaw, DesiredRotation.Yaw, AngleTolerance))
+			{
+				DesiredRotation.Yaw = FMath::FixedTurn(CurrentRotation.Yaw, DesiredRotation.Yaw, DeltaRot.Yaw);
+			}
+
+			// ROLL
+			if (!FMath::IsNearlyEqual(CurrentRotation.Roll, DesiredRotation.Roll, AngleTolerance))
+			{
+				DesiredRotation.Roll = FMath::FixedTurn(CurrentRotation.Roll, DesiredRotation.Roll, DeltaRot.Roll);
+			}
+
+			// Set the new rotation.
+			DesiredRotation.DiagnosticCheckNaN(TEXT("CharacterMovementComponent::PhysicsRotation(): DesiredRotation"));
+			MoveUpdatedComponent(FVector::ZeroVector, DesiredRotation, /*bSweep*/ false);
+		}
+		else
+		{
+			ForceTargetRotation = FRotator::ZeroRotator;
+			bForceRotation = false;
+		}
+
+		return;
+	}
 	if (IsOnLadder())
 	{
 		return;
@@ -343,9 +386,45 @@ float UAHBaseCharacterMovementComponent::GetActorToCurrentLadderProjection(const
 	return FVector::DotProduct(LadderUpVector, LadderToCharacterDistance);
 }
 
-void UAHBaseCharacterMovementComponent::DetachFromLadder()
+void UAHBaseCharacterMovementComponent::DetachFromLadder(EDetachFromLadderMethod DetachFromLadderMethod /*= EDetachFromLadderMethod::Fall*/)
 {
-	SetMovementMode(MOVE_Falling);
+	switch (DetachFromLadderMethod)
+	{
+	case EDetachFromLadderMethod::Fall:
+	{
+		SetMovementMode(MOVE_Falling);
+		break;
+	}
+	case EDetachFromLadderMethod::ReachingTheTop:
+	{
+		GetBaseCharacterOwner()->Mantle(true);
+		break;
+	}
+	case EDetachFromLadderMethod::ReachingTheBottom:
+	{
+		SetMovementMode(MOVE_Walking); 
+		break;
+	}
+	case EDetachFromLadderMethod::JumpOff:
+	{
+		FVector JumpDirection = CurrentLadder->GetActorForwardVector();
+
+		SetMovementMode(MOVE_Falling);
+
+		FVector JumpVelocity = JumpDirection * JumpOffFromLadderSpeed;
+
+		ForceTargetRotation = JumpDirection.ToOrientationRotator();
+		bForceRotation = true;
+
+		Launch(JumpVelocity);
+		break;
+	}
+	default:
+	{
+		SetMovementMode(MOVE_Falling);
+		break;
+	}
+	}
 }
 
 void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode)
@@ -462,12 +541,12 @@ void UAHBaseCharacterMovementComponent::PhysLadder(float DeltaTime, int32 Iterat
 
 	if (NewPositionProjection < MinLadderBottomOffset)
 	{
-		DetachFromLadder();
+		DetachFromLadder(EDetachFromLadderMethod::ReachingTheBottom);
 		return;
 	}
 	else if (NewPositionProjection > (CurrentLadder->GetLadderHeight() - MaxLadderTopOffset))
 	{
-		GetBaseCharacterOwner()->Mantle(true);
+		DetachFromLadder(EDetachFromLadderMethod::ReachingTheTop);
 		return;
 	}
 
