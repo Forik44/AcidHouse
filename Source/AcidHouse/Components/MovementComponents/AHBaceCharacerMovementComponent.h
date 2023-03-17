@@ -77,10 +77,11 @@ public:
 
 	void AttachToLadder(const class ALadder* Ladder);
 
-	float GetActorToCurrentLadderProjection(const FVector& Location);
+	float GetActorToCurrentLadderProjection(const FVector& Location) const;
 
 	void DetachFromLadder();
 	bool IsOnLadder() const;
+	float GetLadderSpeedRation() const;
 
 	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
 	FORCEINLINE bool IsProning() const;

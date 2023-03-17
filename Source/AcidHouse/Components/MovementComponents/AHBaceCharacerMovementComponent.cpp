@@ -302,6 +302,14 @@ bool UAHBaseCharacterMovementComponent::IsOnLadder() const
 	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Ladder;
 }
 
+float UAHBaseCharacterMovementComponent::GetLadderSpeedRation() const
+{
+	checkf(IsValid(CurrentLadder), TEXT("UAHBaseCharacterMovementComponent::GetLadderSpeedRation() cannot be invoked when current ladder is null"))
+
+	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
+	return FVector::DotProduct(LadderUpVector, Velocity) / ClimbingOnLadderMaxSpeed;
+}
+
 void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 {
 	CurrentLadder = Ladder;
@@ -321,7 +329,7 @@ void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Ladder);
 }
 
-float UAHBaseCharacterMovementComponent::GetActorToCurrentLadderProjection(const FVector& Location)
+float UAHBaseCharacterMovementComponent::GetActorToCurrentLadderProjection(const FVector& Location) const
 {
 	checkf(IsValid(CurrentLadder), TEXT("UAHBaseCharacterMovementComponent::GetCharacterToCurrentLadderProjection() cannot be invoked when current ladder is null"))
 

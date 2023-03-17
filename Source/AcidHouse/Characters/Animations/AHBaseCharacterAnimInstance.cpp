@@ -28,6 +28,11 @@ void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsOutOfStamina = CharacterMovement->IsOutOfStamina();
 	bIsProning = CharacterMovement->IsProning();
 	bIsSwimming = CharacterMovement->IsSwimming();
+	bIsOnLadder = CharacterMovement->IsOnLadder();
+	if (bIsOnLadder)
+	{
+		LadderSpeedRation = CharacterMovement->GetLadderSpeedRation();
+	}
 
 	RightFootEffectorLocation = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKRightFootOffset());
 	LeftFootEffectorLocation = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKLeftFootOffset());
