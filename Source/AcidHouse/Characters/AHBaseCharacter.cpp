@@ -233,12 +233,12 @@ void AAHBaseCharacter::Mantle()
 
 void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
 {
-	AvailableInteractiveActors.Add(IntaractiveActor);
+	AvailableInteractiveActors.AddUnique(IntaractiveActor);
 }
 
 void AAHBaseCharacter::UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor)
 {
-	AvailableInteractiveActors.Remove(IntaractiveActor);
+	AvailableInteractiveActors.RemoveSingleSwap(IntaractiveActor);
 }
 
 bool AAHBaseCharacter::CanMantle()

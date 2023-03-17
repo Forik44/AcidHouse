@@ -18,9 +18,12 @@ public:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	float GetLadderHeight() const { return LadderHeight; }
+	FORCEINLINE float GetLadderHeight() const { return LadderHeight; }
+	FORCEINLINE bool GetIsOnTop() const { return bIsOnTop; }
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ladder parametrs", meta = (ClampMin = 0, UIMin = 0))
 	float LadderHeight = 100.0f;
 
@@ -42,6 +45,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UInstancedStaticMeshComponent* StepsMeshComponent; 
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UBoxComponent* TopInteractionVolume;
+
 	class UBoxComponent* GetLadderInteractionBox() const;
 
+	virtual void OnInteractionVolumeOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
+	virtual void OnInteractionVolumeOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+
+private:
+	bool bIsOnTop = false;
 };
