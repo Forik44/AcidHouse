@@ -46,6 +46,8 @@ class ACIDHOUSE_API UAHBaseCharacterMovementComponent : public UCharacterMovemen
 public:
 	bool bWantsToProne = false;
 
+	virtual void PhysicsRotation(float DeltaTime) override;
+
 	virtual float GetMaxSpeed() const override;
 
 	void StartSprint();
@@ -74,6 +76,9 @@ public:
 	virtual bool CanAttemptMantle() const;
 
 	void AttachToLadder(const class ALadder* Ladder);
+
+	float GetActorToCurrentLadderProjection(const FVector& Location);
+
 	void DetachFromLadder();
 	bool IsOnLadder() const;
 
@@ -130,12 +135,23 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Ladder", meta = (ClampMin = "0", UIMin = "0"))
 	float ClimbingOnLadderBreakingDecelaration = 2048.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	float LadderToCharacterOffset = 60.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	float MaxLadderTopOffset = 90.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	float MinLadderBottomOffset = 90.0f;
+
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode) override;
 
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
 
 	void PhysMantling(float DeltaTime, int32 Iterations);
 	void PhysLadder(float DeltaTime, int32 Iterations);
+
+	FORCEINLINE class AAHBaseCharacter* GetBaseCharacterOwner() const { return CachedAHBaseCharacter; };
 
 private:
 	bool bIsSprinting = false;

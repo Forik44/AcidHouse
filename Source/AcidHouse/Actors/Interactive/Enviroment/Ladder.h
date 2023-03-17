@@ -18,6 +18,8 @@ public:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+	float GetLadderHeight() const { return LadderHeight; }
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ladder parametrs", meta = (ClampMin = 0, UIMin = 0))
 	float LadderHeight = 100.0f;
