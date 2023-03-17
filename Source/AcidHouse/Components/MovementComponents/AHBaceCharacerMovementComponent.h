@@ -32,6 +32,7 @@ enum class ECustomMovementMode : uint8
 {
 	CMOVE_None = 0 UMETA(DisplayName = "None"),
 	CMOVE_Mantling UMETA(DisplayName = "Mantling"),
+	CMOVE_Ladder UMETA(DisplayName = "Ladder"),
 	CMOVE_Max UMETA(Hidden)
 };
 /**
@@ -44,14 +45,6 @@ class ACIDHOUSE_API UAHBaseCharacterMovementComponent : public UCharacterMovemen
 
 public:
 	bool bWantsToProne = false;
-
-	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
-	FORCEINLINE bool IsProning() const;
-	FORCEINLINE bool CanEverProne() { return bCanEverProne; }
-	FORCEINLINE bool IsFastSwimming() const { return bIsFastSwimming; }
-
-	FORCEINLINE float GetSwimmingCapsuleHalfHeight() const { return SwimmingCapsuleHalfHeight; }
-	FORCEINLINE float GetSwimmingCapsuleRadius() const { return SwimmingCapsuleRadius; }
 
 	virtual float GetMaxSpeed() const override;
 
@@ -69,7 +62,6 @@ public:
 
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 
-	FORCEINLINE bool IsOutOfStamina() const { return bIsOutOfStamina; }
 	void SetIsOutOfStamina(bool bIsOutOfStamina_In);
 
 	virtual bool CanProneInCurrentState() const;
@@ -81,6 +73,20 @@ public:
 	bool IsMantling() const;
 	virtual bool CanAttemptMantle() const;
 
+	void AttachToLadder(const class ALadder* Ladder);
+	void DetachFromLadder();
+	bool IsOnLadder() const;
+
+	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
+	FORCEINLINE bool IsProning() const;
+	FORCEINLINE bool CanEverProne() { return bCanEverProne; }
+	FORCEINLINE bool IsFastSwimming() const { return bIsFastSwimming; }
+	FORCEINLINE bool IsOutOfStamina() const { return bIsOutOfStamina; }
+
+	FORCEINLINE float GetSwimmingCapsuleHalfHeight() const { return SwimmingCapsuleHalfHeight; }
+	FORCEINLINE float GetSwimmingCapsuleRadius() const { return SwimmingCapsuleRadius; }
+
+	FORCEINLINE const class ALadder* GetCurrentLadder() const { return CurrentLadder; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -103,24 +109,33 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: prone", meta = (ClampMin = 0, UIMin = 0))
 	float MaxProneSpeed = 100.0f;
 
-	UPROPERTY(Category="Character Movement (General Settings)", VisibleInstanceOnly, BlueprintReadWrite, AdvancedDisplay)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, AdvancedDisplay, Category = "Character Movement (General Settings)")
 	uint8 bProneMaintainsBaseLocation:1;
 
-	UPROPERTY(Category="Character Movement: Swimming", EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0", UIMin="0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Swimming", meta = (ClampMin = "0", UIMin = "0"))
 	float SwimmingCapsuleRadius = 60.0f;
 
-	UPROPERTY(Category="Character Movement: Swimming", EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0", UIMin="0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Swimming", meta = (ClampMin = "0", UIMin = "0"))
 	float SwimmingCapsuleHalfHeight = 60.0f;
 
-	UPROPERTY(Category="Character Movement: Swimming", EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0", UIMin="0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Swimming", meta=(ClampMin="0", UIMin="0"))
 	float FastSwimmingSpeed = 600.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Swimming")
 	bool bCanEverSwim = true;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	float ClimbingOnLadderMaxSpeed = 200.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	float ClimbingOnLadderBreakingDecelaration = 2048.0f;
+
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode) override;
 
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
+
+	void PhysMantling(float DeltaTime, int32 Iterations);
+	void PhysLadder(float DeltaTime, int32 Iterations);
 
 private:
 	bool bIsSprinting = false;
@@ -132,4 +147,6 @@ private:
 	FMantlingMovementParameters CurrentMantlingParametrs;
 
 	FTimerHandle MantlingTimer;
+
+	const ALadder* CurrentLadder = nullptr;
 };

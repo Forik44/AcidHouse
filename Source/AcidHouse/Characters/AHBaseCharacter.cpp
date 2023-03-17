@@ -9,6 +9,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "../Components/LedgeDetectorComponent.h"
 #include "Curves/CurveVector.h"
+#include "../Actors/Interactive/InteractiveActor.h"
+#include "../Actors/Interactive/Enviroment/Ladder.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -357,5 +359,46 @@ float AAHBaseCharacter::GetIKOffsetForASocket(const FName& SocketName)
 const FMantlingSettings& AAHBaseCharacter::GetMantlingSettings(float LedgeHeight) const
 {
 	return LedgeHeight > LowMantleMaxHeight ? HighMantleSettings : LowMantleSettings;
+}
+
+void AAHBaseCharacter::ClimbLadderUp(float Value)
+{
+	if (!FMath::IsNearlyZero(Value) && GetBaseCharacterMovementComponent()->IsOnLadder())
+	{
+		FVector LadderUpVector = GetBaseCharacterMovementComponent()->GetCurrentLadder()->GetActorUpVector();
+		AddMovementInput(LadderUpVector, Value);
+	}
+}
+
+void AAHBaseCharacter::InteractWithLadder()
+{
+	if (GetBaseCharacterMovementComponent()->IsOnLadder())
+	{
+		GetBaseCharacterMovementComponent()->DetachFromLadder();
+	}
+	else
+	{
+		const ALadder* AvailableLadder = GetAvailableLadder();
+		if (IsValid(AvailableLadder))
+		{
+			GetBaseCharacterMovementComponent()->AttachToLadder(AvailableLadder);
+		}
+	}
+}
+
+const class ALadder* AAHBaseCharacter::GetAvailableLadder() const
+{
+	const ALadder* Result = nullptr;
+
+	for (const AInteractiveActor* InteractiveActor : AvailableInteractiveActors)
+	{
+		if (InteractiveActor->IsA<ALadder>())
+		{
+			Result = StaticCast<const ALadder*>(InteractiveActor);
+			break;
+		}
+	}
+
+	return Result;
 }
 

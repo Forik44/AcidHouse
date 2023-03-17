@@ -42,4 +42,7 @@ private:
 	void StopFastSwim();
 
 	void Mantle();
+
+	void ClimbLadderUp(float Value);
+	void InteractWithLadder();
 };

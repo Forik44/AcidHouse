@@ -93,6 +93,10 @@ public:
 
 	virtual void Mantle();
 
+	void ClimbLadderUp(float Value);
+	void InteractWithLadder();
+	const class ALadder* GetAvailableLadder() const;
+
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 
