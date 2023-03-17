@@ -193,10 +193,15 @@ void AAHBaseCharacter::Tick(float DeltaTime)
 	}
 }
 
-void AAHBaseCharacter::Mantle()
+void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 {
+	if (!(CanMantle() || bForce))
+	{
+		return;
+	}
+
 	FLedgeDescription LedgeDescription;
-	if (LedgeDetectorComponent->DetectLedge(LedgeDescription) && CanMantle())
+	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
 	{
 		FMantlingMovementParameters MantlingParametrs;
 
@@ -275,7 +280,7 @@ void AAHBaseCharacter::OnFastSwimEnd_Implementation()
 
 bool AAHBaseCharacter::CanSprint()
 {
-	return GetBaseCharacterMovementComponent()->CanEverSprint() && (GetBaseCharacterMovementComponent()->MovementMode != MOVE_Swimming);
+	return GetBaseCharacterMovementComponent()->CanEverSprint() && (GetBaseCharacterMovementComponent()->MovementMode != MOVE_Swimming) && !GetBaseCharacterMovementComponent()->IsOnLadder();
 }
 
 bool AAHBaseCharacter::CanFastSwim()
@@ -381,6 +386,10 @@ void AAHBaseCharacter::InteractWithLadder()
 		const ALadder* AvailableLadder = GetAvailableLadder();
 		if (IsValid(AvailableLadder))
 		{
+			if (AvailableLadder->GetIsOnTop()) 
+			{
+				PlayAnimMontage(AvailableLadder->GetAttachFromTopAnimMontage());
+			}
 			GetBaseCharacterMovementComponent()->AttachToLadder(AvailableLadder);
 		}
 	}

@@ -70,3 +70,20 @@ bool AHTraceUtils::OverlapCapsuleAnyByProfile(const UWorld* World, const FVector
 	 
 	return bResult;
 }
+
+bool AHTraceUtils::OverlapCapsuleBlockingByProfile(const UWorld* World, const FVector& Pos, float CapsuleRadius, float CapsuleHalfHeight, FQuat Rotation, FName ProfileName, const FCollisionQueryParams& Params /*= FCollisionQueryParams::DefaultQueryParam*/, bool bDrawDebug /*= false*/, float DrawTime /*= -1.0f*/, FColor HitColor /*= FColor::Red*/)
+{
+	bool bResult = false;
+
+	FCollisionShape CollisionShape = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
+	bResult = World->OverlapBlockingTestByProfile(Pos, Rotation, ProfileName, CollisionShape, Params);
+
+#if ENABLE_DRAW_DEBUG
+	if (bDrawDebug && bResult)
+	{
+		DrawDebugCapsule(World, Pos, CapsuleHalfHeight, CapsuleRadius, Rotation, HitColor, false, DrawTime);
+	}
+#endif
+
+	return bResult;
+}

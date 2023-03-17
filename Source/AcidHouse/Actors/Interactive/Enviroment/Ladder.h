@@ -5,6 +5,8 @@
 #include "Ladder.generated.h"
 
 class UStaticMeshComponent;
+class UAnimMontage;
+class UBoxComponent;
 /**
  * 
  */
@@ -20,7 +22,9 @@ public:
 
 	FORCEINLINE float GetLadderHeight() const { return LadderHeight; }
 	FORCEINLINE bool GetIsOnTop() const { return bIsOnTop; }
+	FORCEINLINE UAnimMontage* GetAttachFromTopAnimMontage() const { return AttachFromTopAnimMontage; }
 
+	FVector GetAttachFromTopAnimMontageStartingLocation() const;
 protected:
 	virtual void BeginPlay() override;
 
@@ -46,9 +50,15 @@ protected:
 	UInstancedStaticMeshComponent* StepsMeshComponent; 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UBoxComponent* TopInteractionVolume;
+	UBoxComponent* TopInteractionVolume;
 
-	class UBoxComponent* GetLadderInteractionBox() const;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ladder parametrs")
+	UAnimMontage* AttachFromTopAnimMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ladder parametrs")
+	FVector AttachFromTopAnimMontageInitialOffset = FVector::ZeroVector;
+
+	UBoxComponent* GetLadderInteractionBox() const;
 
 	virtual void OnInteractionVolumeOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	virtual void OnInteractionVolumeOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;

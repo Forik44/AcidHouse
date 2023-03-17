@@ -18,7 +18,7 @@ void UAHBaseCharacterMovementComponent::BeginPlay()
 
 FORCEINLINE bool UAHBaseCharacterMovementComponent::IsProning() const
 {
-	return GetBaseCharacterOwner() && GetBaseCharacterOwner()->bIsProning;
+	return GetBaseCharacterOwner()->bIsProning;
 }
 
 void UAHBaseCharacterMovementComponent::PhysicsRotation(float DeltaTime)
@@ -289,7 +289,7 @@ void UAHBaseCharacterMovementComponent::EndMantle()
 
 bool UAHBaseCharacterMovementComponent::CanAttemptMantle() const
 {
-	return !IsMantling() && !IsProning() && !IsCrouching();
+	return !IsMantling() && !IsProning() && !IsCrouching() && !IsOnLadder();
 }
 
 bool UAHBaseCharacterMovementComponent::IsMantling() const
@@ -313,6 +313,7 @@ float UAHBaseCharacterMovementComponent::GetLadderSpeedRation() const
 void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 {
 	CurrentLadder = Ladder;
+	Velocity = FVector::UpVector;
 
 	FRotator TargetOrientationRotation = CurrentLadder->GetActorForwardVector().ToOrientationRotator();
 	TargetOrientationRotation.Yaw += 180.0f;
@@ -322,6 +323,10 @@ void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 	float Projection = GetActorToCurrentLadderProjection(GetActorLocation());
 
 	FVector NewCharacterLocation = CurrentLadder->GetActorLocation() + Projection * LadderUpVector + LadderToCharacterOffset * LadderForwardVector;
+	if (CurrentLadder->GetIsOnTop())
+	{
+		NewCharacterLocation = CurrentLadder->GetAttachFromTopAnimMontageStartingLocation();
+	}
 
 	GetOwner()->SetActorLocation(NewCharacterLocation);
 	GetOwner()->SetActorRotation(TargetOrientationRotation);
@@ -443,6 +448,15 @@ void UAHBaseCharacterMovementComponent::PhysLadder(float DeltaTime, int32 Iterat
 	CalcVelocity(DeltaTime, 1.0f, false, ClimbingOnLadderBreakingDecelaration);
 	FVector Delta = Velocity * DeltaTime;
 
+	if (HasAnimRootMotion())
+	{
+		FHitResult Hit;
+		FRotator TargetOrientationRotation = CurrentLadder->GetActorForwardVector().ToOrientationRotator();
+		TargetOrientationRotation.Yaw += 180.0f;
+		SafeMoveUpdatedComponent(Delta, TargetOrientationRotation, false, Hit);
+		return;
+	}
+
 	FVector NewPosition = GetActorLocation() + Delta;
 	float NewPositionProjection = GetActorToCurrentLadderProjection(NewPosition);
 
@@ -453,7 +467,7 @@ void UAHBaseCharacterMovementComponent::PhysLadder(float DeltaTime, int32 Iterat
 	}
 	else if (NewPositionProjection > (CurrentLadder->GetLadderHeight() - MaxLadderTopOffset))
 	{
-		GetBaseCharacterOwner()->Mantle();
+		GetBaseCharacterOwner()->Mantle(true);
 		return;
 	}
 

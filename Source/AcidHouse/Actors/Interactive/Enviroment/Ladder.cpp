@@ -74,12 +74,21 @@ void ALadder::OnConstruction(const FTransform& Transform)
 	}
 
 	float BoxDepthExtent = GetLadderInteractionBox()->GetUnscaledBoxExtent().X;
-	GetLadderInteractionBox()->SetBoxExtent(FVector(BoxDepthExtent, LadderWidth * 0.5f, LadderHeight * 0.5f));
+	GetLadderInteractionBox()->SetBoxExtent(FVector(BoxDepthExtent, LadderWidth * 0.5f, LadderHeight * 0.5f - 65));
 	GetLadderInteractionBox()->SetRelativeLocation(FVector(BoxDepthExtent, 0.0f, LadderHeight * 0.5f));
 
 	FVector TopBoxExtend = TopInteractionVolume->GetUnscaledBoxExtent();
 	TopInteractionVolume->SetBoxExtent(FVector(TopBoxExtend.X, LadderWidth * 0.5f, TopBoxExtend.Z));
 	TopInteractionVolume->SetRelativeLocation(FVector(-TopBoxExtend.X, 0.0f, LadderHeight + TopBoxExtend.Z));
+}
+
+FVector ALadder::GetAttachFromTopAnimMontageStartingLocation() const
+{
+	FRotator OrientationRotation = GetActorForwardVector().ToOrientationRotator();
+	FVector Offset = OrientationRotation.RotateVector(AttachFromTopAnimMontageInitialOffset);
+
+	FVector LadderTop = GetActorLocation() + GetActorUpVector() * LadderHeight;
+	return LadderTop + Offset;
 }
 
 void ALadder::BeginPlay()

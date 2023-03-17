@@ -91,7 +91,7 @@ public:
 	void OnSwimEnd();
 	virtual void OnSwimEnd_Implementation();
 
-	virtual void Mantle();
+	virtual void Mantle(bool bForce = false);
 
 	void ClimbLadderUp(float Value);
 	void InteractWithLadder();
