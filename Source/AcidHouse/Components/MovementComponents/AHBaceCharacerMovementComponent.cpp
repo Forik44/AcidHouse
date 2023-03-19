@@ -8,6 +8,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "Curves/CurveVector.h"
 #include "DrawDebugHelpers.h"
+#include "../../Actors/Interactive/Enviroment/Ladder.h"
 
 void UAHBaseCharacterMovementComponent::BeginPlay()
 {
@@ -17,7 +18,59 @@ void UAHBaseCharacterMovementComponent::BeginPlay()
 
 FORCEINLINE bool UAHBaseCharacterMovementComponent::IsProning() const
 {
-	return CachedAHBaseCharacter && CachedAHBaseCharacter->bIsProning;
+	return GetBaseCharacterOwner()->bIsProning;
+}
+
+void UAHBaseCharacterMovementComponent::PhysicsRotation(float DeltaTime)
+{
+	if (bForceRotation)
+	{
+		FRotator CurrentRotation = UpdatedComponent->GetComponentRotation(); // Normalized
+		CurrentRotation.DiagnosticCheckNaN(TEXT("CharacterMovementComponent::PhysicsRotation(): CurrentRotation"));
+
+		FRotator DeltaRot = GetDeltaRotation(DeltaTime);
+		DeltaRot.DiagnosticCheckNaN(TEXT("CharacterMovementComponent::PhysicsRotation(): GetDeltaRotation"));
+
+		const float AngleTolerance = 1e-3f;
+
+		if (!CurrentRotation.Equals(ForceTargetRotation, AngleTolerance))
+		{
+			FRotator DesiredRotation = ForceTargetRotation;
+			// PITCH
+			if (!FMath::IsNearlyEqual(CurrentRotation.Pitch, DesiredRotation.Pitch, AngleTolerance))
+			{
+				DesiredRotation.Pitch = FMath::FixedTurn(CurrentRotation.Pitch, DesiredRotation.Pitch, DeltaRot.Pitch);
+			}
+
+			// YAW
+			if (!FMath::IsNearlyEqual(CurrentRotation.Yaw, DesiredRotation.Yaw, AngleTolerance))
+			{
+				DesiredRotation.Yaw = FMath::FixedTurn(CurrentRotation.Yaw, DesiredRotation.Yaw, DeltaRot.Yaw);
+			}
+
+			// ROLL
+			if (!FMath::IsNearlyEqual(CurrentRotation.Roll, DesiredRotation.Roll, AngleTolerance))
+			{
+				DesiredRotation.Roll = FMath::FixedTurn(CurrentRotation.Roll, DesiredRotation.Roll, DeltaRot.Roll);
+			}
+
+			// Set the new rotation.
+			DesiredRotation.DiagnosticCheckNaN(TEXT("CharacterMovementComponent::PhysicsRotation(): DesiredRotation"));
+			MoveUpdatedComponent(FVector::ZeroVector, DesiredRotation, /*bSweep*/ false);
+		}
+		else
+		{
+			ForceTargetRotation = FRotator::ZeroRotator;
+			bForceRotation = false;
+		}
+
+		return;
+	}
+	if (IsOnLadder())
+	{
+		return;
+	}
+	Super::PhysicsRotation(DeltaTime);
 }
 
 float UAHBaseCharacterMovementComponent::GetMaxSpeed() const
@@ -28,13 +81,18 @@ float UAHBaseCharacterMovementComponent::GetMaxSpeed() const
 	{
 		Result = SprintSpeed;
 	}
-	else if (CachedAHBaseCharacter->bIsProning)
+	else if (IsProning())
 	{
 		Result = MaxProneSpeed;
 	}
 	else if (IsFastSwimming())
 	{
 		Result = FastSwimmingSpeed;
+	}
+	else if (IsOnLadder())
+	{
+		Result = ClimbingOnLadderMaxSpeed;
+		return Result;
 	}
 	
 	if (bIsOutOfStamina)
@@ -104,25 +162,25 @@ void UAHBaseCharacterMovementComponent::Prone()
 		return;
 	}
 
-	if (CachedAHBaseCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() == ProneCapsuleHalfHeight)
+	if (GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() == ProneCapsuleHalfHeight)
 	{
-		CachedAHBaseCharacter->bIsProning = true;
-		CachedAHBaseCharacter->OnStartProne(0.f, 0.f);
+		GetBaseCharacterOwner()->bIsProning = true;
+		GetBaseCharacterOwner()->OnStartProne(0.f, 0.f);
 		return;
 	}
 
-	const float ComponentScale = CachedAHBaseCharacter->GetCapsuleComponent()->GetShapeScale();
-	const float OldUnscaledHalfHeight = CachedAHBaseCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
-	const float OldUnscaledRadius = CachedAHBaseCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+	const float ComponentScale = GetBaseCharacterOwner()->GetCapsuleComponent()->GetShapeScale();
+	const float OldUnscaledHalfHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+	const float OldUnscaledRadius = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
 
 	const float ClampedPronedHalfHeight = FMath::Max3(0.f, OldUnscaledRadius, ProneCapsuleHalfHeight);
-	CachedAHBaseCharacter->GetCapsuleComponent()->SetCapsuleSize(OldUnscaledRadius, ClampedPronedHalfHeight);
+	GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(OldUnscaledRadius, ClampedPronedHalfHeight);
 	float HalfHeightAdjust = (OldUnscaledHalfHeight - ClampedPronedHalfHeight);
 	float ScaledHalfHeightAdjust = HalfHeightAdjust * ComponentScale;
 
 	if (ClampedPronedHalfHeight > OldUnscaledHalfHeight)
 	{
-		FCollisionQueryParams CapsuleParams(SCENE_QUERY_STAT(CrouchTrace), false, CachedAHBaseCharacter);
+		FCollisionQueryParams CapsuleParams(SCENE_QUERY_STAT(CrouchTrace), false, GetBaseCharacterOwner());
 		FCollisionResponseParams ResponseParam;
 		InitCollisionParams(CapsuleParams, ResponseParam);
 		const bool bEncroached = GetWorld()->OverlapBlockingTestByChannel(UpdatedComponent->GetComponentLocation() - FVector(0.f, 0.f, ScaledHalfHeightAdjust), FQuat::Identity,
@@ -130,7 +188,7 @@ void UAHBaseCharacterMovementComponent::Prone()
 
 		if (bEncroached)
 		{
-			CachedAHBaseCharacter->GetCapsuleComponent()->SetCapsuleSize(OldUnscaledRadius, OldUnscaledHalfHeight);
+			GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(OldUnscaledRadius, OldUnscaledHalfHeight);
 			return;
 		}
 	}
@@ -139,7 +197,7 @@ void UAHBaseCharacterMovementComponent::Prone()
 	{
 		UpdatedComponent->MoveComponent(FVector(0.f, 0.f, -ScaledHalfHeightAdjust), UpdatedComponent->GetComponentQuat(), true, nullptr, EMoveComponentFlags::MOVECOMP_NoFlags, ETeleportType::TeleportPhysics);
 	}
-	CachedAHBaseCharacter->bIsProning = true;
+	GetBaseCharacterOwner()->bIsProning = true;
 	
 	bForceNextFloorCheck = true;
 
@@ -148,7 +206,7 @@ void UAHBaseCharacterMovementComponent::Prone()
 	ScaledHalfHeightAdjust = HalfHeightAdjust * ComponentScale;
 
 	AdjustProxyCapsuleSize();
-	CachedAHBaseCharacter->OnStartProne(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	GetBaseCharacterOwner()->OnStartProne(HalfHeightAdjust, ScaledHalfHeightAdjust);
 }
 
 void UAHBaseCharacterMovementComponent::UnProne()
@@ -158,29 +216,29 @@ void UAHBaseCharacterMovementComponent::UnProne()
 		return;
 	}
 
-	AAHBaseCharacter* DefaultAHBaseCharacter = CachedAHBaseCharacter->GetClass()->GetDefaultObject<AAHBaseCharacter>();
+	AAHBaseCharacter* DefaultAHBaseCharacter = GetBaseCharacterOwner()->GetClass()->GetDefaultObject<AAHBaseCharacter>();
 
-	if (CachedAHBaseCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() == CrouchedHalfHeight)
+	if (GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() == CrouchedHalfHeight)
 	{
-		CachedAHBaseCharacter->bIsProning = false;
-		CachedAHBaseCharacter->OnEndProne(0.f, 0.f);
+		GetBaseCharacterOwner()->bIsProning = false;
+		GetBaseCharacterOwner()->OnEndProne(0.f, 0.f);
 		return;
 	}
 
-	const float CurrentPronedHalfHeight = CachedAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	const float CurrentPronedHalfHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
-	const float ComponentScale = CachedAHBaseCharacter->GetCapsuleComponent()->GetShapeScale();
-	const float OldUnscaledHalfHeight = CachedAHBaseCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+	const float ComponentScale = GetBaseCharacterOwner()->GetCapsuleComponent()->GetShapeScale();
+	const float OldUnscaledHalfHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 	const float HalfHeightAdjust = CrouchedHalfHeight - OldUnscaledHalfHeight;
 	const float ScaledHalfHeightAdjust = HalfHeightAdjust * ComponentScale;
 	const FVector PawnLocation = UpdatedComponent->GetComponentLocation();
 
-	check(CachedAHBaseCharacter->GetCapsuleComponent());
+	check(GetBaseCharacterOwner()->GetCapsuleComponent());
 
 
 	const UWorld* MyWorld = GetWorld();
 	const float SweepInflation = KINDA_SMALL_NUMBER * 10.f;
-	FCollisionQueryParams CapsuleParams(SCENE_QUERY_STAT(CrouchTrace), false, CachedAHBaseCharacter);
+	FCollisionQueryParams CapsuleParams(SCENE_QUERY_STAT(CrouchTrace), false, GetBaseCharacterOwner());
 	FCollisionResponseParams ResponseParam;
 	InitCollisionParams(CapsuleParams, ResponseParam);
 
@@ -197,7 +255,7 @@ void UAHBaseCharacterMovementComponent::UnProne()
 			if (ScaledHalfHeightAdjust > 0.f)
 			{
 				float PawnRadius, PawnHalfHeight;
-				CachedAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleSize(PawnRadius, PawnHalfHeight);
+				GetBaseCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleSize(PawnRadius, PawnHalfHeight);
 				const float ShrinkHalfHeight = PawnHalfHeight - PawnRadius;
 				const float TraceDist = PawnHalfHeight - ShrinkHalfHeight;
 				const FVector Down = FVector(0.f, 0.f, -TraceDist);
@@ -252,13 +310,13 @@ void UAHBaseCharacterMovementComponent::UnProne()
 		return;
 	}
 
-	CachedAHBaseCharacter->bIsProning = false;
+	GetBaseCharacterOwner()->bIsProning = false;
 
-	CachedAHBaseCharacter->GetCapsuleComponent()->SetCapsuleSize(DefaultAHBaseCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), CrouchedHalfHeight, true);
+	GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(DefaultAHBaseCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), CrouchedHalfHeight, true);
 
 	const float MeshAdjust = ScaledHalfHeightAdjust;
 	AdjustProxyCapsuleSize();
-	CachedAHBaseCharacter->OnEndProne(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	GetBaseCharacterOwner()->OnEndProne(HalfHeightAdjust, ScaledHalfHeightAdjust);
 }
 
 void UAHBaseCharacterMovementComponent::StartMantle(const FMantlingMovementParameters& MantlingParameters)
@@ -272,14 +330,101 @@ void UAHBaseCharacterMovementComponent::EndMantle()
 	SetMovementMode(MOVE_Walking);
 }
 
+bool UAHBaseCharacterMovementComponent::CanAttemptMantle() const
+{
+	return !IsMantling() && !IsProning() && !IsCrouching() && !IsOnLadder();
+}
+
 bool UAHBaseCharacterMovementComponent::IsMantling() const
 {
 	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Mantling;
 }
 
-bool UAHBaseCharacterMovementComponent::CanAttemptMantle() const
+bool UAHBaseCharacterMovementComponent::IsOnLadder() const
 {
-	return !IsMantling() && !IsProning() && !IsCrouching();
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Ladder;
+}
+
+float UAHBaseCharacterMovementComponent::GetLadderSpeedRation() const
+{
+	checkf(IsValid(CurrentLadder), TEXT("UAHBaseCharacterMovementComponent::GetLadderSpeedRation() cannot be invoked when current ladder is null"))
+
+	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
+	return FVector::DotProduct(LadderUpVector, Velocity) / ClimbingOnLadderMaxSpeed;
+}
+
+void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
+{
+	CurrentLadder = Ladder;
+	Velocity = FVector::UpVector;
+
+	FRotator TargetOrientationRotation = CurrentLadder->GetActorForwardVector().ToOrientationRotator();
+	TargetOrientationRotation.Yaw += 180.0f;
+
+	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
+	FVector LadderForwardVector = CurrentLadder->GetActorForwardVector();
+	float Projection = GetActorToCurrentLadderProjection(GetActorLocation());
+
+	FVector NewCharacterLocation = CurrentLadder->GetActorLocation() + Projection * LadderUpVector + LadderToCharacterOffset * LadderForwardVector;
+	if (CurrentLadder->GetIsOnTop())
+	{
+		NewCharacterLocation = CurrentLadder->GetAttachFromTopAnimMontageStartingLocation();
+	}
+
+	GetOwner()->SetActorLocation(NewCharacterLocation);
+	GetOwner()->SetActorRotation(TargetOrientationRotation);
+
+	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Ladder);
+}
+
+float UAHBaseCharacterMovementComponent::GetActorToCurrentLadderProjection(const FVector& Location) const
+{
+	checkf(IsValid(CurrentLadder), TEXT("UAHBaseCharacterMovementComponent::GetCharacterToCurrentLadderProjection() cannot be invoked when current ladder is null"))
+
+	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
+	FVector LadderToCharacterDistance = GetActorLocation() - CurrentLadder->GetActorLocation();
+	return FVector::DotProduct(LadderUpVector, LadderToCharacterDistance);
+}
+
+void UAHBaseCharacterMovementComponent::DetachFromLadder(EDetachFromLadderMethod DetachFromLadderMethod /*= EDetachFromLadderMethod::Fall*/)
+{
+	switch (DetachFromLadderMethod)
+	{
+	case EDetachFromLadderMethod::Fall:
+	{
+		SetMovementMode(MOVE_Falling);
+		break;
+	}
+	case EDetachFromLadderMethod::ReachingTheTop:
+	{
+		GetBaseCharacterOwner()->Mantle(true);
+		break;
+	}
+	case EDetachFromLadderMethod::ReachingTheBottom:
+	{
+		SetMovementMode(MOVE_Walking); 
+		break;
+	}
+	case EDetachFromLadderMethod::JumpOff:
+	{
+		FVector JumpDirection = CurrentLadder->GetActorForwardVector();
+
+		SetMovementMode(MOVE_Falling);
+
+		FVector JumpVelocity = JumpDirection * JumpOffFromLadderSpeed;
+
+		ForceTargetRotation = JumpDirection.ToOrientationRotator();
+		bForceRotation = true;
+
+		Launch(JumpVelocity);
+		break;
+	}
+	default:
+	{
+		SetMovementMode(MOVE_Falling);
+		break;
+	}
+	}
 }
 
 void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode)
@@ -295,17 +440,22 @@ void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 
 	if (MovementMode == MOVE_Swimming)
 	{
-		CachedAHBaseCharacter->bIsCrouched = false;
-		CachedAHBaseCharacter->bIsProning = false;
-		CachedAHBaseCharacter->OnSwimStart();
-		CachedAHBaseCharacter->GetCapsuleComponent()->SetCapsuleSize(SwimmingCapsuleRadius, SwimmingCapsuleHalfHeight);
+		GetBaseCharacterOwner()->bIsCrouched = false;
+		GetBaseCharacterOwner()->bIsProning = false;
+		GetBaseCharacterOwner()->OnSwimStart();
+		GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(SwimmingCapsuleRadius, SwimmingCapsuleHalfHeight);
 	}
 	else if (PreviousMovementMode == MOVE_Swimming)
 	{
-		AAHBaseCharacter* DefaultCharacter = CachedAHBaseCharacter->GetClass()->GetDefaultObject<AAHBaseCharacter>();
-		CachedAHBaseCharacter->OnSwimEnd();
-		CachedAHBaseCharacter->GetCapsuleComponent()->SetCapsuleSize(DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight(), true);
-		CachedAHBaseCharacter->GetCapsuleComponent()->SetWorldRotation(FQuat(0, 0, 0, 0));
+		AAHBaseCharacter* DefaultCharacter = GetBaseCharacterOwner()->GetClass()->GetDefaultObject<AAHBaseCharacter>();
+		GetBaseCharacterOwner()->OnSwimEnd();
+		GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight(), true);
+		GetBaseCharacterOwner()->GetCapsuleComponent()->SetWorldRotation(FQuat(0, 0, 0, 0));
+	}
+
+	if (PreviousMovementMode == MOVE_Custom && PreviusCustomMode == (uint8)ECustomMovementMode::CMOVE_Ladder)
+	{
+		CurrentLadder = nullptr;
 	}
 
 	if (MovementMode == MOVE_Custom)
@@ -331,35 +481,77 @@ void UAHBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 	{
 		case (uint8)ECustomMovementMode::CMOVE_Mantling:
 		{
-			float ElapsedTime = GetWorld()->GetTimerManager().GetTimerElapsed(MantlingTimer) + CurrentMantlingParametrs.StartTime;
-			
-			FVector MantlingCurveValue = CurrentMantlingParametrs.MantlingCurve->GetVectorValue(ElapsedTime);
-
-			float PositionAlpha = MantlingCurveValue.X; 
-			float XYCorrectionAlpha = MantlingCurveValue.Y;
-			float ZCorrectionAlpha = MantlingCurveValue.Z;
-
-			FVector CorrectedInitialLocation = FMath::Lerp(CurrentMantlingParametrs.InitialLocation, CurrentMantlingParametrs.InitialAimationLocation, XYCorrectionAlpha);
-			CorrectedInitialLocation.Z = FMath::Lerp(CurrentMantlingParametrs.InitialLocation.Z, CurrentMantlingParametrs.InitialAimationLocation.Z, ZCorrectionAlpha);
-
-			FVector NewTargetOffset = CurrentMantlingParametrs.LedgeActor->GetActorLocation() - CurrentMantlingParametrs.TargetLocation;
-
-			CurrentMantlingParametrs.TargetLocation += NewTargetOffset - CurrentMantlingParametrs.TargetOffset;
-
-			FVector NewLocation = FMath::Lerp(CorrectedInitialLocation, CurrentMantlingParametrs.TargetLocation, PositionAlpha);
-			FRotator NewRotation = FMath::Lerp(CurrentMantlingParametrs.InitialRotation, CurrentMantlingParametrs.TargetRotation, PositionAlpha);
-
-			FVector Delta = NewLocation - GetActorLocation();
-
-			FHitResult Hit;
-			SafeMoveUpdatedComponent(Delta, NewRotation, false, Hit);
+			PhysMantling(DeltaTime, Iterations);
 			break;
+		}
+		case (uint8)ECustomMovementMode::CMOVE_Ladder:
+		{
+			PhysLadder(DeltaTime, Iterations);
+			break; 
 		}
 		default:
 			break;
 	}
 
 	Super::PhysCustom(DeltaTime, Iterations); 
+}
+
+void UAHBaseCharacterMovementComponent::PhysMantling(float DeltaTime, int32 Iterations)
+{
+	float ElapsedTime = GetWorld()->GetTimerManager().GetTimerElapsed(MantlingTimer) + CurrentMantlingParametrs.StartTime;
+
+	FVector MantlingCurveValue = CurrentMantlingParametrs.MantlingCurve->GetVectorValue(ElapsedTime);
+
+	float PositionAlpha = MantlingCurveValue.X;
+	float XYCorrectionAlpha = MantlingCurveValue.Y;
+	float ZCorrectionAlpha = MantlingCurveValue.Z;
+
+	FVector CorrectedInitialLocation = FMath::Lerp(CurrentMantlingParametrs.InitialLocation, CurrentMantlingParametrs.InitialAimationLocation, XYCorrectionAlpha);
+	CorrectedInitialLocation.Z = FMath::Lerp(CurrentMantlingParametrs.InitialLocation.Z, CurrentMantlingParametrs.InitialAimationLocation.Z, ZCorrectionAlpha);
+
+	FVector NewTargetOffset = CurrentMantlingParametrs.LedgeActor->GetActorLocation() - CurrentMantlingParametrs.TargetLocation;
+
+	CurrentMantlingParametrs.TargetLocation += NewTargetOffset - CurrentMantlingParametrs.TargetOffset;
+
+	FVector NewLocation = FMath::Lerp(CorrectedInitialLocation, CurrentMantlingParametrs.TargetLocation, PositionAlpha);
+	FRotator NewRotation = FMath::Lerp(CurrentMantlingParametrs.InitialRotation, CurrentMantlingParametrs.TargetRotation, PositionAlpha);
+
+	FVector Delta = NewLocation - GetActorLocation();
+
+	FHitResult Hit;
+	SafeMoveUpdatedComponent(Delta, NewRotation, false, Hit);
+}
+
+void UAHBaseCharacterMovementComponent::PhysLadder(float DeltaTime, int32 Iterations)
+{
+	CalcVelocity(DeltaTime, 1.0f, false, ClimbingOnLadderBreakingDecelaration);
+	FVector Delta = Velocity * DeltaTime;
+
+	if (HasAnimRootMotion())
+	{
+		FHitResult Hit;
+		FRotator TargetOrientationRotation = CurrentLadder->GetActorForwardVector().ToOrientationRotator();
+		TargetOrientationRotation.Yaw += 180.0f;
+		SafeMoveUpdatedComponent(Delta, TargetOrientationRotation, false, Hit);
+		return;
+	}
+
+	FVector NewPosition = GetActorLocation() + Delta;
+	float NewPositionProjection = GetActorToCurrentLadderProjection(NewPosition);
+
+	if (NewPositionProjection < MinLadderBottomOffset)
+	{
+		DetachFromLadder(EDetachFromLadderMethod::ReachingTheBottom);
+		return;
+	}
+	else if (NewPositionProjection > (CurrentLadder->GetLadderHeight() - MaxLadderTopOffset))
+	{
+		DetachFromLadder(EDetachFromLadderMethod::ReachingTheTop);
+		return;
+	}
+
+	FHitResult Hit;
+	SafeMoveUpdatedComponent(Delta, GetOwner()->GetActorRotation(), true, Hit);
 }
 
 bool UAHBaseCharacterMovementComponent::CanAttemptJump() const

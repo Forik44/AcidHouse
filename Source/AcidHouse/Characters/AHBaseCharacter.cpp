@@ -9,6 +9,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "../Components/LedgeDetectorComponent.h"
 #include "Curves/CurveVector.h"
+#include "../Actors/Interactive/InteractiveActor.h"
+#include "../Actors/Interactive/Enviroment/Ladder.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -191,10 +193,15 @@ void AAHBaseCharacter::Tick(float DeltaTime)
 	}
 }
 
-void AAHBaseCharacter::Mantle()
+void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 {
+	if (!(CanMantle() || bForce))
+	{
+		return;
+	}
+
 	FLedgeDescription LedgeDescription;
-	if (LedgeDetectorComponent->DetectLedge(LedgeDescription) && CanMantle())
+	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
 	{
 		FMantlingMovementParameters MantlingParametrs;
 
@@ -227,6 +234,16 @@ void AAHBaseCharacter::Mantle()
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
 	}
+}
+
+void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
+{
+	AvailableInteractiveActors.AddUnique(IntaractiveActor);
+}
+
+void AAHBaseCharacter::UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor)
+{
+	AvailableInteractiveActors.RemoveSingleSwap(IntaractiveActor);
 }
 
 bool AAHBaseCharacter::CanMantle()
@@ -263,7 +280,7 @@ void AAHBaseCharacter::OnFastSwimEnd_Implementation()
 
 bool AAHBaseCharacter::CanSprint()
 {
-	return GetBaseCharacterMovementComponent()->CanEverSprint() && (GetBaseCharacterMovementComponent()->MovementMode != MOVE_Swimming);
+	return GetBaseCharacterMovementComponent()->CanEverSprint() && (GetBaseCharacterMovementComponent()->MovementMode != MOVE_Swimming) && !GetBaseCharacterMovementComponent()->IsOnLadder();
 }
 
 bool AAHBaseCharacter::CanFastSwim()
@@ -347,5 +364,50 @@ float AAHBaseCharacter::GetIKOffsetForASocket(const FName& SocketName)
 const FMantlingSettings& AAHBaseCharacter::GetMantlingSettings(float LedgeHeight) const
 {
 	return LedgeHeight > LowMantleMaxHeight ? HighMantleSettings : LowMantleSettings;
+}
+
+void AAHBaseCharacter::ClimbLadderUp(float Value)
+{
+	if (!FMath::IsNearlyZero(Value) && GetBaseCharacterMovementComponent()->IsOnLadder())
+	{
+		FVector LadderUpVector = GetBaseCharacterMovementComponent()->GetCurrentLadder()->GetActorUpVector();
+		AddMovementInput(LadderUpVector, Value);
+	}
+}
+
+void AAHBaseCharacter::InteractWithLadder()
+{
+	if (GetBaseCharacterMovementComponent()->IsOnLadder())
+	{
+		GetBaseCharacterMovementComponent()->DetachFromLadder(EDetachFromLadderMethod::JumpOff);
+	}
+	else
+	{
+		const ALadder* AvailableLadder = GetAvailableLadder();
+		if (IsValid(AvailableLadder))
+		{
+			if (AvailableLadder->GetIsOnTop()) 
+			{
+				PlayAnimMontage(AvailableLadder->GetAttachFromTopAnimMontage());
+			}
+			GetBaseCharacterMovementComponent()->AttachToLadder(AvailableLadder);
+		}
+	}
+}
+
+const class ALadder* AAHBaseCharacter::GetAvailableLadder() const
+{
+	const ALadder* Result = nullptr;
+
+	for (const AInteractiveActor* InteractiveActor : AvailableInteractiveActors)
+	{
+		if (InteractiveActor->IsA<ALadder>())
+		{
+			Result = StaticCast<const ALadder*>(InteractiveActor);
+			break;
+		}
+	}
+
+	return Result;
 }
 

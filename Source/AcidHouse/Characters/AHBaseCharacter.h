@@ -36,6 +36,7 @@ struct FMantlingSettings
 	float MinHeightStartTime = 0.5f;
 };
 
+class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
 UCLASS(Abstract, NotBlueprintable)
 class ACIDHOUSE_API AAHBaseCharacter : public ACharacter
@@ -46,8 +47,6 @@ public:
 	AAHBaseCharacter(const FObjectInitializer& ObjectInitializer);
 
 	bool bIsProning = false;
-
-	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -92,7 +91,14 @@ public:
 	void OnSwimEnd();
 	virtual void OnSwimEnd_Implementation();
 
-	virtual void Mantle();
+	virtual void Mantle(bool bForce = false);
+
+	void ClimbLadderUp(float Value);
+	void InteractWithLadder();
+	const class ALadder* GetAvailableLadder() const;
+
+	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
+	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 
 	FORCEINLINE UAHBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return AHBaseCharacterMovementComponent; }
 
@@ -106,6 +112,8 @@ public:
 	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Movement")
 	float SprintSpeed = 800.0f;
 
@@ -185,4 +193,6 @@ private:
 	float GetIKOffsetForASocket(const FName& SocketName);
 
 	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
+
+	TArray<AInteractiveActor*> AvailableInteractiveActors;
 };
