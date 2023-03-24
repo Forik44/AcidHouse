@@ -46,6 +46,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	float LadderSpeedRation = 0.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsOnZipline = false;
+
 	UPROPERTY(VisibleAnywhere, Transient, BlueprintReadOnly, Category = "Character animation | IK Settings")
 	FVector RightFootEffectorLocation = FVector::ZeroVector;
 

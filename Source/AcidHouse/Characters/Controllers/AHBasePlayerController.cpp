@@ -19,6 +19,7 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAxis("SwimUp", this, &AAHBasePlayerController::SwimUp);
 	InputComponent->BindAxis("ClimbLadderUp", this, &AAHBasePlayerController::ClimbLadderUp);
 	InputComponent->BindAction("InteractWithLadder", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::InteractWithLadder);
+	InputComponent->BindAction("InteractWithZipline", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::InteractWithZipline);
 	InputComponent->BindAction("Mantle", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Mantle);
 	InputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Jump);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartSprint);
@@ -162,5 +163,13 @@ void AAHBasePlayerController::InteractWithLadder()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->InteractWithLadder();
+	}
+}
+
+void AAHBasePlayerController::InteractWithZipline()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->InteractWithZipline();
 	}
 }

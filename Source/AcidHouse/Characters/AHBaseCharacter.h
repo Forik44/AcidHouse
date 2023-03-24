@@ -38,6 +38,9 @@ struct FMantlingSettings
 
 class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
+
+typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
+
 UCLASS(Abstract, NotBlueprintable)
 class ACIDHOUSE_API AAHBaseCharacter : public ACharacter
 {
@@ -96,6 +99,9 @@ public:
 	void ClimbLadderUp(float Value);
 	void InteractWithLadder();
 	const class ALadder* GetAvailableLadder() const;
+
+	void InteractWithZipline() const;
+	const class AZipline* GetAvailableZipline() const;
 
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
@@ -194,5 +200,5 @@ private:
 
 	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
 
-	TArray<AInteractiveActor*> AvailableInteractiveActors;
+	TInteractiveActorsArray AvailableInteractiveActors;
 };

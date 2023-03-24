@@ -45,4 +45,6 @@ private:
 
 	void ClimbLadderUp(float Value);
 	void InteractWithLadder();
+
+	void InteractWithZipline();
 };

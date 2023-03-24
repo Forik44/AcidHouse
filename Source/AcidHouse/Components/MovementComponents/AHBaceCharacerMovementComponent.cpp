@@ -9,6 +9,7 @@
 #include "Curves/CurveVector.h"
 #include "DrawDebugHelpers.h"
 #include "../../Actors/Interactive/Enviroment/Ladder.h"
+#include "../../Actors/Interactive/Enviroment/Zipline.h"
 
 void UAHBaseCharacterMovementComponent::BeginPlay()
 {
@@ -16,7 +17,7 @@ void UAHBaseCharacterMovementComponent::BeginPlay()
 	CachedAHBaseCharacter = Cast<AAHBaseCharacter>(GetOwner());
 }
 
-FORCEINLINE bool UAHBaseCharacterMovementComponent::IsProning() const
+bool UAHBaseCharacterMovementComponent::IsProning() const
 {
 	return GetBaseCharacterOwner()->bIsProning;
 }
@@ -92,6 +93,11 @@ float UAHBaseCharacterMovementComponent::GetMaxSpeed() const
 	else if (IsOnLadder())
 	{
 		Result = ClimbingOnLadderMaxSpeed;
+		return Result;
+	}
+	else if (IsOnZipline())
+	{
+		Result = ZiplineMaxSpeed;
 		return Result;
 	}
 	
@@ -353,6 +359,11 @@ float UAHBaseCharacterMovementComponent::GetLadderSpeedRation() const
 	return FVector::DotProduct(LadderUpVector, Velocity) / ClimbingOnLadderMaxSpeed;
 }
 
+bool UAHBaseCharacterMovementComponent::IsOnZipline() const
+{
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Zipline;
+}
+
 void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 {
 	CurrentLadder = Ladder;
@@ -379,11 +390,19 @@ void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 
 float UAHBaseCharacterMovementComponent::GetActorToCurrentLadderProjection(const FVector& Location) const
 {
-	checkf(IsValid(CurrentLadder), TEXT("UAHBaseCharacterMovementComponent::GetCharacterToCurrentLadderProjection() cannot be invoked when current ladder is null"))
+	checkf(IsValid(CurrentLadder), TEXT("UAHBaseCharacterMovementComponent::GetActorToCurrentLadderProjection(const FVector& Location) cannot be invoked when current ladder is null"))
 
 	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
 	FVector LadderToCharacterDistance = GetActorLocation() - CurrentLadder->GetActorLocation();
 	return FVector::DotProduct(LadderUpVector, LadderToCharacterDistance);
+}
+
+float UAHBaseCharacterMovementComponent::GetActorToCurrentZiplineProjection(const FVector& Location) const
+{
+	checkf(IsValid(CurrentZipline), TEXT("UAHBaseCharacterMovementComponent::GetActorToCurrentZiplineProjection(const FVector& Location) cannot be invoked when current ladder is null"))
+;
+	FVector LadderToCharacterDistance = GetActorLocation() - CurrentZipline->GetActorLocation();
+	return FVector::DotProduct(ZiplineDirection, LadderToCharacterDistance);
 }
 
 void UAHBaseCharacterMovementComponent::DetachFromLadder(EDetachFromLadderMethod DetachFromLadderMethod /*= EDetachFromLadderMethod::Fall*/)
@@ -402,7 +421,7 @@ void UAHBaseCharacterMovementComponent::DetachFromLadder(EDetachFromLadderMethod
 	}
 	case EDetachFromLadderMethod::ReachingTheBottom:
 	{
-		SetMovementMode(MOVE_Walking); 
+		SetMovementMode(MOVE_Walking);
 		break;
 	}
 	case EDetachFromLadderMethod::JumpOff:
@@ -425,6 +444,33 @@ void UAHBaseCharacterMovementComponent::DetachFromLadder(EDetachFromLadderMethod
 		break;
 	}
 	}
+}
+
+void UAHBaseCharacterMovementComponent::AttachToZipline(const AZipline* Zipline)
+{
+	CurrentZipline = Zipline;
+	ZiplineDirection = -CurrentZipline->GetZiplineDirection();
+	ZiplineDirection.Normalize();
+	Velocity = ZiplineDirection;
+
+	FRotator TargetOrientationRotation = CurrentZipline->GetZiplineDirection().ToOrientationRotator();
+	TargetOrientationRotation.Yaw += 180.0f;
+
+	FVector ZiplineUpVector = CurrentZipline->GetActorUpVector();
+	FVector ZiplineForwardVector = CurrentZipline->GetActorForwardVector();
+	float Projection = GetActorToCurrentZiplineProjection(GetActorLocation());
+
+	FVector NewCharacterLocation = CurrentZipline->GetActorLocation() + CurrentZipline->GetHeight() * FVector::UpVector + Projection * ZiplineDirection - ZiplineToCharacterOffset * ZiplineUpVector;
+
+	GetOwner()->SetActorLocation(NewCharacterLocation);
+	GetOwner()->SetActorRotation(TargetOrientationRotation);
+
+	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Zipline);
+}
+
+void UAHBaseCharacterMovementComponent::DetachFromZipline()
+{
+	SetMovementMode(MOVE_Falling);
 }
 
 void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode)
@@ -458,6 +504,11 @@ void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 		CurrentLadder = nullptr;
 	}
 
+	if (PreviousMovementMode == MOVE_Custom && PreviusCustomMode == (uint8)ECustomMovementMode::CMOVE_Zipline)
+	{
+		CurrentZipline = nullptr;
+	}
+
 	if (MovementMode == MOVE_Custom)
 	{
 		switch (CustomMovementMode)
@@ -488,6 +539,11 @@ void UAHBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 		{
 			PhysLadder(DeltaTime, Iterations);
 			break; 
+		}
+		case (uint8)ECustomMovementMode::CMOVE_Zipline:
+		{
+			PhysZipline(DeltaTime, Iterations);
+			break;
 		}
 		default:
 			break;
@@ -547,6 +603,31 @@ void UAHBaseCharacterMovementComponent::PhysLadder(float DeltaTime, int32 Iterat
 	else if (NewPositionProjection > (CurrentLadder->GetLadderHeight() - MaxLadderTopOffset))
 	{
 		DetachFromLadder(EDetachFromLadderMethod::ReachingTheTop);
+		return;
+	}
+
+	FHitResult Hit;
+	SafeMoveUpdatedComponent(Delta, GetOwner()->GetActorRotation(), true, Hit);
+}
+
+void UAHBaseCharacterMovementComponent::PhysZipline(float DeltaTime, int32 Iterations)
+{
+	AddInputVector(ZiplineDirection);
+	CalcVelocity(DeltaTime, 1.0f, false, ClimbingOnLadderBreakingDecelaration);
+	FVector Delta = Velocity * DeltaTime;
+
+	FVector NewPosition = GetActorLocation() + Delta;
+	float NewPositionProjection = GetActorToCurrentZiplineProjection(NewPosition);
+
+	if (NewPositionProjection > CurrentZipline->GetCableLength())
+	{
+		DetachFromZipline();
+		return;
+	}
+
+	if (!IsValid(CurrentZipline))
+	{
+		DetachFromZipline();
 		return;
 	}
 

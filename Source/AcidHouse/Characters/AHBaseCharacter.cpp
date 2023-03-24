@@ -11,6 +11,7 @@
 #include "Curves/CurveVector.h"
 #include "../Actors/Interactive/InteractiveActor.h"
 #include "../Actors/Interactive/Enviroment/Ladder.h"
+#include "../Actors/Interactive/Enviroment/Zipline.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -404,6 +405,41 @@ const class ALadder* AAHBaseCharacter::GetAvailableLadder() const
 		if (InteractiveActor->IsA<ALadder>())
 		{
 			Result = StaticCast<const ALadder*>(InteractiveActor);
+			break;
+		}
+	}
+
+	return Result;
+}
+
+void AAHBaseCharacter::InteractWithZipline() const
+{
+	if (GetBaseCharacterMovementComponent()->IsOnZipline())
+	{
+		GetBaseCharacterMovementComponent()->DetachFromZipline();
+	}
+	else
+	{
+		const AZipline* AvailableZipline = GetAvailableZipline();
+		if (IsValid(AvailableZipline))
+		{
+			GetBaseCharacterMovementComponent()->AttachToZipline(AvailableZipline);
+
+			FVector ZiplineDirection = AvailableZipline->GetZiplineDirection();
+			ZiplineDirection.Normalize();
+		}
+	}
+}
+
+const class AZipline* AAHBaseCharacter::GetAvailableZipline() const
+{
+	const AZipline* Result = nullptr;
+
+	for (const AInteractiveActor* InteractiveActor : AvailableInteractiveActors)
+	{
+		if (InteractiveActor->IsA<AZipline>())
+		{
+			Result = StaticCast<const AZipline*>(InteractiveActor);
 			break;
 		}
 	}

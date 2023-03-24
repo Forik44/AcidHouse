@@ -33,6 +33,7 @@ void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		LadderSpeedRation = CharacterMovement->GetLadderSpeedRation();
 	}
+	bIsOnZipline = CharacterMovement->IsOnZipline();
 
 	RightFootEffectorLocation = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKRightFootOffset());
 	LeftFootEffectorLocation = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKLeftFootOffset());
