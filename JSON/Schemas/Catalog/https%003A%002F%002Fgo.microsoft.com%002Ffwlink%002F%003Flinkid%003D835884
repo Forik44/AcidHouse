@@ -1144,7 +1144,7 @@
       "url": "https://json.schemastore.org/crowdin.json"
     },
     {
-      "name": "Crowdsec collection chema",
+      "name": "Crowdsec collection Schema",
       "description": "A YAML schema for Crowdsec collection configuration files",
       "fileMatch": ["**/collections/*/*.yaml"],
       "url": "https://raw.githubusercontent.com/crowdsecurity/crowdsec-yaml-schemas/main/collection_schema.yaml"
@@ -1162,7 +1162,7 @@
       "url": "https://raw.githubusercontent.com/crowdsecurity/crowdsec-yaml-schemas/main/parser_schema.yaml"
     },
     {
-      "name": "Crowdsec collection chema",
+      "name": "Crowdsec scenario Schema",
       "description": "A YAML schema for Crowdsec scenario configuration files",
       "fileMatch": ["**/scenarioss/*/*.yaml"],
       "url": "https://raw.githubusercontent.com/crowdsecurity/crowdsec-yaml-schemas/main/scenario_schema.yaml"
@@ -1648,6 +1648,15 @@
       "description": "YAML schema for GitHub Actions",
       "fileMatch": ["action.yml", "action.yaml"],
       "url": "https://json.schemastore.org/github-action.json"
+    },
+    {
+      "name": "GitHub Discussion",
+      "description": "YAML schema for GitHub Discussions",
+      "fileMatch": [
+        "**/.github/DISCUSSION_TEMPLATE/*.yml",
+        "**/.github/DISCUSSION_TEMPLATE/*.yaml"
+      ],
+      "url": "https://json.schemastore.org/github-discussion.json"
     },
     {
       "name": "GitHub Funding",

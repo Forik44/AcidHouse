@@ -24,6 +24,9 @@ AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	IKTraceDistance = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
 	LedgeDetectorComponent = CreateDefaultSubobject<ULedgeDetectorComponent>(TEXT("LedgeDetector"));
+
+	GetMesh()->CastShadow = true;
+	GetMesh()->bCastDynamicShadow = true;
 }
 
 void AAHBaseCharacter::BeginPlay()
