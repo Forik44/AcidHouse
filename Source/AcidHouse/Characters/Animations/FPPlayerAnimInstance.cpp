@@ -3,6 +3,7 @@
 
 #include "FPPlayerAnimInstance.h"
 #include "../FPPlayerCharacter.h"
+#include "../Controllers/AHBasePlayerController.h"
 
 void UFPPlayerAnimInstance::NativeBeginPlay()
 {
@@ -20,10 +21,23 @@ void UFPPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		return;
 	}
-	APlayerController* Controller = ChachedFirstPersonCharacterOwner->GetController<APlayerController>();
-	if (IsValid(Controller))
+	
+	PlayerCameraPitchAngle = CalculateCameraPitchAngle();
+	
+
+}
+
+float UFPPlayerAnimInstance::CalculateCameraPitchAngle() const
+{
+	float Result = 0.0f;
+
+	AAHBasePlayerController* Controller = ChachedFirstPersonCharacterOwner->GetController<AAHBasePlayerController>();
+	if (IsValid(Controller) && !Controller->GetIgnoreCameraPitch())
 	{
-		PlayerCameraPitchAngle = Controller->GetControlRotation().Pitch;
+		
+		Result = Controller->GetControlRotation().Pitch;
 	}
+
+	return Result;
 
 }

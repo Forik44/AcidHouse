@@ -7,6 +7,16 @@ void AAHBasePlayerController::SetPawn(APawn* InPawn)
 	CachedBaseCharacter = Cast<AAHBaseCharacter>(InPawn);
 }
 
+bool AAHBasePlayerController::GetIgnoreCameraPitch() const
+{
+	return bIgnoreCameraPitch;
+}
+
+void AAHBasePlayerController::SetIgnoreCameraPitch(bool bIgnoreCameraPitch_In)
+{
+	bIgnoreCameraPitch = bIgnoreCameraPitch_In;
+}
+
 void AAHBasePlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();

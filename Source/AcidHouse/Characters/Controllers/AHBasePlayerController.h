@@ -17,6 +17,9 @@ class ACIDHOUSE_API AAHBasePlayerController : public APlayerController
 public:
 	virtual void SetPawn(APawn* InPawn) override;
 
+	bool GetIgnoreCameraPitch() const;
+	void SetIgnoreCameraPitch(bool bIgnoreCameraPitch_In);
+
 protected:
 	virtual void SetupInputComponent() override;
 
@@ -47,4 +50,6 @@ private:
 	void InteractWithLadder();
 
 	void InteractWithZipline();
+
+	bool bIgnoreCameraPitch = false;
 };

@@ -7,6 +7,8 @@
 #include "Components/CapsuleComponent.h"
 #include "../AcidHouseTypes.h"
 #include "Controllers/AHBasePlayerController.h"
+#include "AHBaseCharacter.h"
+#include "../Components/MovementComponents/AHBaceCharacerMovementComponent.h"
 
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -36,6 +38,29 @@ AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializ
 
 }
 
+void AFPPlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	AHBasePlayerController = Cast<AAHBasePlayerController>(NewController);
+}
+
+void AFPPlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (IsFPMontagePlaying() && AHBasePlayerController.IsValid())
+	{
+		FRotator TargetControlRotation = AHBasePlayerController->GetControlRotation();
+		TargetControlRotation.Pitch = 0.0f;
+		TargetControlRotation.Yaw = FirstPersonCameraComponent->GetSocketRotation(SocketFPCamera).Yaw;
+
+		float BlendSpeed = 6.0f;
+		TargetControlRotation = FMath::RInterpTo(AHBasePlayerController->GetControlRotation(), TargetControlRotation, DeltaTime, BlendSpeed);
+		AHBasePlayerController->SetControlRotation(TargetControlRotation);
+	}
+}
+
 void AFPPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
@@ -54,6 +79,55 @@ void AFPPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
 	FirstPersonMeshRelativeLocation.Z = DefaultCharacter->FirstPersonMeshComponent->GetRelativeLocation().Z;
 }
 
+FRotator AFPPlayerCharacter::GetViewRotation() const 
+{
+	FRotator Result = Super::GetViewRotation();
+
+	if (IsFPMontagePlaying())
+	{
+		FRotator SocketRotation = FirstPersonMeshComponent->GetSocketRotation(SocketFPCamera);
+		Result.Pitch += SocketRotation.Pitch;
+		Result.Yaw = SocketRotation.Yaw;
+		Result.Roll = SocketRotation.Roll;
+	}
+
+	return Result;
+}
+
+void AFPPlayerCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+	
+	if(GetBaseCharacterMovementComponent()->IsOnLadder())
+	{
+		if (AHBasePlayerController.IsValid())
+		{
+			AHBasePlayerController->SetIgnoreCameraPitch(true);
+			bUseControllerRotationYaw = false;
+			APlayerCameraManager* CameraManager = AHBasePlayerController->PlayerCameraManager;
+			CameraManager->ViewPitchMin = LadderCameraMinPitch;
+			CameraManager->ViewPitchMax = LadderCameraMaxPitch;
+			CameraManager->ViewYawMin = LadderCameraMinYaw;
+			CameraManager->ViewYawMax = LadderCameraMaxYaw;
+		}
+	}
+	else if (PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_Ladder)
+	{
+		if (AHBasePlayerController.IsValid())
+		{
+			AHBasePlayerController->SetIgnoreCameraPitch(false);
+			bUseControllerRotationYaw = true;
+			APlayerCameraManager* CameraManager = AHBasePlayerController->PlayerCameraManager;
+			APlayerCameraManager* DefaultCameraManager = CameraManager->GetClass()->GetDefaultObject<APlayerCameraManager>();
+
+			CameraManager->ViewPitchMin = DefaultCameraManager->ViewPitchMin;
+			CameraManager->ViewPitchMax = DefaultCameraManager->ViewPitchMax;
+			CameraManager->ViewYawMin = DefaultCameraManager->ViewYawMin;
+			CameraManager->ViewYawMax = DefaultCameraManager->ViewYawMax;
+		}
+	}
+}
+
 void AFPPlayerCharacter::OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime)
 {
 	Super::OnMantle(MantlingSettings, MantlingAnimationStartTime);
@@ -61,11 +135,10 @@ void AFPPlayerCharacter::OnMantle(const FMantlingSettings& MantlingSettings, flo
 	UAnimInstance* FPAnimInstance = FirstPersonMeshComponent->GetAnimInstance();
 	if (IsValid(FPAnimInstance) && MantlingSettings.FPMantlingMontage)
 	{
-		AAHBasePlayerController* PlayerController = Cast<AAHBasePlayerController>(Controller);
-		if (IsValid(PlayerController))
+		if (AHBasePlayerController.IsValid())
 		{
-			PlayerController->SetIgnoreLookInput(true);
-			PlayerController->SetIgnoreMoveInput(true);
+			AHBasePlayerController->SetIgnoreLookInput(true);
+			AHBasePlayerController->SetIgnoreMoveInput(true);
 		}
 		float MontageDuration = FPAnimInstance->Montage_Play(MantlingSettings.FPMantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingAnimationStartTime);
 		GetWorld()->GetTimerManager().SetTimer(FPMontageTimer, this, &AFPPlayerCharacter::OnFPMontageTimerElapsed, MontageDuration, false);
@@ -74,10 +147,15 @@ void AFPPlayerCharacter::OnMantle(const FMantlingSettings& MantlingSettings, flo
 
 void AFPPlayerCharacter::OnFPMontageTimerElapsed()
 {
-	AAHBasePlayerController* PlayerController = Cast<AAHBasePlayerController>(Controller);
-	if (IsValid(PlayerController))
+	if (AHBasePlayerController.IsValid())
 	{
-		PlayerController->SetIgnoreLookInput(false);
-		PlayerController->SetIgnoreMoveInput(false);
+		AHBasePlayerController->SetIgnoreLookInput(false);
+		AHBasePlayerController->SetIgnoreMoveInput(false);
 	}
+}
+
+bool AFPPlayerCharacter::IsFPMontagePlaying() const
+{
+	UAnimInstance* FPAnimInstance = FirstPersonMeshComponent->GetAnimInstance();
+	return IsValid(FPAnimInstance) && FPAnimInstance->IsAnyMontagePlaying();
 }
