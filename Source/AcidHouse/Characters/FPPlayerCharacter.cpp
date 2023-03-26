@@ -100,31 +100,41 @@ void AFPPlayerCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, u
 	
 	if(GetBaseCharacterMovementComponent()->IsOnLadder())
 	{
-		if (AHBasePlayerController.IsValid())
-		{
-			AHBasePlayerController->SetIgnoreCameraPitch(true);
-			bUseControllerRotationYaw = false;
-			APlayerCameraManager* CameraManager = AHBasePlayerController->PlayerCameraManager;
-			CameraManager->ViewPitchMin = LadderCameraMinPitch;
-			CameraManager->ViewPitchMax = LadderCameraMaxPitch;
-			CameraManager->ViewYawMin = LadderCameraMinYaw;
-			CameraManager->ViewYawMax = LadderCameraMaxYaw;
-		}
+		OnLadderStarted();
 	}
 	else if (PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_Ladder)
 	{
-		if (AHBasePlayerController.IsValid())
-		{
-			AHBasePlayerController->SetIgnoreCameraPitch(false);
-			bUseControllerRotationYaw = true;
-			APlayerCameraManager* CameraManager = AHBasePlayerController->PlayerCameraManager;
-			APlayerCameraManager* DefaultCameraManager = CameraManager->GetClass()->GetDefaultObject<APlayerCameraManager>();
+		OnLadderStoped();
+	}
+}
 
-			CameraManager->ViewPitchMin = DefaultCameraManager->ViewPitchMin;
-			CameraManager->ViewPitchMax = DefaultCameraManager->ViewPitchMax;
-			CameraManager->ViewYawMin = DefaultCameraManager->ViewYawMin;
-			CameraManager->ViewYawMax = DefaultCameraManager->ViewYawMax;
-		}
+void AFPPlayerCharacter::OnLadderStoped()
+{
+	if (AHBasePlayerController.IsValid())
+	{
+		AHBasePlayerController->SetIgnoreCameraPitch(false);
+		bUseControllerRotationYaw = true;
+		APlayerCameraManager* CameraManager = AHBasePlayerController->PlayerCameraManager;
+		APlayerCameraManager* DefaultCameraManager = CameraManager->GetClass()->GetDefaultObject<APlayerCameraManager>();
+
+		CameraManager->ViewPitchMin = DefaultCameraManager->ViewPitchMin;
+		CameraManager->ViewPitchMax = DefaultCameraManager->ViewPitchMax;
+		CameraManager->ViewYawMin = DefaultCameraManager->ViewYawMin;
+		CameraManager->ViewYawMax = DefaultCameraManager->ViewYawMax;
+	}
+}
+
+void AFPPlayerCharacter::OnLadderStarted()
+{
+	if (AHBasePlayerController.IsValid())
+	{
+		AHBasePlayerController->SetIgnoreCameraPitch(true);
+		bUseControllerRotationYaw = false;
+		APlayerCameraManager* CameraManager = AHBasePlayerController->PlayerCameraManager;
+		CameraManager->ViewPitchMin = LadderCameraMinPitch;
+		CameraManager->ViewPitchMax = LadderCameraMaxPitch;
+		CameraManager->ViewYawMin = LadderCameraMinYaw;
+		CameraManager->ViewYawMax = LadderCameraMaxYaw;
 	}
 }
 

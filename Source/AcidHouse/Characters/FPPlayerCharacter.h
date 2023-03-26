@@ -56,4 +56,8 @@ private:
 
 	bool IsFPMontagePlaying() const;
 
+	void OnLadderStoped();
+
+	void OnLadderStarted();
+
 };
