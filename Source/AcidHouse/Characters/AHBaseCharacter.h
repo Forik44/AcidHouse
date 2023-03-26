@@ -15,6 +15,9 @@ struct FMantlingSettings
 	class UAnimMontage* MantlingMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UAnimMontage* FPMantlingMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UCurveVector* MantlingCurve;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
@@ -94,7 +97,7 @@ public:
 	void OnSwimEnd();
 	virtual void OnSwimEnd_Implementation();
 
-	virtual void Mantle(bool bForce = false);
+	void Mantle(bool bForce = false);
 
 	void ClimbLadderUp(float Value);
 	void InteractWithLadder();
@@ -180,6 +183,8 @@ protected:
 	virtual bool CanProne();
 
 	virtual bool CanJumpInternal_Implementation() const override;
+
+	virtual void OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime);
 
 private:
 	bool bIsSprintRequested = false;

@@ -176,6 +176,11 @@ bool AAHBaseCharacter::CanProne()
 	return !bIsProning && GetBaseCharacterMovementComponent() && GetBaseCharacterMovementComponent()->CanEverProne();
 }
 
+void AAHBaseCharacter::OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime)
+{
+
+}
+
 void AAHBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -237,6 +242,7 @@ void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
+		OnMantle(MantlingSettings, MantlingParametrs.StartTime);
 	}
 }
 

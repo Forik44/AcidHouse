@@ -24,5 +24,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | First person")
 	class UCameraComponent* FirstPersonCameraComponent;
+
+	virtual void OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime) override;
 	
+private:
+	FTimerHandle FPMontageTimer;
+
+	void OnFPMontageTimerElapsed();
 };

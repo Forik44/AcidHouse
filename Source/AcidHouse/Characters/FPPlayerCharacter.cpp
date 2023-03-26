@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "../AcidHouseTypes.h"
+#include "Controllers/AHBasePlayerController.h"
 
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -51,4 +52,32 @@ void AFPPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
 	const AFPPlayerCharacter* DefaultCharacter = GetDefault<AFPPlayerCharacter>(GetClass());
 	FVector& FirstPersonMeshRelativeLocation = FirstPersonMeshComponent->GetRelativeLocation_DirectMutable();
 	FirstPersonMeshRelativeLocation.Z = DefaultCharacter->FirstPersonMeshComponent->GetRelativeLocation().Z;
+}
+
+void AFPPlayerCharacter::OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime)
+{
+	Super::OnMantle(MantlingSettings, MantlingAnimationStartTime);
+
+	UAnimInstance* FPAnimInstance = FirstPersonMeshComponent->GetAnimInstance();
+	if (IsValid(FPAnimInstance) && MantlingSettings.FPMantlingMontage)
+	{
+		AAHBasePlayerController* PlayerController = Cast<AAHBasePlayerController>(Controller);
+		if (IsValid(PlayerController))
+		{
+			PlayerController->SetIgnoreLookInput(true);
+			PlayerController->SetIgnoreMoveInput(true);
+		}
+		float MontageDuration = FPAnimInstance->Montage_Play(MantlingSettings.FPMantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingAnimationStartTime);
+		GetWorld()->GetTimerManager().SetTimer(FPMontageTimer, this, &AFPPlayerCharacter::OnFPMontageTimerElapsed, MontageDuration, false);
+	}
+}
+
+void AFPPlayerCharacter::OnFPMontageTimerElapsed()
+{
+	AAHBasePlayerController* PlayerController = Cast<AAHBasePlayerController>(Controller);
+	if (IsValid(PlayerController))
+	{
+		PlayerController->SetIgnoreLookInput(false);
+		PlayerController->SetIgnoreMoveInput(false);
+	}
 }
