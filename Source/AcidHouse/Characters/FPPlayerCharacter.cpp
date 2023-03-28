@@ -133,8 +133,8 @@ void AFPPlayerCharacter::OnLadderStarted()
 		APlayerCameraManager* CameraManager = AHBasePlayerController->PlayerCameraManager;
 		CameraManager->ViewPitchMin = LadderCameraMinPitch;
 		CameraManager->ViewPitchMax = LadderCameraMaxPitch;
-		CameraManager->ViewYawMin = LadderCameraMinYaw;
-		CameraManager->ViewYawMax = LadderCameraMaxYaw;
+		CameraManager->ViewYawMin = GetActorRotation().Yaw + LadderCameraMinYaw;
+		CameraManager->ViewYawMax = GetActorRotation().Yaw + LadderCameraMaxYaw;
 	}
 }
 
