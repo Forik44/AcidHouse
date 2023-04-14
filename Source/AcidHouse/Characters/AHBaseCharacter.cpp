@@ -11,6 +11,7 @@
 #include "Curves/CurveVector.h"
 #include "../Actors/Interactive/InteractiveActor.h"
 #include "../Actors/Interactive/Enviroment/Ladder.h"
+#include "../Actors/Interactive/Enviroment/Zipline.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -23,6 +24,9 @@ AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	IKTraceDistance = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
 	LedgeDetectorComponent = CreateDefaultSubobject<ULedgeDetectorComponent>(TEXT("LedgeDetector"));
+
+	GetMesh()->CastShadow = true;
+	GetMesh()->bCastDynamicShadow = true;
 }
 
 void AAHBaseCharacter::BeginPlay()
@@ -172,6 +176,11 @@ bool AAHBaseCharacter::CanProne()
 	return !bIsProning && GetBaseCharacterMovementComponent() && GetBaseCharacterMovementComponent()->CanEverProne();
 }
 
+void AAHBaseCharacter::OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime)
+{
+
+}
+
 void AAHBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -233,6 +242,7 @@ void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
+		OnMantle(MantlingSettings, MantlingParametrs.StartTime);
 	}
 }
 
@@ -404,6 +414,41 @@ const class ALadder* AAHBaseCharacter::GetAvailableLadder() const
 		if (InteractiveActor->IsA<ALadder>())
 		{
 			Result = StaticCast<const ALadder*>(InteractiveActor);
+			break;
+		}
+	}
+
+	return Result;
+}
+
+void AAHBaseCharacter::InteractWithZipline() const
+{
+	if (GetBaseCharacterMovementComponent()->IsOnZipline())
+	{
+		GetBaseCharacterMovementComponent()->DetachFromZipline();
+	}
+	else
+	{
+		const AZipline* AvailableZipline = GetAvailableZipline();
+		if (IsValid(AvailableZipline))
+		{
+			GetBaseCharacterMovementComponent()->AttachToZipline(AvailableZipline);
+
+			FVector ZiplineDirection = AvailableZipline->GetZiplineDirection();
+			ZiplineDirection.Normalize();
+		}
+	}
+}
+
+const class AZipline* AAHBaseCharacter::GetAvailableZipline() const
+{
+	const AZipline* Result = nullptr;
+
+	for (const AInteractiveActor* InteractiveActor : AvailableInteractiveActors)
+	{
+		if (InteractiveActor->IsA<AZipline>())
+		{
+			Result = StaticCast<const AZipline*>(InteractiveActor);
 			break;
 		}
 	}

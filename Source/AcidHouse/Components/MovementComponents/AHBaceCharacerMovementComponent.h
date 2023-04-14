@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -33,6 +31,7 @@ enum class ECustomMovementMode : uint8
 	CMOVE_None = 0 UMETA(DisplayName = "None"),
 	CMOVE_Mantling UMETA(DisplayName = "Mantling"),
 	CMOVE_Ladder UMETA(DisplayName = "Ladder"),
+	CMOVE_Zipline UMETA(DisplayName = "Zipline"),
 	CMOVE_Max UMETA(Hidden)
 };
 
@@ -87,13 +86,19 @@ public:
 	void AttachToLadder(const class ALadder* Ladder);
 	void DetachFromLadder(EDetachFromLadderMethod DetachFromLadderMethod = EDetachFromLadderMethod::Fall);
 
+	void AttachToZipline(const class AZipline* Zipline);
+	void DetachFromZipline();
+
 	float GetActorToCurrentLadderProjection(const FVector& Location) const;
+	float GetActorToCurrentZiplineProjection(const FVector& Location) const;
 
 	bool IsOnLadder() const;
 	float GetLadderSpeedRation() const;
 
+	bool IsOnZipline() const;
+
 	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
-	FORCEINLINE bool IsProning() const;
+	bool IsProning() const;
 	FORCEINLINE bool CanEverProne() { return bCanEverProne; }
 	FORCEINLINE bool IsFastSwimming() const { return bIsFastSwimming; }
 	FORCEINLINE bool IsOutOfStamina() const { return bIsOutOfStamina; }
@@ -102,6 +107,7 @@ public:
 	FORCEINLINE float GetSwimmingCapsuleRadius() const { return SwimmingCapsuleRadius; }
 
 	FORCEINLINE const class ALadder* GetCurrentLadder() const { return CurrentLadder; }
+	FORCEINLINE const class AZipline* GetCurrentZipline() const { return CurrentZipline; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -157,12 +163,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Ladder", meta = (ClampMin = "0", UIMin = "0"))
 	float JumpOffFromLadderSpeed = 500.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Zipline", meta = (ClampMin = "0", UIMin = "0"))
+	float ZiplineMaxSpeed = 500.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Zipline", meta = (ClampMin = "0", UIMin = "0"))
+	float ZiplineBreakingDecelaration = 500.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Zipline")
+	float ZiplineToCharacterOffset = -50.0f;
+
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviusCustomMode) override;
 
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
 
 	void PhysMantling(float DeltaTime, int32 Iterations);
 	void PhysLadder(float DeltaTime, int32 Iterations);
+	void PhysZipline(float DeltaTime, int32 Iterations);
 
 	FORCEINLINE class AAHBaseCharacter* GetBaseCharacterOwner() const { return CachedAHBaseCharacter; };
 
@@ -181,4 +197,7 @@ private:
 
 	FRotator ForceTargetRotation = FRotator::ZeroRotator;
 	bool bForceRotation = false;
+
+	const AZipline* CurrentZipline = nullptr;
+	FVector ZiplineDirection;
 };

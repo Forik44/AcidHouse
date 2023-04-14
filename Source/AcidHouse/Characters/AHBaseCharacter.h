@@ -15,6 +15,9 @@ struct FMantlingSettings
 	class UAnimMontage* MantlingMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UAnimMontage* FPMantlingMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UCurveVector* MantlingCurve;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0))
@@ -38,6 +41,9 @@ struct FMantlingSettings
 
 class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
+
+typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
+
 UCLASS(Abstract, NotBlueprintable)
 class ACIDHOUSE_API AAHBaseCharacter : public ACharacter
 {
@@ -91,11 +97,14 @@ public:
 	void OnSwimEnd();
 	virtual void OnSwimEnd_Implementation();
 
-	virtual void Mantle(bool bForce = false);
+	void Mantle(bool bForce = false);
 
 	void ClimbLadderUp(float Value);
 	void InteractWithLadder();
 	const class ALadder* GetAvailableLadder() const;
+
+	void InteractWithZipline() const;
+	const class AZipline* GetAvailableZipline() const;
 
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
@@ -175,6 +184,8 @@ protected:
 
 	virtual bool CanJumpInternal_Implementation() const override;
 
+	virtual void OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime);
+
 private:
 	bool bIsSprintRequested = false;
 	bool bIsFastSwimRequested = false;
@@ -194,5 +205,5 @@ private:
 
 	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
 
-	TArray<AInteractiveActor*> AvailableInteractiveActors;
+	TInteractiveActorsArray AvailableInteractiveActors;
 };
