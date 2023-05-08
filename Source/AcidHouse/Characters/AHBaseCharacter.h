@@ -161,6 +161,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling", meta = (ClampMin = 0.0f, UIMin = 0.0f))
 	float LowMantleMaxHeight = 125.0f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
+	class UCharacterAttributeComponent* CharacterAttributeComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Animations")
+	class UAnimMontage* OnDeathAnimMontage;
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Character | Movement")
 	void OnSprintStart();
 	virtual void OnSprintStart_Implementation();
@@ -185,6 +191,9 @@ protected:
 	virtual bool CanJumpInternal_Implementation() const override;
 
 	virtual void OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime);
+
+	virtual void OnDeath();
+
 
 private:
 	bool bIsSprintRequested = false;

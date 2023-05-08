@@ -11,7 +11,6 @@ UCLASS()
 class ACIDHOUSE_API AFPPlayerCharacter : public APlayerCharacter
 {
 	GENERATED_BODY()
-
 public:
 	AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 

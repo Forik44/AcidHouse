@@ -12,6 +12,7 @@
 #include "../Actors/Interactive/InteractiveActor.h"
 #include "../Actors/Interactive/Enviroment/Ladder.h"
 #include "../Actors/Interactive/Enviroment/Zipline.h"
+#include "../Components/CharacterComponents/CharacterAttributeComponent.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -27,12 +28,15 @@ AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
 
 	GetMesh()->CastShadow = true;
 	GetMesh()->bCastDynamicShadow = true;
+
+	CharacterAttributeComponent = CreateDefaultSubobject<UCharacterAttributeComponent>(TEXT("CharacterAttributes"));
 }
 
 void AAHBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	CharacterAttributeComponent->OnDeathEvent.AddUObject(this, &AAHBaseCharacter::OnDeath);
 }
 
 void AAHBaseCharacter::TryJump()
@@ -179,6 +183,12 @@ bool AAHBaseCharacter::CanProne()
 void AAHBaseCharacter::OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime)
 {
 
+}
+
+void AAHBaseCharacter::OnDeath()
+{
+	PlayAnimMontage(OnDeathAnimMontage);
+	GetCharacterMovement()->DisableMovement();
 }
 
 void AAHBaseCharacter::Tick(float DeltaTime)
