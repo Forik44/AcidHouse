@@ -272,6 +272,28 @@ void AAHBaseCharacter::UnregisterInteractiveActor(AInteractiveActor* Intaractive
 	AvailableInteractiveActors.RemoveSingleSwap(IntaractiveActor);
 }
 
+void AAHBaseCharacter::Falling()
+{
+	GetCharacterMovement()->bNotifyApex = true;
+}
+
+void AAHBaseCharacter::NotifyJumpApex()
+{
+	Super::NotifyJumpApex();
+	CurrentFallApex = GetActorLocation();
+}
+
+void AAHBaseCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	float FallHeight = (CurrentFallApex - GetActorLocation()).Z * 0.01f;
+	if (IsValid(FallDamageCurve))
+	{
+		float DamageAmount = FallDamageCurve->GetFloatValue(FallHeight);
+		TakeDamage(DamageAmount, FDamageEvent(), GetController(), Hit.Actor.Get());
+	}
+}
+
 bool AAHBaseCharacter::CanMantle()
 {
 	return GetBaseCharacterMovementComponent() && GetBaseCharacterMovementComponent()->CanAttemptMantle();
