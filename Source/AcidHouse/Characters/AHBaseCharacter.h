@@ -206,6 +206,10 @@ private:
 	
 	float IKTraceDistance = 0.0f;
 
+	TInteractiveActorsArray AvailableInteractiveActors;
+
+	FTimerHandle DeathMontageTimer;
+
 	void TryChangeSprintState(float DeltaTime);
 
 	void TryChangeFastSwimState(float DeltaTime);
@@ -214,5 +218,5 @@ private:
 
 	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
 
-	TInteractiveActorsArray AvailableInteractiveActors;
+	void EnableRagdoll();
 };

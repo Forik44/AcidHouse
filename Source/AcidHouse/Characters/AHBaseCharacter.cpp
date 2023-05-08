@@ -13,6 +13,7 @@
 #include "../Actors/Interactive/Enviroment/Ladder.h"
 #include "../Actors/Interactive/Enviroment/Zipline.h"
 #include "../Components/CharacterComponents/CharacterAttributeComponent.h"
+#include "../AcidHouseTypes.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -187,7 +188,11 @@ void AAHBaseCharacter::OnMantle(const FMantlingSettings& MantlingSettings, float
 
 void AAHBaseCharacter::OnDeath()
 {
-	PlayAnimMontage(OnDeathAnimMontage);
+	float Duration = PlayAnimMontage(OnDeathAnimMontage);
+	if (Duration > 0)
+	{
+		GetWorld()->GetTimerManager().SetTimer(DeathMontageTimer, this, &AAHBaseCharacter::EnableRagdoll, Duration, false);
+	}
 	GetCharacterMovement()->DisableMovement();
 }
 
@@ -384,6 +389,12 @@ float AAHBaseCharacter::GetIKOffsetForASocket(const FName& SocketName)
 const FMantlingSettings& AAHBaseCharacter::GetMantlingSettings(float LedgeHeight) const
 {
 	return LedgeHeight > LowMantleMaxHeight ? HighMantleSettings : LowMantleSettings;
+}
+
+void AAHBaseCharacter::EnableRagdoll()
+{
+	GetMesh()->SetCollisionProfileName(CollisionProfileRagdoll);
+	GetMesh()->SetSimulatePhysics(true);
 }
 
 void AAHBaseCharacter::ClimbLadderUp(float Value)
