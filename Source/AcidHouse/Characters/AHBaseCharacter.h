@@ -208,8 +208,6 @@ private:
 
 	TInteractiveActorsArray AvailableInteractiveActors;
 
-	FTimerHandle DeathMontageTimer;
-
 	void TryChangeSprintState(float DeltaTime);
 
 	void TryChangeFastSwimState(float DeltaTime);

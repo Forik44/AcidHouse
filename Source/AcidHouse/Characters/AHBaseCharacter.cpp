@@ -188,12 +188,13 @@ void AAHBaseCharacter::OnMantle(const FMantlingSettings& MantlingSettings, float
 
 void AAHBaseCharacter::OnDeath()
 {
-	float Duration = PlayAnimMontage(OnDeathAnimMontage);
-	if (Duration > 0)
-	{
-		GetWorld()->GetTimerManager().SetTimer(DeathMontageTimer, this, &AAHBaseCharacter::EnableRagdoll, Duration, false);
-	}
 	GetCharacterMovement()->DisableMovement();
+	float Duration = PlayAnimMontage(OnDeathAnimMontage);
+	if (Duration == 0)
+	{
+		EnableRagdoll();
+	}
+
 }
 
 void AAHBaseCharacter::Tick(float DeltaTime)
