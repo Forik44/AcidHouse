@@ -12,6 +12,8 @@
 #include "../Actors/Interactive/InteractiveActor.h"
 #include "../Actors/Interactive/Enviroment/Ladder.h"
 #include "../Actors/Interactive/Enviroment/Zipline.h"
+#include "../Components/CharacterComponents/CharacterAttributeComponent.h"
+#include "../AcidHouseTypes.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -27,12 +29,15 @@ AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
 
 	GetMesh()->CastShadow = true;
 	GetMesh()->bCastDynamicShadow = true;
+
+	CharacterAttributeComponent = CreateDefaultSubobject<UCharacterAttributeComponent>(TEXT("CharacterAttributes"));
 }
 
 void AAHBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	CharacterAttributeComponent->OnDeathEvent.AddUObject(this, &AAHBaseCharacter::OnDeath);
 }
 
 void AAHBaseCharacter::TryJump()
@@ -181,6 +186,17 @@ void AAHBaseCharacter::OnMantle(const FMantlingSettings& MantlingSettings, float
 
 }
 
+void AAHBaseCharacter::OnDeath()
+{
+	GetCharacterMovement()->DisableMovement();
+	float Duration = PlayAnimMontage(OnDeathAnimMontage);
+	if (Duration == 0)
+	{
+		EnableRagdoll();
+	}
+
+}
+
 void AAHBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -254,6 +270,28 @@ void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveAc
 void AAHBaseCharacter::UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor)
 {
 	AvailableInteractiveActors.RemoveSingleSwap(IntaractiveActor);
+}
+
+void AAHBaseCharacter::Falling()
+{
+	GetCharacterMovement()->bNotifyApex = true;
+}
+
+void AAHBaseCharacter::NotifyJumpApex()
+{
+	Super::NotifyJumpApex();
+	CurrentFallApex = GetActorLocation();
+}
+
+void AAHBaseCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	float FallHeight = (CurrentFallApex - GetActorLocation()).Z * 0.01f;
+	if (IsValid(FallDamageCurve))
+	{
+		float DamageAmount = FallDamageCurve->GetFloatValue(FallHeight);
+		TakeDamage(DamageAmount, FDamageEvent(), GetController(), Hit.Actor.Get());
+	}
 }
 
 bool AAHBaseCharacter::CanMantle()
@@ -374,6 +412,12 @@ float AAHBaseCharacter::GetIKOffsetForASocket(const FName& SocketName)
 const FMantlingSettings& AAHBaseCharacter::GetMantlingSettings(float LedgeHeight) const
 {
 	return LedgeHeight > LowMantleMaxHeight ? HighMantleSettings : LowMantleSettings;
+}
+
+void AAHBaseCharacter::EnableRagdoll()
+{
+	GetMesh()->SetCollisionProfileName(CollisionProfileRagdoll);
+	GetMesh()->SetSimulatePhysics(true);
 }
 
 void AAHBaseCharacter::ClimbLadderUp(float Value)

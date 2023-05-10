@@ -109,6 +109,10 @@ public:
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 
+	virtual void Falling() override;
+	virtual void NotifyJumpApex() override;
+	virtual void Landed(const FHitResult& Hit) override;
+
 	FORCEINLINE UAHBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return AHBaseCharacterMovementComponent; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -161,6 +165,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling", meta = (ClampMin = 0.0f, UIMin = 0.0f))
 	float LowMantleMaxHeight = 125.0f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
+	class UCharacterAttributeComponent* CharacterAttributeComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Animations")
+	class UAnimMontage* OnDeathAnimMontage;
+
+	//Damage depending from fall height (in meters)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Attributes")
+	class UCurveFloat* FallDamageCurve; 
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Character | Movement")
 	void OnSprintStart();
 	virtual void OnSprintStart_Implementation();
@@ -186,6 +200,9 @@ protected:
 
 	virtual void OnMantle(const FMantlingSettings& MantlingSettings, float MantlingAnimationStartTime);
 
+	virtual void OnDeath();
+
+
 private:
 	bool bIsSprintRequested = false;
 	bool bIsFastSwimRequested = false;
@@ -197,6 +214,10 @@ private:
 	
 	float IKTraceDistance = 0.0f;
 
+	FVector CurrentFallApex;
+
+	TInteractiveActorsArray AvailableInteractiveActors;
+
 	void TryChangeSprintState(float DeltaTime);
 
 	void TryChangeFastSwimState(float DeltaTime);
@@ -205,5 +226,5 @@ private:
 
 	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
 
-	TInteractiveActorsArray AvailableInteractiveActors;
+	void EnableRagdoll();
 };
