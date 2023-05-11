@@ -21,7 +21,6 @@ AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UAHBaseCharacterMovementComponent> (ACharacter::CharacterMovementComponentName))
 {
 	AHBaseCharacterMovementComponent = StaticCast<UAHBaseCharacterMovementComponent*>(GetCharacterMovement());
-	CurrentStamina = MaxStamina;
 
 	IKTraceDistance = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
@@ -38,6 +37,8 @@ void AAHBaseCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	CharacterAttributeComponent->OnDeathEvent.AddUObject(this, &AAHBaseCharacter::OnDeath);
+	CharacterAttributeComponent->OnOutOfStaminaEvent.AddDynamic(this, &AAHBaseCharacter::OnOutOfStamina);
+	CharacterAttributeComponent->OnOutOfOxygenEvent.AddDynamic(this, &AAHBaseCharacter::OnOutOfOxygen);
 }
 
 void AAHBaseCharacter::TryJump()
@@ -197,6 +198,23 @@ void AAHBaseCharacter::OnDeath()
 
 }
 
+void AAHBaseCharacter::OnOutOfStamina(bool IsOutOfStamina)
+{
+	GetBaseCharacterMovementComponent()->SetIsOutOfStamina(IsOutOfStamina);
+}
+
+void AAHBaseCharacter::OnOutOfOxygen(bool IsOutOfOxygen)
+{
+	if (IsOutOfOxygen && !GetWorld()->GetTimerManager().IsTimerActive(OutOfOxygenTimer))
+	{
+		GetWorld()->GetTimerManager().SetTimer(OutOfOxygenTimer, this, &AAHBaseCharacter::OutOfOxygenDamage, CharacterAttributeComponent->GetOutOfOxygenDamageRate(), true);
+	}
+	else if (!IsOutOfOxygen)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(OutOfOxygenTimer);
+	}
+}
+
 void AAHBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -206,16 +224,6 @@ void AAHBaseCharacter::Tick(float DeltaTime)
 
 	TryChangeSprintState(DeltaTime);
 	TryChangeFastSwimState(DeltaTime);
-
-	if (!GetBaseCharacterMovementComponent()->IsSprinting() && !GetBaseCharacterMovementComponent()->IsFastSwimming())
-	{
-		CurrentStamina += StaminaRestoreVelocity * DeltaTime;
-		CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
-		if (CurrentStamina == MaxStamina)
-		{
-			GetBaseCharacterMovementComponent()->SetIsOutOfStamina(false);
-		}
-	}
 }
 
 void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
@@ -339,15 +347,6 @@ bool AAHBaseCharacter::CanFastSwim()
 
 void AAHBaseCharacter::TryChangeSprintState(float DeltaTime)
 {
-	if (GetBaseCharacterMovementComponent()->IsSprinting())
-	{
-		CurrentStamina -= SprintStaminaConsumptionVelocity * DeltaTime;
-		CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
-		if (FMath::IsNearlyZero(CurrentStamina, 1e-6f))
-		{
-			GetBaseCharacterMovementComponent()->SetIsOutOfStamina(true);
-		}
-	}
 
 	if ((bIsSprintRequested && !GetBaseCharacterMovementComponent()->IsSprinting()) || CanSprint())
 	{
@@ -364,16 +363,6 @@ void AAHBaseCharacter::TryChangeSprintState(float DeltaTime)
 
 void AAHBaseCharacter::TryChangeFastSwimState(float DeltaTime)
 {
-	if (GetBaseCharacterMovementComponent()->IsFastSwimming())
-	{
-		CurrentStamina -= SprintStaminaConsumptionVelocity * DeltaTime;
-		CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
-		if (FMath::IsNearlyZero(CurrentStamina, 1e-6f))
-		{
-			GetBaseCharacterMovementComponent()->SetIsOutOfStamina(true);
-		}
-	}
-
 	if ((bIsFastSwimRequested && !GetBaseCharacterMovementComponent()->IsFastSwimming()) || CanFastSwim())
 	{
 		GetBaseCharacterMovementComponent()->StartFastSwim();
@@ -385,6 +374,11 @@ void AAHBaseCharacter::TryChangeFastSwimState(float DeltaTime)
 		GetBaseCharacterMovementComponent()->StopFastSwim();
 		OnFastSwimEnd();
 	}
+}
+
+void AAHBaseCharacter::OutOfOxygenDamage()
+{
+	TakeDamage(CharacterAttributeComponent->GetOutOfOxygenDamageAmount(), FDamageEvent(), GetController(), this);
 }
 
 float AAHBaseCharacter::GetIKOffsetForASocket(const FName& SocketName)

@@ -116,7 +116,7 @@
     {
       "name": "Ansible Argument Specs",
       "description": "Ansible meta/argument_specs.yml file",
-      "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/arg_specs.json",
+      "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/role-arg-spec.json",
       "fileMatch": ["**/meta/argument_specs.yml"]
     },
     {
@@ -2606,6 +2606,12 @@
       "url": "https://meta.open-rpc.org/"
     },
     {
+      "name": "ONe's service descriptor",
+      "description": "JSON schema for ONe's service descriptor",
+      "fileMatch": ["service-descriptor.yml"],
+      "url": "https://json.schemastore.org/one-service-descriptor-schema-0.1.json"
+    },
+    {
       "name": "openfin.json",
       "description": "OpenFin application configuration file",
       "url": "https://json.schemastore.org/openfin.json"
@@ -4357,7 +4363,12 @@
         "v2beta27": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v1/content/en/schemas/v2beta27.json",
         "v2beta28": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v1/content/en/schemas/v2beta28.json",
         "v2beta29": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v1/content/en/schemas/v2beta29.json",
-        "v3": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v3.json"
+        "v3": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v3.json",
+        "v4beta1": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v4beta1.json",
+        "v4beta2": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v4beta2.json",
+        "v4beta3": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v4beta3.json",
+        "v4beta4": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v4beta4.json",
+        "v4beta5": "https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v4beta5.json"
       }
     },
     {
