@@ -4,6 +4,7 @@
 #include "AHBaseCharacterAnimInstance.h"
 #include "Characters/AHBaseCharacter.h"
 #include "Components/MovementComponents/AHBaceCharacerMovementComponent.h" 
+#include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 
 void UAHBaseCharacterAnimInstance::NativeBeginPlay()
 {
@@ -40,4 +41,9 @@ void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	RightFootEffectorLocation = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKRightFootOffset());
 	LeftFootEffectorLocation = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKLeftFootOffset());
+
+	AimRotation = CachedBaseCharacter->GetBaseAimRotation();
+
+	const UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent();
+	CurrentEquippedItemType = CharacterEquipment->GetCurrentEquippedItemType();
 }

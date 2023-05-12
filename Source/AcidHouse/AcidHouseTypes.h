@@ -13,3 +13,10 @@ const FName CollisionProfilePawnInteractionVolume = FName("PawnInteractionVolume
 
 const FName DebugCategoryLedgeDetection = FName("LedgeDetection");
 const FName DebugCategoryCharacterAttributes = FName("CharacterAttributes");
+
+UENUM(BlueprintType)
+enum class EEquipableItemType : uint8
+{
+	None,
+	Pistol
+};

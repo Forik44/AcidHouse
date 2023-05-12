@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "AcidHouseTypes.h"
 #include "CharacterEquipmentComponent.generated.h"
 
 class ARangeWeapon;
@@ -11,6 +12,9 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 {
 	GENERATED_BODY()
+
+public:
+	EEquipableItemType GetCurrentEquippedItemType() const;
 
 protected:
 	virtual void BeginPlay() override;

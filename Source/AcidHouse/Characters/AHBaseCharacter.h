@@ -41,6 +41,7 @@ struct FMantlingSettings
 
 class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
+class UCharacterEquipmentComponent;
 
 typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
 
@@ -121,6 +122,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
 
+	FORCEINLINE const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent;  }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -157,7 +160,7 @@ protected:
 	class UCharacterAttributeComponent* CharacterAttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
-	class UCharacterEquipmentComponent* CharacterEquipmentComponent;
+	UCharacterEquipmentComponent* CharacterEquipmentComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Animations")
 	class UAnimMontage* OnDeathAnimMontage;

@@ -3,6 +3,16 @@
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
 #include "AcidHouseTypes.h"
 
+EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() const
+{
+	EEquipableItemType Result = EEquipableItemType::None;
+	if (IsValid(CurrentEquipmentItem))
+	{
+		Result = CurrentEquipmentItem->GetItemType();
+	}
+	return Result;
+}
+
 void UCharacterEquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
