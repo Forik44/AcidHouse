@@ -1,5 +1,5 @@
 #include "AHBasePlayerController.h"
-#include "../AHBaseCharacter.h"
+#include "Characters/AHBaseCharacter.h"
 
 void AAHBasePlayerController::SetPawn(APawn* InPawn)
 {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../InteractiveActor.h"
+#include "Actors/Interactive/InteractiveActor.h"
 #include "Ladder.generated.h"
 
 class UStaticMeshComponent;

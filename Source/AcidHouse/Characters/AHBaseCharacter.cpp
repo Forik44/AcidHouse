@@ -1,19 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "AHBaseCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "../Components/MovementComponents/AHBaceCharacerMovementComponent.h"
+#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "../Components/LedgeDetectorComponent.h"
+#include "Components/LedgeDetectorComponent.h"
 #include "Curves/CurveVector.h"
-#include "../Actors/Interactive/InteractiveActor.h"
-#include "../Actors/Interactive/Enviroment/Ladder.h"
-#include "../Actors/Interactive/Enviroment/Zipline.h"
-#include "../Components/CharacterComponents/CharacterAttributeComponent.h"
-#include "../AcidHouseTypes.h"
+#include "Actors/Interactive/InteractiveActor.h"
+#include "Actors/Interactive/Enviroment/Ladder.h"
+#include "Actors/Interactive/Enviroment/Zipline.h"
+#include "Components/CharacterComponents/CharacterAttributeComponent.h"
+#include "AcidHouseTypes.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)

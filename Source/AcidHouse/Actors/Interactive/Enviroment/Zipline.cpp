@@ -4,7 +4,7 @@
 #include "Zipline.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "../../../AcidHouseTypes.h"
+#include "AcidHouseTypes.h"
 
 AZipline::AZipline()
 {

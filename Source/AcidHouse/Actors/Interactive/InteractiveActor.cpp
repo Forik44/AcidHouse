@@ -1,5 +1,5 @@
 #include "InteractiveActor.h"
-#include "../../Characters/AHBaseCharacter.h"
+#include "Characters/AHBaseCharacter.h"
 #include "Components/CapsuleComponent.h"
 
 void AInteractiveActor::BeginPlay()

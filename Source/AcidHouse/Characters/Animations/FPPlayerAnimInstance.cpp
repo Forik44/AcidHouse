@@ -2,8 +2,8 @@
 
 
 #include "FPPlayerAnimInstance.h"
-#include "../FPPlayerCharacter.h"
-#include "../Controllers/AHBasePlayerController.h"
+#include "Characters/FPPlayerCharacter.h"
+#include "Characters/Controllers/AHBasePlayerController.h"
 
 void UFPPlayerAnimInstance::NativeBeginPlay()
 {

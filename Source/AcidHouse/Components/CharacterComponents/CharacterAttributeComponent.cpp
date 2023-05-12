@@ -1,12 +1,12 @@
 #include "CharacterAttributeComponent.h"
-#include "../../Characters/AHBaseCharacter.h"
-#include "../../Subsystems/DebugSubsystem.h"
+#include "Characters/AHBaseCharacter.h"
+#include "Subsystems/DebugSubsystem.h"
 #include "Kismet/GameplayStatics.h"
-#include "../../AcidHouseTypes.h"
+#include "AcidHouseTypes.h"
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
-#include "../MovementComponents/AHBaceCharacerMovementComponent.h"
+#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
 
 UCharacterAttributeComponent::UCharacterAttributeComponent()
 {

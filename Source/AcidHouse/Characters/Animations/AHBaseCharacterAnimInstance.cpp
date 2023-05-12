@@ -2,8 +2,8 @@
 
 
 #include "AHBaseCharacterAnimInstance.h"
-#include "../AHBaseCharacter.h"
-#include "../../Components/MovementComponents/AHBaceCharacerMovementComponent.h" 
+#include "Characters/AHBaseCharacter.h"
+#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h" 
 
 void UAHBaseCharacterAnimInstance::NativeBeginPlay()
 {
