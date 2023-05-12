@@ -4,6 +4,8 @@
 #define ECC_InteractionVolume ECC_GameTraceChannel1
 
 const FName SocketFPCamera = FName("CameraSocket");
+const FName SocketCharacterWeapon = FName("CharacterWeaponSocket");
+const FName SocketWeaponMuzzle = FName("MuzzleSocket");
 
 const FName CollisionProfilePawn = FName("Pawn");
 const FName CollisionProfileRagdoll = FName("Ragdoll");

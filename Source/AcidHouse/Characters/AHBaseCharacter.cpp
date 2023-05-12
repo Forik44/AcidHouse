@@ -2,14 +2,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/LedgeDetectorComponent.h"
-#include "Curves/CurveVector.h"
+#include "Components/CharacterComponents/CharacterEquipmentComponent.h"
+#include "Components/CharacterComponents/CharacterAttributeComponent.h"
 #include "Actors/Interactive/InteractiveActor.h"
 #include "Actors/Interactive/Enviroment/Ladder.h"
 #include "Actors/Interactive/Enviroment/Zipline.h"
-#include "Components/CharacterComponents/CharacterAttributeComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Curves/CurveVector.h"
 #include "AcidHouseTypes.h"
 
 
@@ -27,6 +28,7 @@ AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	GetMesh()->bCastDynamicShadow = true;
 
 	CharacterAttributeComponent = CreateDefaultSubobject<UCharacterAttributeComponent>(TEXT("CharacterAttributes"));
+	CharacterEquipmentComponent = CreateDefaultSubobject<UCharacterEquipmentComponent>(TEXT("CharacterEquipment"));
 }
 
 void AAHBaseCharacter::BeginPlay()

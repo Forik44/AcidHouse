@@ -156,6 +156,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
 	class UCharacterAttributeComponent* CharacterAttributeComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
+	class UCharacterEquipmentComponent* CharacterEquipmentComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Animations")
 	class UAnimMontage* OnDeathAnimMontage;
 
