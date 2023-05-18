@@ -1,13 +1,13 @@
 #include "LedgeDetectorComponent.h"
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
-#include "../AcidHouseTypes.h"
+#include "AcidHouseTypes.h"
 #include "DrawDebugHelpers.h"
-#include "../Utils/AHTraceUtils.h"
-#include "../Characters/AHBaseCharacter.h"
+#include "Utils/AHTraceUtils.h"
+#include "Characters/AHBaseCharacter.h"
 #include "Kismet/GameplayStatics.h"
-#include "../AHGameInstance.h"
-#include "../Subsystems/DebugSubsystem.h"
+#include "AHGameInstance.h"
+#include "Subsystems/DebugSubsystem.h"
 
 void ULedgeDetectorComponent::BeginPlay()
 {

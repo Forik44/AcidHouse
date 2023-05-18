@@ -5,10 +5,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "../AcidHouseTypes.h"
+#include "AcidHouseTypes.h"
 #include "Controllers/AHBasePlayerController.h"
 #include "AHBaseCharacter.h"
-#include "../Components/MovementComponents/AHBaceCharacerMovementComponent.h"
+#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
 
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

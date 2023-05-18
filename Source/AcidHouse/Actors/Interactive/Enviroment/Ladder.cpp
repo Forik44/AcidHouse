@@ -3,7 +3,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/BoxComponent.h"
-#include "../../../AcidHouseTypes.h"
+#include "AcidHouseTypes.h"
 
 ALadder::ALadder()
 {

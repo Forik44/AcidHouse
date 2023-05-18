@@ -2,14 +2,14 @@
 
 
 #include "AHBaceCharacerMovementComponent.h"
-#include "../../Characters/AHBaseCharacter.h"
+#include "Characters/AHBaseCharacter.h"
 #include "Components/CapsuleComponent.h"
-#include "../LedgeDetectorComponent.h"
+#include "Components/LedgeDetectorComponent.h"
 #include "Math/UnrealMathUtility.h"
 #include "Curves/CurveVector.h"
 #include "DrawDebugHelpers.h"
-#include "../../Actors/Interactive/Enviroment/Ladder.h"
-#include "../../Actors/Interactive/Enviroment/Zipline.h"
+#include "Actors/Interactive/Enviroment/Ladder.h"
+#include "Actors/Interactive/Enviroment/Zipline.h"
 
 void UAHBaseCharacterMovementComponent::BeginPlay()
 {

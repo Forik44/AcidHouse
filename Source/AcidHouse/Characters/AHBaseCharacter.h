@@ -41,6 +41,7 @@ struct FMantlingSettings
 
 class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
+class UCharacterEquipmentComponent;
 
 typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
 
@@ -106,6 +107,8 @@ public:
 	void InteractWithZipline() const;
 	const class AZipline* GetAvailableZipline() const;
 
+	void Fire();
+
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 
@@ -121,23 +124,13 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
+	FORCEINLINE const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent;  }
 
 protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Movement")
 	float SprintSpeed = 800.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Movement", meta = (ClampMin = 0, UIMin = 0))
-	float MaxStamina = 100.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Movement", meta = (ClampMin = 0, UIMin = 0))
-	float StaminaRestoreVelocity = 10.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Movement", meta = (ClampMin = 0, UIMin = 0))
-	float SprintStaminaConsumptionVelocity = 12.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | IK settings")
 	FName RightFootSocketName;
@@ -167,6 +160,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
 	class UCharacterAttributeComponent* CharacterAttributeComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
+	UCharacterEquipmentComponent* CharacterEquipmentComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Animations")
 	class UAnimMontage* OnDeathAnimMontage;
@@ -202,12 +198,14 @@ protected:
 
 	virtual void OnDeath();
 
+	UFUNCTION()
+	virtual void OnOutOfStamina(bool IsOutOfStamina);
 
+	UFUNCTION()
+	virtual void OnOutOfOxygen(bool IsOutOfOxygen);
 private:
 	bool bIsSprintRequested = false;
 	bool bIsFastSwimRequested = false;
-
-	float CurrentStamina = 0.0f;
 
 	float IKRightFootOffset = 0.0f;
 	float IKLeftFootOffset = 0.0f;
@@ -216,11 +214,15 @@ private:
 
 	FVector CurrentFallApex;
 
+	FTimerHandle OutOfOxygenTimer;
+
 	TInteractiveActorsArray AvailableInteractiveActors;
 
 	void TryChangeSprintState(float DeltaTime);
 
 	void TryChangeFastSwimState(float DeltaTime);
+
+	void OutOfOxygenDamage();
 
 	float GetIKOffsetForASocket(const FName& SocketName);
 

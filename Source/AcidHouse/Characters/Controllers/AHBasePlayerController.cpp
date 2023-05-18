@@ -1,5 +1,5 @@
 #include "AHBasePlayerController.h"
-#include "../AHBaseCharacter.h"
+#include "Characters/AHBaseCharacter.h"
 
 void AAHBasePlayerController::SetPawn(APawn* InPawn)
 {
@@ -38,6 +38,7 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Prone", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::ChangeProneState);
 	InputComponent->BindAction("FastSwim", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartFastSwim);
 	InputComponent->BindAction("FastSwim", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopFastSwim);
+	InputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Fire);
 }
 
 void AAHBasePlayerController::MoveForward(float Value)
@@ -181,5 +182,13 @@ void AAHBasePlayerController::InteractWithZipline()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->InteractWithZipline();
+	}
+}
+
+void AAHBasePlayerController::Fire()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Fire();
 	}
 }
