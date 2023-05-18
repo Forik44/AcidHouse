@@ -5,6 +5,7 @@
 #include "Components/Weapon/WeaponBarellComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "AcidHouseTypes.h"
+#include "Characters/AHBaseCharacter.h"
 
 ARangeWeapon::ARangeWeapon()
 {
@@ -16,4 +17,24 @@ ARangeWeapon::ARangeWeapon()
 	WeaponBarell = CreateDefaultSubobject<UWeaponBarellComponent>(TEXT("WeaponBarell"));
 	WeaponBarell->SetupAttachment(WeaponMesh, SocketWeaponMuzzle);
 
+}
+
+void ARangeWeapon::Fire()
+{
+	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::Fire() only character can be an owner of range weapon"));
+	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
+
+	APlayerController* Controller = CharacterOwner->GetController<APlayerController>();
+	if (!IsValid(Controller))
+	{
+		return;
+	}
+
+	FVector PlayerViewPoint;
+	FRotator PlayerViewRotation;
+	Controller->GetPlayerViewPoint(PlayerViewPoint, PlayerViewRotation);
+
+	FVector ViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
+
+	WeaponBarell->Shot(PlayerViewPoint , ViewDirection, Controller);
 }

@@ -1,34 +1,38 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Components/Weapon/WeaponBarellComponent.h"
+#include "AcidHouseTypes.h"
+#include "DrawDebugHelpers.h"
+#include "Subsystems/DebugSubsystem.h"
+#include "Kismet/GameplayStatics.h"
 
-// Sets default values for this component's properties
-UWeaponBarellComponent::UWeaponBarellComponent()
+void UWeaponBarellComponent::Shot(FVector ShotStart, FVector ShotDirection, AController* Controller)
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	FVector MuzzleLocation = GetComponentLocation();
+	FVector ShotEnd = ShotStart + FiringRange * ShotDirection;
 
-	// ...
+#if ENABLE_DRAW_DEBUG 
+	UDebugSubsystem* DebugSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UDebugSubsystem>();
+	bool bIsDebugEnabled = DebugSubsystem->IsCategoryEnabled(DebugCategoryRangeWeapon);
+#else
+	bool bIsDebugEnabled = false;
+#endif
+
+	FHitResult ShotResult;
+	if (GetWorld()->LineTraceSingleByChannel(ShotResult, ShotStart, ShotEnd, ECC_Bullet))
+	{
+		ShotEnd = ShotResult.ImpactPoint;
+		if (bIsDebugEnabled)
+		{
+			DrawDebugSphere(GetWorld(), ShotEnd, 10.0f, 24, FColor::Red, false, 1.0f);
+		}
+
+		AActor* HitActor = ShotResult.GetActor();
+		if (IsValid(HitActor))
+		{
+			HitActor->TakeDamage(DamageAmount, FDamageEvent{}, Controller, GetOwner());
+		}
+	}
+	if (bIsDebugEnabled)
+	{
+		DrawDebugLine(GetWorld(), MuzzleLocation, ShotEnd, FColor::Red, false, 1.0f, 0, 3.0f);
+	}
 }
-
-
-// Called when the game starts
-void UWeaponBarellComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
-
-
-// Called every frame
-void UWeaponBarellComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-

@@ -1091,6 +1091,7 @@
       "name": "AWS CloudFormation Serverless Application Model (SAM)",
       "description": "The AWS Serverless Application Model (AWS SAM, previously known as Project Flourish) extends AWS CloudFormation to provide a simplified way of defining the Amazon API Gateway APIs, AWS Lambda functions, and Amazon DynamoDB tables needed by your serverless application.",
       "fileMatch": [
+        "template.yaml",
         "serverless.template",
         "*.sam.json",
         "*.sam.yml",
@@ -3898,7 +3899,12 @@
     {
       "name": ".lintstagedrc",
       "description": "JSON schema for lint-staged config",
-      "fileMatch": [".lintstagedrc", ".lintstagedrc.json"],
+      "fileMatch": [
+        ".lintstagedrc",
+        ".lintstagedrc.json",
+        ".lintstagedrc.yaml",
+        ".lintstagedrc.yml"
+      ],
       "url": "https://json.schemastore.org/lintstagedrc.schema.json"
     },
     {
@@ -4871,6 +4877,12 @@
       "description": "Bashly strings",
       "fileMatch": ["bashly-strings.yml", "bashly-strings.yaml"],
       "url": "https://raw.githubusercontent.com/DannyBen/bashly/master/schemas/strings.json"
+    },
+    {
+      "name": "micro-settings.json",
+      "description": "Micro settings",
+      "fileMatch": ["**/.config/micro/settings.json"],
+      "url": "https://raw.githubusercontent.com/zyedidia/micro/master/data/micro.json"
     }
   ],
   "version": 1

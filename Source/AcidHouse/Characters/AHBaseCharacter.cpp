@@ -493,3 +493,8 @@ const class AZipline* AAHBaseCharacter::GetAvailableZipline() const
 	return Result;
 }
 
+void AAHBaseCharacter::Fire()
+{
+	CharacterEquipmentComponent->Fire();
+}
+

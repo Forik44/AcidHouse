@@ -16,6 +16,8 @@ class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 public:
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
+	void Fire();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -23,7 +25,7 @@ protected:
 	TSubclassOf<ARangeWeapon> SideArmClass;
 
 private:
-	ARangeWeapon* CurrentEquipmentItem;
+	ARangeWeapon* CurrentEquipmentWeapon;
 	TWeakObjectPtr<class AAHBaseCharacter> CachedBaseCharacter;
 
 	void CreateLoadout();

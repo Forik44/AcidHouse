@@ -51,5 +51,7 @@ private:
 
 	void InteractWithZipline();
 
+	void Fire();
+
 	bool bIgnoreCameraPitch = false;
 };

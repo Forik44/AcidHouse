@@ -17,6 +17,8 @@ class ACIDHOUSE_API ARangeWeapon : public AEquipableItem
 public:
 	ARangeWeapon();
 
+	void Fire();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class USkeletalMeshComponent* WeaponMesh;
