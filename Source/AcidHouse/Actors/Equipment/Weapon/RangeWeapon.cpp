@@ -24,6 +24,9 @@ void ARangeWeapon::Fire()
 	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::Fire() only character can be an owner of range weapon"));
 	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
 
+	CharacterOwner->PlayAnimMontage(CharacterFireMontage);
+	PlayAnimMontage(WeaponFireMontage);
+
 	APlayerController* Controller = CharacterOwner->GetController<APlayerController>();
 	if (!IsValid(Controller))
 	{
@@ -37,4 +40,10 @@ void ARangeWeapon::Fire()
 	FVector ViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
 
 	WeaponBarell->Shot(PlayerViewPoint , ViewDirection, Controller);
+}
+
+float ARangeWeapon::PlayAnimMontage(UAnimMontage* AnimMontage)
+{
+	UAnimInstance* WeaponAnimInstance = WeaponMesh->GetAnimInstance();
+	return WeaponAnimInstance->Montage_Play(AnimMontage);
 }

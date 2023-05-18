@@ -18,5 +18,5 @@ protected:
 	float FiringRange = 5000.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | Damage")
-	float DamageAmount = 20.0f;
+	float DamageAmount = 20.0f; 
 };
