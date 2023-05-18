@@ -17,6 +17,8 @@ public:
 
 	void Fire();
 
+	FTransform GetForeGripTransform() const;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class USkeletalMeshComponent* WeaponMesh;
