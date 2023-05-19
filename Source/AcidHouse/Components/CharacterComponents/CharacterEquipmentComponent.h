@@ -18,8 +18,6 @@ public:
 
 	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquipmentWeapon; }
 
-	void Fire();
-
 protected:
 	virtual void BeginPlay() override;
 

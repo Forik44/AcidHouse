@@ -107,7 +107,8 @@ public:
 	void InteractWithZipline() const;
 	const class AZipline* GetAvailableZipline() const;
 
-	void Fire();
+	void StartFire();
+	void StopFire();
 
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);

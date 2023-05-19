@@ -12,6 +12,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Curves/CurveVector.h"
 #include "AcidHouseTypes.h"
+#include "Actors/Equipment/Weapon/RangeWeapon.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -493,8 +494,21 @@ const class AZipline* AAHBaseCharacter::GetAvailableZipline() const
 	return Result;
 }
 
-void AAHBaseCharacter::Fire()
+void AAHBaseCharacter::StartFire()
 {
-	CharacterEquipmentComponent->Fire();
+	ARangeWeapon* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StartFire();
+	}
+}
+
+void AAHBaseCharacter::StopFire()
+{
+	ARangeWeapon* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StopFire(); 
+	}
 }
 

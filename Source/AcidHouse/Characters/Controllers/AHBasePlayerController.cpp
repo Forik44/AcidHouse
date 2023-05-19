@@ -38,7 +38,8 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Prone", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::ChangeProneState);
 	InputComponent->BindAction("FastSwim", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartFastSwim);
 	InputComponent->BindAction("FastSwim", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopFastSwim);
-	InputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Fire);
+	InputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartFire);
+	InputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopFire);
 }
 
 void AAHBasePlayerController::MoveForward(float Value)
@@ -185,10 +186,18 @@ void AAHBasePlayerController::InteractWithZipline()
 	}
 }
 
-void AAHBasePlayerController::Fire()
+void AAHBasePlayerController::StartFire()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->Fire();
+		CachedBaseCharacter->StartFire();
+	}
+}
+
+void AAHBasePlayerController::StopFire()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StopFire();
 	}
 }

@@ -19,7 +19,17 @@ ARangeWeapon::ARangeWeapon()
 
 }
 
-void ARangeWeapon::Fire()
+void ARangeWeapon::StartFire()
+{
+	MakeShot(); 
+	if (WeaponFireMode == EWeaponFireMode::FullAuto)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
+		GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeapon::MakeShot, GetShotTimerInterval(), true);
+	}
+}
+
+void ARangeWeapon::MakeShot()
 {
 	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::Fire() only character can be an owner of range weapon"));
 	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
@@ -39,7 +49,12 @@ void ARangeWeapon::Fire()
 
 	FVector ViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
 
-	WeaponBarell->Shot(PlayerViewPoint , ViewDirection, Controller);
+	WeaponBarell->Shot(PlayerViewPoint, ViewDirection, Controller);
+}
+
+void ARangeWeapon::StopFire()
+{
+	GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
 }
 
 FTransform ARangeWeapon::GetForeGripTransform() const
@@ -56,4 +71,9 @@ float ARangeWeapon::PlayAnimMontage(UAnimMontage* AnimMontage)
 		Result = WeaponAnimInstance->Montage_Play(AnimMontage);
 	}
 	return Result;
+}
+
+float ARangeWeapon::GetShotTimerInterval()
+{
+	return 60.0f / RateOfFire;
 }

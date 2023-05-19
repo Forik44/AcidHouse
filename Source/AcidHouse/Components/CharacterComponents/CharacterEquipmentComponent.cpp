@@ -13,14 +13,6 @@ EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() co
 	return Result;
 }
 
-void UCharacterEquipmentComponent::Fire()
-{
-	if (IsValid(CurrentEquipmentWeapon))
-	{
-		CurrentEquipmentWeapon->Fire();
-	}
-}
-
 void UCharacterEquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
