@@ -4,6 +4,24 @@
 #include "Components/SceneComponent.h"
 #include "WeaponBarellComponent.generated.h"
 
+USTRUCT(BlueprintType)
+struct FDecalInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Decal Info")
+	class UMaterialInterface* DecalMaterial;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Decal Info")
+	FVector DecalSize = FVector(5.0f, 5.0f, 5.0f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Decal Info")
+	float DecalLifetime = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Decal Info")
+	float DecalFadeOutTime = 5.0f;
+};
+
 class UNiagaraSystem;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACIDHOUSE_API UWeaponBarellComponent : public USceneComponent
@@ -30,5 +48,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | VFX")
 	UNiagaraSystem* TraceFX;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | Decals")
+	FDecalInfo DefaultDecalInfo;
 
 };
