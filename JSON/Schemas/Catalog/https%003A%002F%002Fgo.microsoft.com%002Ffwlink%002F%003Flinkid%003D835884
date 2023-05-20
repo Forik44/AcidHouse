@@ -1883,7 +1883,7 @@
         "hz-*.yaml",
         "hz-*.json"
       ],
-      "url": "https://hazelcast.com/schema/config/hazelcast-config-5.2.json"
+      "url": "https://hazelcast.com/schema/config/hazelcast-config-5.3.json"
     },
     {
       "name": "host.json",
@@ -3078,6 +3078,18 @@
       "description": "A declarative schema for managing the Rust toolchain",
       "fileMatch": ["rust-toolchain.toml"],
       "url": "https://json.schemastore.org/rust-toolchain.json"
+    },
+    {
+      "name": "samt",
+      "description": "JSON schema for SAMT configuration files",
+      "fileMatch": ["samt.yaml"],
+      "url": "https://json.schemastore.org/samt.json"
+    },
+    {
+      "name": "samtrc",
+      "description": "JSON schema for SAMT linter configuration files",
+      "fileMatch": [".samtrc.yaml"],
+      "url": "https://json.schemastore.org/samtrc.json"
     },
     {
       "name": "Sapphire CLI Config",
@@ -4548,7 +4560,7 @@
     },
     {
       "name": "Butane Config",
-      "description": "Schema to validate butane files for Fedora CoreOS",
+      "description": "Fedora CoreOS Butane config file schema",
       "fileMatch": ["*.bu"],
       "url": "https://raw.githubusercontent.com/Relativ-IT/Butane-Schemas/Release/Butane-Schema.json"
     },
@@ -4883,6 +4895,12 @@
       "description": "Micro settings",
       "fileMatch": ["**/.config/micro/settings.json"],
       "url": "https://raw.githubusercontent.com/zyedidia/micro/master/data/micro.json"
+    },
+    {
+      "name": "quilt.mod.json",
+      "description": "Metadata file used by the QuiltMC mod loader",
+      "fileMatch": ["quilt.mod.json"],
+      "url": "https://raw.githubusercontent.com/QuiltMC/quilt-json-schemas/main/quilt.mod.json/schemas/main.json"
     }
   ],
   "version": 1
