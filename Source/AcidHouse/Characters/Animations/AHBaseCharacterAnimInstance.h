@@ -51,6 +51,9 @@ protected:
 	bool bIsStrafing = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation | Weapon")
+	bool bIsAiming = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation | Weapon")
 	FTransform ForeGripSocketTransform;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")

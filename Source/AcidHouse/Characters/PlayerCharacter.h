@@ -63,6 +63,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	float SpringArmChangingFromTime(float Time);
 
+	virtual void OnStartAimingInternal() override;
+	virtual void OnStopAimingInternal() override;
+
 private:
 	bool bIsSprintStarted;
 	bool bIsFastSwimStarted;

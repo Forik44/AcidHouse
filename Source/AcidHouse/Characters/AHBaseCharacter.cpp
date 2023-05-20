@@ -215,6 +215,16 @@ void AAHBaseCharacter::OnOutOfOxygen(bool IsOutOfOxygen)
 	}
 }
 
+void AAHBaseCharacter::OnStartAimingInternal()
+{
+	
+}
+
+void AAHBaseCharacter::OnStopAimingInternal()
+{
+
+}
+
 void AAHBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -268,6 +278,21 @@ void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
 		OnMantle(MantlingSettings, MantlingParametrs.StartTime);
 	}
+}
+
+float AAHBaseCharacter::GetAimingMovementSpeed() const
+{
+	return CurrentAimingMovementSpeed;
+}
+
+void AAHBaseCharacter::OnStartAiming_Implementation()
+{
+	OnStartAimingInternal();
+}
+
+void AAHBaseCharacter::OnStopAiming_Implementation()
+{
+	OnStopAimingInternal();
 }
 
 void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
@@ -510,5 +535,38 @@ void AAHBaseCharacter::StopFire()
 	{
 		CurrentRangeWeapon->StopFire(); 
 	}
+}
+
+void AAHBaseCharacter::StartAiming()
+{
+	ARangeWeapon* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+	if (!IsValid(CurrentRangeWeapon))
+	{
+		return;
+	}
+
+	CurrentAimingMovementSpeed = CurrentRangeWeapon->GetAimMovementMaxSpeed();
+	bIsAiming = true;
+	CurrentRangeWeapon->StartAim();
+
+	OnStartAiming();
+}
+
+void AAHBaseCharacter::StopAiming()
+{
+	if (!bIsAiming)
+	{
+		return;
+	}
+
+	ARangeWeapon* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StopAim();
+	}
+
+	bIsAiming = false;
+	CurrentAimingMovementSpeed = 0;
+	OnStopAiming();
 }
 

@@ -36,6 +36,7 @@ void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		LadderSpeedRation = CharacterMovement->GetLadderSpeedRation();
 	}
 	bIsOnZipline = CharacterMovement->IsOnZipline();
+	bIsAiming = CachedBaseCharacter->IsAiming();
 
 	bIsStrafing = !CharacterMovement->bOrientRotationToMovement;
 	Direction = CalculateDirection(CharacterMovement->Velocity, CachedBaseCharacter->GetActorRotation());
@@ -53,4 +54,5 @@ void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		ForeGripSocketTransform = CurrentRangeWeapon->GetForeGripTransform();
 	}
+
 }

@@ -7,6 +7,8 @@
 #include "Camera/CameraComponent.h"
 #include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
 #include "Curves/CurveFloat.h"
+#include "Actors/Equipment/Weapon/RangeWeapon.h"
+#include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: 
@@ -175,6 +177,40 @@ float APlayerCharacter::SpringArmChangingFromTime(float Time)
 		Result = SpringArmChangingCurve->GetFloatValue(Time);
 	}
 	return Result;
+}
+
+void APlayerCharacter::OnStartAimingInternal()
+{
+	Super::OnStartAimingInternal();
+	APlayerController* PlayerController = GetController<APlayerController>();
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+
+	APlayerCameraManager* PlayerCameraManager = PlayerController->PlayerCameraManager;
+	if (IsValid(PlayerCameraManager))
+	{
+		ARangeWeapon* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+		PlayerCameraManager->SetFOV(CurrentRangeWeapon->GetAimFOV());
+	}
+}
+
+void APlayerCharacter::OnStopAimingInternal()
+{
+	Super::OnStopAimingInternal();
+	APlayerController* PlayerController = GetController<APlayerController>();
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+
+	APlayerCameraManager* PlayerCameraManager = PlayerController->PlayerCameraManager;
+	if (IsValid(PlayerCameraManager))
+	{
+		ARangeWeapon* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+		PlayerCameraManager->UnlockFOV();
+	}
 }
 
 void APlayerCharacter::AddCurrentSpringArmTime(float DeltaTime)
