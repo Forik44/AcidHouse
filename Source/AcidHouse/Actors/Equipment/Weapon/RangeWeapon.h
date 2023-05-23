@@ -31,6 +31,9 @@ public:
 	float GetAimFOV() const { return AimFOV; }
 	float GetAimMovementMaxSpeed() const { return AimMovementMaxSpeed; }
 
+	float GetAimTurnModifier() const { return AimTurnModifier; }
+	float GetAimLookUpModifier() const { return AimLookUpModifier; }
+
 	FTransform GetForeGripTransform() const;
 
 protected:
@@ -66,6 +69,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Aiming", meta = (ClampMin = 0.0f, UIMin = 0.0f, ClampMax = 120.0f, UIMax = 120.0f))
 	float AimFOV = 60.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Aiming", meta = (ClampMin = 0.0f, UIMin = 0.0f, ClampMax = 1.0f, UIMax = 1.0f))
+	float AimTurnModifier = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Aiming", meta = (ClampMin = 0.0f, UIMin = 0.0f, ClampMax = 1.0f, UIMax = 1.0f))
+	float AimLookUpModifier = 1.0f;
 private:
 	bool bIsAiming = false;
 

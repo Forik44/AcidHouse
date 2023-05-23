@@ -57,11 +57,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Camera")
 	class UCurveFloat* SpringArmChangingCurve;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Camera")
+	class UCurveFloat* AimingFOVChangingCurve;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Camera", meta = (ClampMin = 0.0f, UIMin = 0.0f))
 	float MaxSprintSpringArmDistance = 380;
 
 	UFUNCTION(BlueprintCallable)
-	float SpringArmChangingFromTime(float Time);
+	float GetCurveValue(UCurveFloat* Curve, float Time);
 
 	virtual void OnStartAimingInternal() override;
 	virtual void OnStopAimingInternal() override;
@@ -69,11 +72,23 @@ protected:
 private:
 	bool bIsSprintStarted;
 	bool bIsFastSwimStarted;
-	float CurrentSpringArmTime;
-	float DefaultSpringArmDistance;
-	float Alpha;
+	bool bIsAimingStarted;
 
-	void AddCurrentSpringArmTime(float DeltaTime);
-	void DeleteCurrentSpringArmTime(float DeltaTime);
+	float CurrentSpringArmTime = 0.0f;
+	float DefaultSpringArmDistance;
+	float AlphaSpringArm;
+
+
+	float CurrentFOVTime = 0.0f;
+	float AlphaFOV = 0.0f;
+	float AimingFOV;
+	float DefaultFOV;
+
+	class APlayerController* PlayerController;
+	class APlayerCameraManager* PlayerCameraManager;
+	class ARangeWeapon* CurrentRangeWeapon;
+
+	void AddCurrentCurveTime(float DeltaTime, float& TypeCurrentTime, float MaxTime);
+	void SubtractCurrentCurveTime(float DeltaTime, float& TypeCurrentTime, float MaxTime);
 	
 };
