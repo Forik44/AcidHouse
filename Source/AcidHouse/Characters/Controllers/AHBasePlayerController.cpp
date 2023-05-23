@@ -38,7 +38,10 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Prone", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::ChangeProneState);
 	InputComponent->BindAction("FastSwim", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartFastSwim);
 	InputComponent->BindAction("FastSwim", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopFastSwim);
-	InputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Fire);
+	InputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PlayerStartFire);
+	InputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &AAHBasePlayerController::PlayerStopFire);
+	InputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartAiming);
+	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopAiming );
 }
 
 void AAHBasePlayerController::MoveForward(float Value)
@@ -185,10 +188,34 @@ void AAHBasePlayerController::InteractWithZipline()
 	}
 }
 
-void AAHBasePlayerController::Fire()
+void AAHBasePlayerController::PlayerStartFire()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->Fire();
+		CachedBaseCharacter->StartFire();
+	}
+}
+
+void AAHBasePlayerController::PlayerStopFire()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StopFire();
+	}
+}
+
+void AAHBasePlayerController::StartAiming()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StartAiming();
+	}
+}
+
+void AAHBasePlayerController::StopAiming()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StopAiming();
 	}
 }

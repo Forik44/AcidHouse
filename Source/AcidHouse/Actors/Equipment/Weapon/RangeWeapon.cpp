@@ -19,7 +19,17 @@ ARangeWeapon::ARangeWeapon()
 
 }
 
-void ARangeWeapon::Fire()
+void ARangeWeapon::StartFire()
+{
+	MakeShot(); 
+	if (WeaponFireMode == EWeaponFireMode::FullAuto)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
+		GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeapon::MakeShot, GetShotTimerInterval(), true);
+	}
+}
+
+void ARangeWeapon::MakeShot()
 {
 	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::Fire() only character can be an owner of range weapon"));
 	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
@@ -38,12 +48,63 @@ void ARangeWeapon::Fire()
 	Controller->GetPlayerViewPoint(PlayerViewPoint, PlayerViewRotation);
 
 	FVector ViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
+	ViewDirection += GetBulletSpreadOffset(FMath::RandRange(0.0f, GetCurrentBulletSpreadAngle()), PlayerViewRotation);
 
-	WeaponBarell->Shot(PlayerViewPoint , ViewDirection, Controller);
+	WeaponBarell->Shot(PlayerViewPoint, ViewDirection, Controller);
+}
+
+float ARangeWeapon::GetCurrentBulletSpreadAngle()
+{
+	float AngleInDegrees = bIsAiming ? AimSpreadAngle : SpreadAngle;
+	return FMath::DegreesToRadians(AngleInDegrees);
+}
+
+void ARangeWeapon::StopFire()
+{
+	GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
+}
+
+void ARangeWeapon::StartAim()
+{
+	bIsAiming = true;
+}
+
+void ARangeWeapon::StopAim()
+{
+	bIsAiming = false;
+}
+
+FTransform ARangeWeapon::GetForeGripTransform() const
+{
+	return WeaponMesh->GetSocketTransform(SocketWeaponForeGrip);
 }
 
 float ARangeWeapon::PlayAnimMontage(UAnimMontage* AnimMontage)
 {
 	UAnimInstance* WeaponAnimInstance = WeaponMesh->GetAnimInstance();
-	return WeaponAnimInstance->Montage_Play(AnimMontage);
+	float Result = 0.0f;
+	if (IsValid(WeaponAnimInstance))
+	{
+		Result = WeaponAnimInstance->Montage_Play(AnimMontage);
+	}
+	return Result;
+}
+
+FVector ARangeWeapon::GetBulletSpreadOffset(float Angle, FRotator ShotRotation)
+{
+	float SpreadSize = FMath::Tan(Angle);
+	float RotationAngle = FMath::RandRange(0.0f, 2 * PI);
+
+	float SpreadY = FMath::Cos(RotationAngle);
+	float SpreadZ = FMath::Sin(RotationAngle);
+
+	FVector Result = (ShotRotation.RotateVector(FVector::UpVector) * SpreadZ
+		+ ShotRotation.RotateVector(FVector::RightVector) * SpreadY) * SpreadSize;
+
+	return Result;
+}
+
+float ARangeWeapon::GetShotTimerInterval() const
+{
+	return 60.0f / RateOfFire;
 }

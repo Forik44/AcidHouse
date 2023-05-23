@@ -10,6 +10,7 @@
 #include "AHBaseCharacter.h"
 #include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
 
+
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {

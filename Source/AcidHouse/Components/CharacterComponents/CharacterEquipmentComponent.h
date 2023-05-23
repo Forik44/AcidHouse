@@ -16,7 +16,7 @@ class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 public:
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
-	void Fire();
+	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquipmentWeapon; }
 
 protected:
 	virtual void BeginPlay() override;

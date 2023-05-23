@@ -107,7 +107,19 @@ public:
 	void InteractWithZipline() const;
 	const class AZipline* GetAvailableZipline() const;
 
-	void Fire();
+	void StartFire();
+	void StopFire();
+
+	void StartAiming();
+	void StopAiming();
+	bool IsAiming() const { return bIsAiming; }
+	float GetAimingMovementSpeed() const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
+	void OnStartAiming();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
+	void OnStopAiming();
 
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
@@ -203,9 +215,15 @@ protected:
 
 	UFUNCTION()
 	virtual void OnOutOfOxygen(bool IsOutOfOxygen);
+
+	virtual void OnStartAimingInternal();
+	virtual void OnStopAimingInternal();
 private:
 	bool bIsSprintRequested = false;
 	bool bIsFastSwimRequested = false;
+	bool bIsAiming = false;
+
+	float CurrentAimingMovementSpeed = 0.0f;
 
 	float IKRightFootOffset = 0.0f;
 	float IKLeftFootOffset = 0.0f;

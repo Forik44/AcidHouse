@@ -7,6 +7,8 @@
 #include "Camera/CameraComponent.h"
 #include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
 #include "Curves/CurveFloat.h"
+#include "Actors/Equipment/Weapon/RangeWeapon.h"
+#include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: 
@@ -33,6 +35,13 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	DefaultSpringArmDistance = SpringArmComponent->TargetArmLength;
+
+	PlayerController = GetController<APlayerController>();
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+
 }
 
 void APlayerCharacter::MoveForward(float Value)
@@ -57,12 +66,26 @@ void APlayerCharacter::MoveRight(float Value)
 
 void APlayerCharacter::Turn(float Value)
 {
-	AddControllerYawInput(Value);
+	if (IsValid(CurrentRangeWeapon))
+	{
+		AddControllerYawInput(Value * CurrentRangeWeapon->GetAimTurnModifier());
+	}
+	else
+	{
+		AddControllerYawInput(Value);
+	}
 }
 
 void APlayerCharacter::LookUp(float Value)
 {
-	AddControllerPitchInput(Value);
+	if (IsValid(CurrentRangeWeapon))
+	{
+		AddControllerPitchInput(Value * CurrentRangeWeapon->GetAimLookUpModifier());
+	}
+	else
+	{
+		AddControllerPitchInput(Value);
+	}
 }
 
 void APlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -145,15 +168,43 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 	if ((bIsFastSwimStarted || bIsSprintStarted) && CurrentSpringArmTime < 0.5)
 	{
-		AddCurrentSpringArmTime(DeltaTime);
-		Alpha = SpringArmChangingFromTime(CurrentSpringArmTime);
-		SpringArmComponent->TargetArmLength = FMath::Lerp(DefaultSpringArmDistance, MaxSprintSpringArmDistance, Alpha);
+		AddCurrentCurveTime(DeltaTime, CurrentSpringArmTime, 0.5f);
+		AlphaSpringArm = GetCurveValue(SpringArmChangingCurve, CurrentSpringArmTime);
+		SpringArmComponent->TargetArmLength = FMath::Lerp(DefaultSpringArmDistance, MaxSprintSpringArmDistance, AlphaSpringArm);
 	}
 	else if (!bIsFastSwimStarted && !bIsSprintStarted && CurrentSpringArmTime > 0)
 	{
-		DeleteCurrentSpringArmTime(DeltaTime);
-		Alpha = SpringArmChangingFromTime(CurrentSpringArmTime);
-		SpringArmComponent->TargetArmLength = FMath::Lerp(DefaultSpringArmDistance, MaxSprintSpringArmDistance, Alpha);
+		SubtractCurrentCurveTime(DeltaTime, CurrentSpringArmTime, 0.5f);
+		AlphaSpringArm = GetCurveValue(SpringArmChangingCurve,CurrentSpringArmTime);
+		SpringArmComponent->TargetArmLength = FMath::Lerp(DefaultSpringArmDistance, MaxSprintSpringArmDistance, AlphaSpringArm);
+	}
+	
+	if (bIsAimingStarted && CurrentFOVTime < 0.3 && IsValid(AimingFOVChangingCurve))
+	{
+		AddCurrentCurveTime(DeltaTime, CurrentFOVTime, 0.3f);
+		AlphaFOV = GetCurveValue(AimingFOVChangingCurve, CurrentFOVTime);
+		if (IsValid(PlayerCameraManager))
+		{
+			PlayerCameraManager->SetFOV(FMath::Lerp(DefaultFOV, AimingFOV, AlphaFOV));
+		}
+		
+	}
+	else if (!bIsAimingStarted && CurrentFOVTime > 0 && IsValid(AimingFOVChangingCurve))
+	{
+		SubtractCurrentCurveTime(DeltaTime, CurrentFOVTime, 0.3f);
+		AlphaFOV = GetCurveValue(AimingFOVChangingCurve, CurrentFOVTime);
+		if (IsValid(PlayerCameraManager))
+		{
+			PlayerCameraManager->SetFOV(FMath::Lerp(DefaultFOV, AimingFOV, AlphaFOV));
+		}
+	}
+	else if (bIsAimingStarted && !IsValid(AimingFOVChangingCurve))
+	{
+		PlayerCameraManager->SetFOV(AimingFOV);
+	}
+	else if (!bIsAimingStarted && !IsValid(AimingFOVChangingCurve))
+	{
+		PlayerCameraManager->SetFOV(DefaultFOV);
 	}
 }
 
@@ -167,27 +218,55 @@ void APlayerCharacter::OnSprintStart_Implementation()
 	bIsSprintStarted = true;
 }
 
-float APlayerCharacter::SpringArmChangingFromTime(float Time)
+float APlayerCharacter::GetCurveValue(UCurveFloat* Curve, float Time)
 {
 	float Result = 0.0f;
-	if (IsValid(SpringArmChangingCurve))
+	if (IsValid(Curve))
 	{
-		Result = SpringArmChangingCurve->GetFloatValue(Time);
+		Result = Curve->GetFloatValue(Time);
 	}
 	return Result;
 }
 
-void APlayerCharacter::AddCurrentSpringArmTime(float DeltaTime)
+void APlayerCharacter::OnStartAimingInternal()
 {
-	CurrentSpringArmTime += DeltaTime;
-	CurrentSpringArmTime = FMath::Clamp(CurrentSpringArmTime, 0.0f, 0.5f);
+	Super::OnStartAimingInternal();
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+
+	PlayerCameraManager = PlayerController->PlayerCameraManager;
+	if (IsValid(PlayerCameraManager))
+	{
+		CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+		AimingFOV = CurrentRangeWeapon->GetAimFOV();
+		DefaultFOV = PlayerCameraManager->GetFOVAngle();
+	}
+	bIsAimingStarted = true;
 }
 
-void APlayerCharacter::DeleteCurrentSpringArmTime(float DeltaTime)
+void APlayerCharacter::OnStopAimingInternal()
 {
-	CurrentSpringArmTime -= DeltaTime;
-	CurrentSpringArmTime = FMath::Clamp(CurrentSpringArmTime, 0.0f, 0.5f);
+	Super::OnStopAimingInternal();
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
 
+	bIsAimingStarted = false;
+}
+
+void APlayerCharacter::AddCurrentCurveTime(float DeltaTime, float& TypeCurrentTime, float MaxTime)
+{
+	TypeCurrentTime += DeltaTime;
+	TypeCurrentTime = FMath::Clamp(TypeCurrentTime, 0.0f, MaxTime);
+}
+
+void APlayerCharacter::SubtractCurrentCurveTime(float DeltaTime, float& TypeCurrentTime, float MaxTime)
+{
+	TypeCurrentTime -= DeltaTime;
+	TypeCurrentTime = FMath::Clamp(TypeCurrentTime, 0.0f, MaxTime);
 }
 
 void APlayerCharacter::OnJumped_Implementation()

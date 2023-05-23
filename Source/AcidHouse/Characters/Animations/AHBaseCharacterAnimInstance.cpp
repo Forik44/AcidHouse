@@ -5,6 +5,7 @@
 #include "Characters/AHBaseCharacter.h"
 #include "Components/MovementComponents/AHBaceCharacerMovementComponent.h" 
 #include "Components/CharacterComponents/CharacterEquipmentComponent.h"
+#include "Actors/Equipment/Weapon/RangeWeapon.h"
 
 void UAHBaseCharacterAnimInstance::NativeBeginPlay()
 {
@@ -35,6 +36,7 @@ void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		LadderSpeedRation = CharacterMovement->GetLadderSpeedRation();
 	}
 	bIsOnZipline = CharacterMovement->IsOnZipline();
+	bIsAiming = CachedBaseCharacter->IsAiming();
 
 	bIsStrafing = !CharacterMovement->bOrientRotationToMovement;
 	Direction = CalculateDirection(CharacterMovement->Velocity, CachedBaseCharacter->GetActorRotation());
@@ -46,4 +48,11 @@ void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	const UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent();
 	CurrentEquippedItemType = CharacterEquipment->GetCurrentEquippedItemType();
+
+	ARangeWeapon* CurrentRangeWeapon = CharacterEquipment->GetCurrentRangeWeapon();
+	if (IsValid(CurrentRangeWeapon))
+	{
+		ForeGripSocketTransform = CurrentRangeWeapon->GetForeGripTransform();
+	}
+
 }

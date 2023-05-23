@@ -12,6 +12,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Curves/CurveVector.h"
 #include "AcidHouseTypes.h"
+#include "Actors/Equipment/Weapon/RangeWeapon.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -214,6 +215,16 @@ void AAHBaseCharacter::OnOutOfOxygen(bool IsOutOfOxygen)
 	}
 }
 
+void AAHBaseCharacter::OnStartAimingInternal()
+{
+	
+}
+
+void AAHBaseCharacter::OnStopAimingInternal()
+{
+
+}
+
 void AAHBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -267,6 +278,21 @@ void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);
 		OnMantle(MantlingSettings, MantlingParametrs.StartTime);
 	}
+}
+
+float AAHBaseCharacter::GetAimingMovementSpeed() const
+{
+	return CurrentAimingMovementSpeed;
+}
+
+void AAHBaseCharacter::OnStartAiming_Implementation()
+{
+	OnStartAimingInternal();
+}
+
+void AAHBaseCharacter::OnStopAiming_Implementation()
+{
+	OnStopAimingInternal();
 }
 
 void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
@@ -493,8 +519,54 @@ const class AZipline* AAHBaseCharacter::GetAvailableZipline() const
 	return Result;
 }
 
-void AAHBaseCharacter::Fire()
+void AAHBaseCharacter::StartFire()
 {
-	CharacterEquipmentComponent->Fire();
+	ARangeWeapon* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StartFire();
+	}
+}
+
+void AAHBaseCharacter::StopFire()
+{
+	ARangeWeapon* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StopFire(); 
+	}
+}
+
+void AAHBaseCharacter::StartAiming()
+{
+	ARangeWeapon* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+	if (!IsValid(CurrentRangeWeapon))
+	{
+		return;
+	}
+
+	CurrentAimingMovementSpeed = CurrentRangeWeapon->GetAimMovementMaxSpeed();
+	bIsAiming = true;
+	CurrentRangeWeapon->StartAim();
+
+	OnStartAiming();
+}
+
+void AAHBaseCharacter::StopAiming()
+{
+	if (!bIsAiming)
+	{
+		return;
+	}
+
+	ARangeWeapon* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StopAim();
+	}
+
+	bIsAiming = false;
+	CurrentAimingMovementSpeed = 0;
+	OnStopAiming();
 }
 

@@ -100,6 +100,10 @@ float UAHBaseCharacterMovementComponent::GetMaxSpeed() const
 		Result = ZiplineMaxSpeed;
 		return Result;
 	}
+	else if (GetBaseCharacterOwner()->IsAiming())
+	{
+		Result = GetBaseCharacterOwner()->GetAimingMovementSpeed();
+	}
 	
 	if (bIsOutOfStamina)
 	{
