@@ -42,6 +42,7 @@ struct FMantlingSettings
 class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
 class UCharacterEquipmentComponent;
+class UCharacterAttributeComponent;
 
 typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
 
@@ -136,7 +137,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
 
-	FORCEINLINE const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent;  }
+	FORCEINLINE const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent; }
+	FORCEINLINE const UCharacterAttributeComponent* GetCharacterAttributeComponent() const { return CharacterAttributeComponent; }
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -171,7 +174,7 @@ protected:
 	float LowMantleMaxHeight = 125.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
-	class UCharacterAttributeComponent* CharacterAttributeComponent;
+	UCharacterAttributeComponent* CharacterAttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
 	UCharacterEquipmentComponent* CharacterEquipmentComponent;

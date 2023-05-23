@@ -18,6 +18,7 @@ void UCharacterAttributeComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	checkf(MaxHealth > 0.0f, TEXT("UCharacterAttributeComponent::BeginPlay() max health can't be equal to 0"));
 	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("UCharacterAttributeComponent::BeginPlay() Can be used only with AAHBaseCharacter"));
 	CashedBaseCharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
 
@@ -148,4 +149,8 @@ void UCharacterAttributeComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 }
 
+float UCharacterAttributeComponent::GetHealthPersent() const
+{
+	return Health / MaxHealth;
+}
 
