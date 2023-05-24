@@ -301,12 +301,22 @@ void AAHBaseCharacter::OnStopAiming_Implementation()
 	OnStopAimingInternal();
 }
 
-void AAHBaseCharacter::Reload() const
+void AAHBaseCharacter::Reload()
 {
 	if (IsValid(CharacterEquipmentComponent->GetCurrentRangeWeapon()))
 	{
 		CharacterEquipmentComponent->ReloadCurrentWeapon();
 	}
+}
+
+void AAHBaseCharacter::NextItem()
+{
+	CharacterEquipmentComponent->EquipNextItem();
+}
+
+void AAHBaseCharacter::PreviousItem()
+{
+	CharacterEquipmentComponent->EquipPreviousItem();
 }
 
 void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)

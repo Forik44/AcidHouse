@@ -13,8 +13,16 @@ class ACIDHOUSE_API AEquipableItem : public AActor
 public:
 	EEquipableItemType GetItemType() const { return ItemType; }
 
+	FORCEINLINE FName GetUnEquippedSocketName() const { return UnEquippedSocketName; }
+	FORCEINLINE FName GetEquippedSocketName() const { return EquippedSocketName; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
 	EEquipableItemType ItemType = EEquipableItemType::None;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
+	FName UnEquippedSocketName = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
+	FName EquippedSocketName = NAME_None;
 };

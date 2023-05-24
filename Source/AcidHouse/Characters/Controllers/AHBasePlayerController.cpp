@@ -48,7 +48,9 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &AAHBasePlayerController::PlayerStopFire);
 	InputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartAiming);
 	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopAiming);
-	InputComponent->BindAction("Reload", EInputEvent::IE_Released, this, &AAHBasePlayerController::Reload);
+	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Reload);
+	InputComponent->BindAction("NextItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::NextItem);
+	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PreviousItem);
 }
 
 void AAHBasePlayerController::CreateAndInitializeWidgets()
@@ -252,6 +254,22 @@ void AAHBasePlayerController::StopAiming()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->StopAiming();
+	}
+}
+
+void AAHBasePlayerController::NextItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->NextItem();
+	}
+}
+
+void AAHBasePlayerController::PreviousItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->PreviousItem();
 	}
 }
 

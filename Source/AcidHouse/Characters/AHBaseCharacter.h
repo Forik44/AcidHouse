@@ -126,7 +126,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStopAiming();
 
-	void Reload() const;
+	void Reload();
+
+	void NextItem();
+	void PreviousItem();
 
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
