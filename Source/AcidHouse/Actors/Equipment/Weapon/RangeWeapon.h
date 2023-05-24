@@ -37,6 +37,7 @@ public:
 	float GetAimLookUpModifier() const { return AimLookUpModifier; }
 
 	int32 GetAmmo() const { return Ammo; }
+	int32 GetMaxAmmo() const { return MaxAmmo; }
 	void SetAmmo(int32 NewAmmo);
 	bool CanShoot() const;
 
@@ -92,6 +93,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Ammo", meta = (ClampMin = 1, UIMin = 1))
 	int32 MaxAmmo = 30;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Ammo")
+	bool bAutoReload;
 
 private:
 	bool bIsAiming = false;

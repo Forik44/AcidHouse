@@ -37,6 +37,10 @@ void ARangeWeapon::MakeShot()
 	if (!CanShoot())
 	{
 		StopFire();
+		if (Ammo == 0 && bAutoReload)
+		{
+			CharacterOwner->Reload();
+		}
 		return;
 	}
 

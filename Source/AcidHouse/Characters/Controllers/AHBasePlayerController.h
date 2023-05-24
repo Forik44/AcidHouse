@@ -60,5 +60,7 @@ private:
 	void StartAiming();
 	void StopAiming();
 
+	void Reload();
+
 	bool bIgnoreCameraPitch = false;
 };

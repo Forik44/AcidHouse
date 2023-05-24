@@ -47,7 +47,8 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PlayerStartFire);
 	InputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &AAHBasePlayerController::PlayerStopFire);
 	InputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartAiming);
-	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopAiming );
+	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopAiming);
+	InputComponent->BindAction("Reload", EInputEvent::IE_Released, this, &AAHBasePlayerController::Reload);
 }
 
 void AAHBasePlayerController::CreateAndInitializeWidgets()
@@ -251,5 +252,13 @@ void AAHBasePlayerController::StopAiming()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->StopAiming();
+	}
+}
+
+void AAHBasePlayerController::Reload()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Reload();
 	}
 }

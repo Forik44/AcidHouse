@@ -22,6 +22,8 @@ public:
 
 	FOnCurrentWeaponAmmoChanged OnCurrentWeaponAmmoChangedEvent;
 
+	void ReloadCurrentWeapon();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -36,6 +38,8 @@ private:
 
 	ARangeWeapon* CurrentEquipmentWeapon;
 	TWeakObjectPtr<class AAHBaseCharacter> CachedBaseCharacter;
+
+	int32 GetAvailableAmunitionForCurrentWeapon();
 
 	UFUNCTION()
 	void OnCurrentWeaponAmmoChanged(int32 Ammo);

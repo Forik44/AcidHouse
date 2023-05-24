@@ -301,6 +301,14 @@ void AAHBaseCharacter::OnStopAiming_Implementation()
 	OnStopAimingInternal();
 }
 
+void AAHBaseCharacter::Reload() const
+{
+	if (IsValid(CharacterEquipmentComponent->GetCurrentRangeWeapon()))
+	{
+		CharacterEquipmentComponent->ReloadCurrentWeapon();
+	}
+}
+
 void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
 {
 	AvailableInteractiveActors.AddUnique(IntaractiveActor);

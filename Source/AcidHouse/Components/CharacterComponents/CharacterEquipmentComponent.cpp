@@ -13,6 +13,24 @@ EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() co
 	return Result;
 }
 
+void UCharacterEquipmentComponent::ReloadCurrentWeapon()
+{
+	checkf(IsValid(CurrentEquipmentWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
+	int32 AvailableAmunition = GetAvailableAmunitionForCurrentWeapon();
+	if (AvailableAmunition <= 0)
+	{
+		return;
+	}
+
+	int32 CurrentAmmo = CurrentEquipmentWeapon->GetAmmo();
+	int32 AmmoToReload = CurrentEquipmentWeapon->GetMaxAmmo() - CurrentAmmo;
+	int32 ReloadedAmmo = FMath::Min(AvailableAmunition, AmmoToReload);
+
+	AmunitionArray[(uint32)CurrentEquipmentWeapon->GetAmmoType()] -= ReloadedAmmo;
+
+	CurrentEquipmentWeapon->SetAmmo(ReloadedAmmo + CurrentAmmo);
+}
+
 void UCharacterEquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -22,11 +40,17 @@ void UCharacterEquipmentComponent::BeginPlay()
 	CreateLoadout();
 }
 
+int32 UCharacterEquipmentComponent::GetAvailableAmunitionForCurrentWeapon()
+{
+	checkf(IsValid(CurrentEquipmentWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
+	return AmunitionArray[(uint32)GetCurrentRangeWeapon()->GetAmmoType()];
+}
+
 void UCharacterEquipmentComponent::OnCurrentWeaponAmmoChanged(int32 Ammo)
 {
 	if (OnCurrentWeaponAmmoChangedEvent.IsBound())
 	{
-		OnCurrentWeaponAmmoChangedEvent.Broadcast(Ammo, AmunitionArray[(uint32)GetCurrentRangeWeapon()->GetAmmoType()]);
+		OnCurrentWeaponAmmoChangedEvent.Broadcast(Ammo, GetAvailableAmunitionForCurrentWeapon());
 	}
 }
 
