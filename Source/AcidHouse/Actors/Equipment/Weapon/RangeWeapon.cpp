@@ -31,7 +31,7 @@ void ARangeWeapon::StartFire()
 
 void ARangeWeapon::MakeShot()
 {
-	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::Fire() only character can be an owner of range weapon"));
+	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::MakeShot() only character can be an owner of range weapon"));
 	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
 
 	if (!CanShoot())
@@ -43,6 +43,8 @@ void ARangeWeapon::MakeShot()
 		}
 		return;
 	}
+
+	EndReload(false);
 
 	CharacterOwner->PlayAnimMontage(CharacterFireMontage);
 	PlayAnimMontage(WeaponFireMontage);
@@ -97,6 +99,39 @@ void ARangeWeapon::SetAmmo(int32 NewAmmo)
 bool ARangeWeapon::CanShoot() const
 {
 	return Ammo > 0;
+}
+
+void ARangeWeapon::StartReload()
+{
+	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::StartReload() only character can be an owner of range weapon"));
+	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
+
+	bIsReloading = true;
+	if (IsValid(CharacterReloadMontage))
+	{
+		float MontageDuration = CharacterOwner->PlayAnimMontage(CharacterReloadMontage);
+		PlayAnimMontage(WeaponReloadMontage);
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, [this](){ EndReload(true); }, MontageDuration, false);
+	}
+	else 
+	{
+		EndReload(true);
+	}
+}
+
+void ARangeWeapon::EndReload(bool bIsSuccess)
+{
+	if (!bIsReloading)
+	{
+		return;
+	}
+	GetWorld()->GetTimerManager().ClearTimer(ReloadTimer);
+
+	bIsReloading = false;
+	if (bIsSuccess && OnReloadComplete.IsBound())
+	{
+		OnReloadComplete.Broadcast();
+	}
 }
 
 FTransform ARangeWeapon::GetForeGripTransform() const

@@ -13,6 +13,7 @@ enum class EWeaponFireMode : uint8
 	FullAuto
 };
 
+DECLARE_MULTICAST_DELEGATE(FOnReloadComplete)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAmmoChanged, int32);
 
 class UAnimMontage;
@@ -41,9 +42,14 @@ public:
 	void SetAmmo(int32 NewAmmo);
 	bool CanShoot() const;
 
+	void StartReload();
+	void EndReload(bool bIsSuccess);
+
 	EAmunitionType GetAmmoType() const { return AmmoType; }
 
 	FOnAmmoChanged OnAmmoChanged;
+
+	FOnReloadComplete OnReloadComplete;
 
 	FTransform GetForeGripTransform() const;
 
@@ -57,10 +63,16 @@ protected:
 	class UWeaponBarellComponent* WeaponBarell;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations | Weapon")
+	UAnimMontage* WeaponReloadMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations | Weapon")
 	UAnimMontage* WeaponFireMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations | Character")
 	UAnimMontage* CharacterFireMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations | Character")
+	UAnimMontage* CharacterReloadMontage;
 
 	//Rate of fire in rounds per minute
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters", meta = (ClampMin = 1.0f, UIMin = 1.0f))
@@ -95,16 +107,19 @@ protected:
 	int32 MaxAmmo = 30;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Ammo")
-	bool bAutoReload;
+	bool bAutoReload = true;
 
 private:
 	bool bIsAiming = false;
+
+	bool bIsReloading = false;
 
 	int32 Ammo = 0;
 
 	float PlayAnimMontage(UAnimMontage* AnimMontage);
 
 	FTimerHandle ShotTimer;
+	FTimerHandle ReloadTimer;
 
 	FVector GetBulletSpreadOffset(float Angle, FRotator ShotRotation);
 

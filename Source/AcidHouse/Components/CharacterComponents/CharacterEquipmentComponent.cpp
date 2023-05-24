@@ -22,13 +22,7 @@ void UCharacterEquipmentComponent::ReloadCurrentWeapon()
 		return;
 	}
 
-	int32 CurrentAmmo = CurrentEquipmentWeapon->GetAmmo();
-	int32 AmmoToReload = CurrentEquipmentWeapon->GetMaxAmmo() - CurrentAmmo;
-	int32 ReloadedAmmo = FMath::Min(AvailableAmunition, AmmoToReload);
-
-	AmunitionArray[(uint32)CurrentEquipmentWeapon->GetAmmoType()] -= ReloadedAmmo;
-
-	CurrentEquipmentWeapon->SetAmmo(ReloadedAmmo + CurrentAmmo);
+	CurrentEquipmentWeapon->StartReload();
 }
 
 void UCharacterEquipmentComponent::BeginPlay()
@@ -54,6 +48,18 @@ void UCharacterEquipmentComponent::OnCurrentWeaponAmmoChanged(int32 Ammo)
 	}
 }
 
+void UCharacterEquipmentComponent::OnWeaponReloadComplete()
+{
+	int32 AvailableAmunition = GetAvailableAmunitionForCurrentWeapon();
+	int32 CurrentAmmo = CurrentEquipmentWeapon->GetAmmo();
+	int32 AmmoToReload = CurrentEquipmentWeapon->GetMaxAmmo() - CurrentAmmo;
+	int32 ReloadedAmmo = FMath::Min(AvailableAmunition, AmmoToReload);
+
+	AmunitionArray[(uint32)CurrentEquipmentWeapon->GetAmmoType()] -= ReloadedAmmo;
+
+	CurrentEquipmentWeapon->SetAmmo(ReloadedAmmo + CurrentAmmo);
+}
+
 void UCharacterEquipmentComponent::CreateLoadout()
 {
 	AmunitionArray.AddZeroed((uint32)EAmunitionType::MAX);
@@ -71,6 +77,7 @@ void UCharacterEquipmentComponent::CreateLoadout()
 	CurrentEquipmentWeapon->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, SocketCharacterWeapon);
 	CurrentEquipmentWeapon->SetOwner(CachedBaseCharacter.Get());
 	CurrentEquipmentWeapon->OnAmmoChanged.AddUFunction(this, FName("OnCurrentWeaponAmmoChanged"));
+	CurrentEquipmentWeapon->OnReloadComplete.AddUFunction(this, FName("OnWeaponReloadComplete"));
 	OnCurrentWeaponAmmoChanged(CurrentEquipmentWeapon->GetAmmo());
 }
 

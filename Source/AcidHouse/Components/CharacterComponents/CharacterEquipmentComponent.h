@@ -44,6 +44,9 @@ private:
 	UFUNCTION()
 	void OnCurrentWeaponAmmoChanged(int32 Ammo);
 
+	UFUNCTION()
+	void OnWeaponReloadComplete();
+
 	void CreateLoadout();
 
 };
