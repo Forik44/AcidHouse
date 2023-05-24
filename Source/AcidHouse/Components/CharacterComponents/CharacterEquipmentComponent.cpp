@@ -22,15 +22,32 @@ void UCharacterEquipmentComponent::BeginPlay()
 	CreateLoadout();
 }
 
+void UCharacterEquipmentComponent::OnCurrentWeaponAmmoChanged(int32 Ammo)
+{
+	if (OnCurrentWeaponAmmoChangedEvent.IsBound())
+	{
+		OnCurrentWeaponAmmoChangedEvent.Broadcast(Ammo, AmunitionArray[(uint32)GetCurrentRangeWeapon()->GetAmmoType()]);
+	}
+}
+
 void UCharacterEquipmentComponent::CreateLoadout()
 {
+	AmunitionArray.AddZeroed((uint32)EAmunitionType::MAX);
+	for (const TPair<EAmunitionType, int32>& AmmoPair : MaxAmunitionAmount)
+	{
+		AmunitionArray[(uint32)AmmoPair.Key] = FMath::Max(AmmoPair.Value, 0);
+	}
+
 	if (!IsValid(SideArmClass))
 	{
 		return;
 	}
+
 	CurrentEquipmentWeapon = GetWorld()->SpawnActor<ARangeWeapon>(SideArmClass);
 	CurrentEquipmentWeapon->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, SocketCharacterWeapon);
 	CurrentEquipmentWeapon->SetOwner(CachedBaseCharacter.Get());
+	CurrentEquipmentWeapon->OnAmmoChanged.AddUFunction(this, FName("OnCurrentWeaponAmmoChanged"));
+	OnCurrentWeaponAmmoChanged(CurrentEquipmentWeapon->GetAmmo());
 }
 
 

@@ -34,6 +34,12 @@ void ARangeWeapon::MakeShot()
 	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::Fire() only character can be an owner of range weapon"));
 	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
 
+	if (!CanShoot())
+	{
+		StopFire();
+		return;
+	}
+
 	CharacterOwner->PlayAnimMontage(CharacterFireMontage);
 	PlayAnimMontage(WeaponFireMontage);
 
@@ -50,6 +56,7 @@ void ARangeWeapon::MakeShot()
 	FVector ViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
 	ViewDirection += GetBulletSpreadOffset(FMath::RandRange(0.0f, GetCurrentBulletSpreadAngle()), PlayerViewRotation);
 
+	SetAmmo(Ammo - 1);
 	WeaponBarell->Shot(PlayerViewPoint, ViewDirection, Controller);
 }
 
@@ -74,9 +81,29 @@ void ARangeWeapon::StopAim()
 	bIsAiming = false;
 }
 
+void ARangeWeapon::SetAmmo(int32 NewAmmo)
+{
+	Ammo = NewAmmo;
+	if (OnAmmoChanged.IsBound())
+	{
+		OnAmmoChanged.Broadcast(Ammo);
+	}
+}
+
+bool ARangeWeapon::CanShoot() const
+{
+	return Ammo > 0;
+}
+
 FTransform ARangeWeapon::GetForeGripTransform() const
 {
 	return WeaponMesh->GetSocketTransform(SocketWeaponForeGrip);
+}
+
+void ARangeWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+	SetAmmo(MaxAmmo);
 }
 
 float ARangeWeapon::PlayAnimMontage(UAnimMontage* AnimMontage)

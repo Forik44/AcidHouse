@@ -217,12 +217,18 @@ void AAHBaseCharacter::OnOutOfOxygen(bool IsOutOfOxygen)
 
 void AAHBaseCharacter::OnStartAimingInternal()
 {
-	
+	if (OnAimingStateChanged.IsBound())
+	{
+		OnAimingStateChanged.Broadcast(true);
+	}
 }
 
 void AAHBaseCharacter::OnStopAimingInternal()
 {
-
+	if (OnAimingStateChanged.IsBound())
+	{
+		OnAimingStateChanged.Broadcast(false);
+	}
 }
 
 void AAHBaseCharacter::Tick(float DeltaTime)

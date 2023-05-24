@@ -13,6 +13,8 @@ enum class EWeaponFireMode : uint8
 	FullAuto
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAmmoChanged, int32);
+
 class UAnimMontage;
 UCLASS(Blueprintable)
 class ACIDHOUSE_API ARangeWeapon : public AEquipableItem
@@ -34,9 +36,19 @@ public:
 	float GetAimTurnModifier() const { return AimTurnModifier; }
 	float GetAimLookUpModifier() const { return AimLookUpModifier; }
 
+	int32 GetAmmo() const { return Ammo; }
+	void SetAmmo(int32 NewAmmo);
+	bool CanShoot() const;
+
+	EAmunitionType GetAmmoType() const { return AmmoType; }
+
+	FOnAmmoChanged OnAmmoChanged;
+
 	FTransform GetForeGripTransform() const;
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class USkeletalMeshComponent* WeaponMesh;
 
@@ -74,8 +86,17 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Aiming", meta = (ClampMin = 0.0f, UIMin = 0.0f, ClampMax = 1.0f, UIMax = 1.0f))
 	float AimLookUpModifier = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Ammo")
+	EAmunitionType AmmoType;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Ammo", meta = (ClampMin = 1, UIMin = 1))
+	int32 MaxAmmo = 30;
+
 private:
 	bool bIsAiming = false;
+
+	int32 Ammo = 0;
 
 	float PlayAnimMontage(UAnimMontage* AnimMontage);
 

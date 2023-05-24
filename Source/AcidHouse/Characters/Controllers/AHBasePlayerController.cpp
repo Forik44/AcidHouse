@@ -1,10 +1,16 @@
 #include "AHBasePlayerController.h"
 #include "Characters/AHBaseCharacter.h"
+#include "Blueprint/UserWidget.h"
+#include "UI/Widgets/ReticleWidget.h"
+#include "UI/Widgets/AmmoWidget.h"
+#include "UI/Widgets/PlayerHUDWidget.h"
+#include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 
 void AAHBasePlayerController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);
-	CachedBaseCharacter = Cast<AAHBaseCharacter>(InPawn);
+	CachedBaseCharacter = Cast<AAHBaseCharacter>(InPawn); 
+	CreateAndInitializeWidgets();
 }
 
 bool AAHBasePlayerController::GetIgnoreCameraPitch() const
@@ -42,6 +48,34 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &AAHBasePlayerController::PlayerStopFire);
 	InputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::StartAiming);
 	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AAHBasePlayerController::StopAiming );
+}
+
+void AAHBasePlayerController::CreateAndInitializeWidgets()
+{
+	if (!IsValid(PlayerHUDWidget))
+	{
+		PlayerHUDWidget = CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass);
+		if (IsValid(PlayerHUDWidget))
+		{
+			PlayerHUDWidget->AddToViewport();
+		}
+	}
+
+	if (CachedBaseCharacter.IsValid() && IsValid(PlayerHUDWidget))
+	{
+		UReticleWidget* ReticleWidget = PlayerHUDWidget->GetReticleWidget();
+		if (IsValid(ReticleWidget))
+		{
+			CachedBaseCharacter->OnAimingStateChanged.AddUFunction(ReticleWidget, FName("OnAimingStateChanged"));
+		}
+
+		UAmmoWidget* AmmoWidget = PlayerHUDWidget->GetAmmoWidget();
+		if (IsValid(AmmoWidget))
+		{
+			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
+			CharacterEquipment->OnCurrentWeaponAmmoChangedEvent.AddUFunction(AmmoWidget, FName("UpdateAmmoCount"));
+		}
+	}
 }
 
 void AAHBasePlayerController::MoveForward(float Value)

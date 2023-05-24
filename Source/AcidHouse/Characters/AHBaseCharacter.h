@@ -39,6 +39,8 @@ struct FMantlingSettings
 	float MinHeightStartTime = 0.5f;
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAimingStateChanged, bool)
+
 class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
 class UCharacterEquipmentComponent;
@@ -116,6 +118,8 @@ public:
 	bool IsAiming() const { return bIsAiming; }
 	float GetAimingMovementSpeed() const;
 
+	FOnAimingStateChanged OnAimingStateChanged;
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStartAiming();
 
@@ -138,6 +142,8 @@ public:
 	FORCEINLINE float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
 
 	FORCEINLINE const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent; }
+	FORCEINLINE  UCharacterEquipmentComponent* GetCharacterEquipmentComponent_Mutable() const { return CharacterEquipmentComponent; }
+
 	FORCEINLINE const UCharacterAttributeComponent* GetCharacterAttributeComponent() const { return CharacterAttributeComponent; }
 
 
