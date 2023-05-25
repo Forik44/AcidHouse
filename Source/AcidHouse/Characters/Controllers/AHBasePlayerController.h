@@ -1,14 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "AHBasePlayerController.generated.h"
 
-/**
- * 
- */
+class UPlayerHUDWidget;
 UCLASS()
 class ACIDHOUSE_API AAHBasePlayerController : public APlayerController
 {
@@ -23,8 +19,15 @@ public:
 protected:
 	virtual void SetupInputComponent() override;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+	TSubclassOf<UPlayerHUDWidget> PlayerHUDWidgetClass;
+
 private:
 	TSoftObjectPtr<class AAHBaseCharacter> CachedBaseCharacter;
+
+	UPlayerHUDWidget* PlayerHUDWidget = nullptr;
+
+	void CreateAndInitializeWidgets();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -56,6 +59,11 @@ private:
 
 	void StartAiming();
 	void StopAiming();
+
+	void NextItem();
+	void PreviousItem();
+
+	void Reload();
 
 	bool bIgnoreCameraPitch = false;
 };

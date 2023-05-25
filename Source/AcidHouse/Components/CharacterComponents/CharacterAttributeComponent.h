@@ -24,6 +24,8 @@ public:
 
 	bool IsAlive() { return Health > 0.0f; }
 
+	float GetHealthPersent() const;
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetCurrentStamina() const { return Stamina; }
 	FORCEINLINE float GetOutOfOxygenDamageRate() const { return OutOfOxygenDamageRate;  }

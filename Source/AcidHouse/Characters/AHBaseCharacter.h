@@ -39,9 +39,12 @@ struct FMantlingSettings
 	float MinHeightStartTime = 0.5f;
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAimingStateChanged, bool)
+
 class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
 class UCharacterEquipmentComponent;
+class UCharacterAttributeComponent;
 
 typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
 
@@ -108,6 +111,9 @@ public:
 	const class AZipline* GetAvailableZipline() const;
 
 	void StartFire();
+
+	bool CanFire();
+
 	void StopFire();
 
 	void StartAiming();
@@ -115,11 +121,18 @@ public:
 	bool IsAiming() const { return bIsAiming; }
 	float GetAimingMovementSpeed() const;
 
+	FOnAimingStateChanged OnAimingStateChanged;
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStartAiming();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStopAiming();
+
+	void Reload();
+
+	void NextItem();
+	void PreviousItem();
 
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
@@ -136,7 +149,11 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
 
-	FORCEINLINE const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent;  }
+	FORCEINLINE const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent; }
+	FORCEINLINE  UCharacterEquipmentComponent* GetCharacterEquipmentComponent_Mutable() const { return CharacterEquipmentComponent; }
+
+	FORCEINLINE const UCharacterAttributeComponent* GetCharacterAttributeComponent() const { return CharacterAttributeComponent; }
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -171,7 +188,7 @@ protected:
 	float LowMantleMaxHeight = 125.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
-	class UCharacterAttributeComponent* CharacterAttributeComponent;
+	UCharacterAttributeComponent* CharacterAttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
 	UCharacterEquipmentComponent* CharacterEquipmentComponent;

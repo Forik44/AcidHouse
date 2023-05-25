@@ -217,12 +217,18 @@ void AAHBaseCharacter::OnOutOfOxygen(bool IsOutOfOxygen)
 
 void AAHBaseCharacter::OnStartAimingInternal()
 {
-	
+	if (OnAimingStateChanged.IsBound())
+	{
+		OnAimingStateChanged.Broadcast(true);
+	}
 }
 
 void AAHBaseCharacter::OnStopAimingInternal()
 {
-
+	if (OnAimingStateChanged.IsBound())
+	{
+		OnAimingStateChanged.Broadcast(false);
+	}
 }
 
 void AAHBaseCharacter::Tick(float DeltaTime)
@@ -293,6 +299,24 @@ void AAHBaseCharacter::OnStartAiming_Implementation()
 void AAHBaseCharacter::OnStopAiming_Implementation()
 {
 	OnStopAimingInternal();
+}
+
+void AAHBaseCharacter::Reload()
+{
+	if (IsValid(CharacterEquipmentComponent->GetCurrentRangeWeapon()))
+	{
+		CharacterEquipmentComponent->ReloadCurrentWeapon();
+	}
+}
+
+void AAHBaseCharacter::NextItem()
+{
+	CharacterEquipmentComponent->EquipNextItem();
+}
+
+void AAHBaseCharacter::PreviousItem()
+{
+	CharacterEquipmentComponent->EquipPreviousItem();
 }
 
 void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
@@ -521,11 +545,26 @@ const class AZipline* AAHBaseCharacter::GetAvailableZipline() const
 
 void AAHBaseCharacter::StartFire()
 {
+	if (!CanFire())
+	{
+		return;
+	}
+
 	ARangeWeapon* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
 	if (IsValid(CurrentRangeWeapon))
 	{
 		CurrentRangeWeapon->StartFire();
 	}
+}
+
+bool AAHBaseCharacter::CanFire()
+{
+	if (CharacterEquipmentComponent->IsEquipping())
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void AAHBaseCharacter::StopFire()

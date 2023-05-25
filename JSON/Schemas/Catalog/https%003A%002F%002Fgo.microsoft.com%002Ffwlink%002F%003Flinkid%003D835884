@@ -1652,6 +1652,12 @@
       }
     },
     {
+      "name": "GCP Blueprint Metadata",
+      "description": "JSON schema for Blueprint Solutions for Google Cloud",
+      "fileMatch": ["metadata.yaml", "metadata.display.yaml"],
+      "url": "https://json.schemastore.org/gcp-blueprint-metadata.json"
+    },
+    {
       "name": "Global Privacy Control",
       "description": "Configuration for GPC, so a site can convey its support for the Global Privacy Control.",
       "fileMatch": ["**/.well-known/gpc.json"],
@@ -2455,6 +2461,12 @@
       "url": "https://json.schemastore.org/netlify.json"
     },
     {
+      "name": "Nexus-as-Code schema",
+      "description": "Cisco Nexus-as-Code Data Model JSON Schema",
+      "fileMatch": ["*.nac.yml", "*.nac.yaml", "*.aac.yml", "*.aac.yaml"],
+      "url": "https://raw.githubusercontent.com/netascode/nac-validate/main/schema.json"
+    },
+    {
       "name": "Nightwatch.js",
       "description": "nightwatch.js schema",
       "fileMatch": ["nightwatch.json"],
@@ -2777,6 +2789,17 @@
         ".postcssrc.yml"
       ],
       "url": "https://json.schemastore.org/postcssrc.json"
+    },
+    {
+      "name": "Postman collection",
+      "description": "JSON schema for Postman collections",
+      "fileMatch": ["*.postman_collection.json"],
+      "url": "https://schema.postman.com/collection/json/v2.1.0/draft-07/collection.json",
+      "versions": {
+        "1.0.0": "https://schema.postman.com/collection/json/v1.0.0/draft-07/collection.json",
+        "2.0.0": "https://schema.postman.com/collection/json/v2.0.0/draft-07/collection.json",
+        "2.1.0": "https://schema.postman.com/collection/json/v2.1.0/draft-07/collection.json"
+      }
     },
     {
       "name": ".powerpages-web-template-manifest",
@@ -4901,6 +4924,12 @@
       "description": "Metadata file used by the QuiltMC mod loader",
       "fileMatch": ["quilt.mod.json"],
       "url": "https://raw.githubusercontent.com/QuiltMC/quilt-json-schemas/main/quilt.mod.json/schemas/main.json"
+    },
+    {
+      "name": "AutoAPICase",
+      "description": "auto api case schema",
+      "fileMatch": ["**/test_data/*.yml"],
+      "url": "https://json.schemastore.org/case_schema.json"
     }
   ],
   "version": 1
