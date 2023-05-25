@@ -117,6 +117,7 @@ private:
 	int32 Ammo = 0;
 
 	float PlayAnimMontage(UAnimMontage* AnimMontage);
+	void StopAnimMontage(UAnimMontage* AnimMontage, float BlendOutTime = 0);
 
 	FTimerHandle ShotTimer;
 	FTimerHandle ReloadTimer;

@@ -26,8 +26,15 @@ public:
 	void ReloadCurrentWeapon();
 
 	void EquipItemInSlot(EEquipmentSlots Slot);
+
+	void AttachCurrentItemToEquippedSocket();
+
+	void UnequipCurrentItem();
+
 	void EquipNextItem();
 	void EquipPreviousItem();
+
+	FORCEINLINE bool IsEquipping() const { return bIsEquipping; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -39,12 +46,17 @@ protected:
 	TMap<EEquipmentSlots, TSubclassOf<class AEquipableItem>> ItemsLodout;
 
 private:
+	bool bIsEquipping = false;
+
+	FTimerHandle EquipTimer;
+
 	TAmunitionArray AmunitionArray;
 	TItemsArray ItemsArray;
 
 	ARangeWeapon* CurrentEquipmentWeapon;
 	AEquipableItem* CurrentEquippedItem;
 	EEquipmentSlots CurrentEquippedSlot;
+
 	TWeakObjectPtr<class AAHBaseCharacter> CachedBaseCharacter;
 
 	FDelegateHandle OnCurrentWeaponAmmoChangedHanlde;
@@ -57,6 +69,8 @@ private:
 
 	UFUNCTION()
 	void OnWeaponReloadComplete();
+
+	void EquipAnimationFinished();
 
 	void CreateLoadout();
 

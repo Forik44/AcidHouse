@@ -126,6 +126,15 @@ void ARangeWeapon::EndReload(bool bIsSuccess)
 	{
 		return;
 	}
+
+	if (!bIsSuccess)
+	{
+		checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::StartReload() only character can be an owner of range weapon"));
+		AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
+		CharacterOwner->StopAnimMontage(CharacterReloadMontage);
+		StopAnimMontage(WeaponReloadMontage);
+	}
+
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimer);
 
 	bIsReloading = false;
@@ -155,6 +164,15 @@ float ARangeWeapon::PlayAnimMontage(UAnimMontage* AnimMontage)
 		Result = WeaponAnimInstance->Montage_Play(AnimMontage);
 	}
 	return Result;
+}
+
+void ARangeWeapon::StopAnimMontage(UAnimMontage* AnimMontage, float BlendOutTime /*= 0*/)
+{
+	UAnimInstance* WeaponAnimInstance = WeaponMesh->GetAnimInstance();
+	if (IsValid(WeaponAnimInstance))
+	{
+		WeaponAnimInstance->Montage_Stop(BlendOutTime, AnimMontage);
+	}
 }
 
 FVector ARangeWeapon::GetBulletSpreadOffset(float Angle, FRotator ShotRotation)

@@ -545,11 +545,26 @@ const class AZipline* AAHBaseCharacter::GetAvailableZipline() const
 
 void AAHBaseCharacter::StartFire()
 {
+	if (!CanFire())
+	{
+		return;
+	}
+
 	ARangeWeapon* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
 	if (IsValid(CurrentRangeWeapon))
 	{
 		CurrentRangeWeapon->StartFire();
 	}
+}
+
+bool AAHBaseCharacter::CanFire()
+{
+	if (CharacterEquipmentComponent->IsEquipping())
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void AAHBaseCharacter::StopFire()

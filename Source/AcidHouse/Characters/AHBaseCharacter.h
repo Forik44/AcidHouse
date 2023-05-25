@@ -111,6 +111,9 @@ public:
 	const class AZipline* GetAvailableZipline() const;
 
 	void StartFire();
+
+	bool CanFire();
+
 	void StopFire();
 
 	void StartAiming();
