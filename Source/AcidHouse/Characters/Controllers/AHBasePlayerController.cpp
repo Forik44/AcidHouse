@@ -5,6 +5,8 @@
 #include "UI/Widgets/AmmoWidget.h"
 #include "UI/Widgets/PlayerHUDWidget.h"
 #include "Components/CharacterComponents/CharacterEquipmentComponent.h"
+#include "Components/CharacterComponents/CharacterAttributeComponent.h"
+#include "UI/Widgets/CharacterAttributesWidget.h"
 
 void AAHBasePlayerController::SetPawn(APawn* InPawn)
 {
@@ -77,6 +79,15 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 		{
 			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
 			CharacterEquipment->OnCurrentWeaponAmmoChangedEvent.AddUFunction(AmmoWidget, FName("UpdateAmmoCount"));
+		}
+
+		UCharacterAttributesWidget* CharacterAttributesWidget = PlayerHUDWidget->GetCharacterAttributesWidget();
+		if (IsValid(CharacterAttributesWidget))
+		{
+			UCharacterAttributeComponent* CharacterAttribute = CachedBaseCharacter->GetCharacterAttributeComponent_Mutable();
+			CharacterAttribute->OnHealthPersentChanged.AddUFunction(CharacterAttributesWidget, FName("OnHealthPersentChanged"));
+			CharacterAttribute->OnStaminaPersentChanged.AddUFunction(CharacterAttributesWidget, FName("OnStaminaPersentChanged"));
+			CharacterAttribute->OnOxygenPersentChanged.AddUFunction(CharacterAttributesWidget, FName("OnOxygenPersentChanged"));
 		}
 	}
 }

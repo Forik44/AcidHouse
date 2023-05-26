@@ -5,6 +5,9 @@
 #include "CharacterAttributeComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnDeathEventSignature);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthPersentChanged, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaminaPersentChanged, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnOxygenPersentChanged, float);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOutOfStaminaEventSignature, bool, bIsOutOfStamina);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOutOfOxygenEventSignature, bool, bIsOutOfOxygen);
 
@@ -19,12 +22,20 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FOnDeathEventSignature OnDeathEvent;
+
+	FOnHealthPersentChanged OnHealthPersentChanged;
+	FOnStaminaPersentChanged OnStaminaPersentChanged;
+	FOnOxygenPersentChanged OnOxygenPersentChanged;
+
 	FOnOutOfStaminaEventSignature OnOutOfStaminaEvent;
 	FOnOutOfOxygenEventSignature OnOutOfOxygenEvent;
 
 	bool IsAlive() { return Health > 0.0f; }
 
-	float GetHealthPersent() const;
+	void SetHealth(float NewHealth);
+	void SetStamina(float NewStamina);
+	void SetOxygen(float NewOxygen);
+
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetCurrentStamina() const { return Stamina; }

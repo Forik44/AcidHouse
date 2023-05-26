@@ -22,9 +22,9 @@ void UCharacterAttributeComponent::BeginPlay()
 	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("UCharacterAttributeComponent::BeginPlay() Can be used only with AAHBaseCharacter"));
 	CashedBaseCharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
 
-	Health = MaxHealth;
-	Stamina = MaxStamina;
-	Oxygen = MaxOxygen;
+	SetHealth(MaxHealth);
+	SetStamina(MaxStamina);
+	SetOxygen(MaxOxygen);
 
 	CashedBaseCharacterOwner->OnTakeAnyDamage.AddDynamic(this, &UCharacterAttributeComponent::OnTakeAnyDamage);
 }
@@ -54,51 +54,32 @@ void UCharacterAttributeComponent::OnTakeAnyDamage(AActor* DamagedActor, float D
 	}
 
 	UE_LOG(LogDamage, Warning, TEXT("UCharacterAttributeComponent::OnTakeAnyDamage %s recevied %.2f amount of damage from %s"), *CashedBaseCharacterOwner->GetName(), Damage, *DamageCauser->GetName());
-	Health = FMath::Clamp(Health - Damage, 0.0f, MaxHealth);
-
-	if (Health <= 0.0f)
-	{
-		UE_LOG(LogDamage, Warning, TEXT("UCharacterAttributeComponent::OnTakeAnyDamage character %s is killed by an actor %s"), *CashedBaseCharacterOwner->GetName(), *DamageCauser->GetName());
-		if (OnDeathEvent.IsBound())
-		{
-			OnDeathEvent.Broadcast();
-		}
-	}
+	float NewHealth = FMath::Clamp(Health - Damage, 0.0f, MaxHealth);
+	SetHealth(NewHealth);
 }
 
 void UCharacterAttributeComponent::UpdateStaminaValue(float DeltaTime)
 {
 	if (!CashedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsSprinting() && !CashedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsFastSwimming())
 	{
-		Stamina += StaminaRestoreVelocity * DeltaTime;
-		Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
-		if (Stamina == MaxStamina)
-		{
-			if (OnOutOfStaminaEvent.IsBound())
-			{
-				OnOutOfStaminaEvent.Broadcast(false);
-			}
-		}
+		float NewStamina = Stamina + StaminaRestoreVelocity * DeltaTime;
+		NewStamina = FMath::Clamp(NewStamina, 0.0f, MaxStamina);
+		SetStamina(NewStamina);
 	}
 
 	if (CashedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsSprinting())
 	{
-		Stamina -= SprintStaminaConsumptionVelocity * DeltaTime;
-		Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
-		if (FMath::IsNearlyZero(Stamina, 1e-6f))
-		{
-			if (OnOutOfStaminaEvent.IsBound())
-			{
-				OnOutOfStaminaEvent.Broadcast(true);
-			}
-		}
+		float NewStamina = Stamina - StaminaRestoreVelocity * DeltaTime;
+		NewStamina = FMath::Clamp(NewStamina, 0.0f, MaxStamina);
+		SetStamina(NewStamina);
 	}
 
 	if (CashedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsFastSwimming())
 	{
-		Stamina -= SprintStaminaConsumptionVelocity * DeltaTime;
-		Stamina = FMath::Clamp(Stamina, 0.0f, MaxStamina);
-		if (FMath::IsNearlyZero(Stamina, 1e-6f))
+		float NewStamina = Stamina - SprintStaminaConsumptionVelocity * DeltaTime;
+		NewStamina = FMath::Clamp(NewStamina, 0.0f, MaxStamina);
+		SetStamina(NewStamina);
+		if (FMath::IsNearlyZero(NewStamina, 1e-6f))
 		{
 			if (OnOutOfStaminaEvent.IsBound())
 			{
@@ -110,30 +91,18 @@ void UCharacterAttributeComponent::UpdateStaminaValue(float DeltaTime)
 
 void UCharacterAttributeComponent::UpdateOxygenValue(float DeltaTime)
 {
+	float NewOxygen = 0.0f;
 	if (CashedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsFastSwimming() || CashedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsSwimming())
 	{
-		Oxygen -= SwimOxygenConsumptionVelocity * DeltaTime;
-		Oxygen = FMath::Clamp(Oxygen, 0.0f, MaxOxygen);
-		if (FMath::IsNearlyZero(Oxygen, 1e-6f))
-		{
-			if (OnOutOfOxygenEvent.IsBound())
-			{
-				OnOutOfOxygenEvent.Broadcast(true);
-			}
-		}
+		NewOxygen = Oxygen - SwimOxygenConsumptionVelocity * DeltaTime;
+
 	}
 	else
 	{
-		Oxygen += OxygenRestoreVelocity * DeltaTime;
-		Oxygen = FMath::Clamp(Oxygen, 0.0f, MaxOxygen);
-		if (Oxygen > 0)
-		{
-			if (OnOutOfOxygenEvent.IsBound())
-			{
-				OnOutOfOxygenEvent.Broadcast(false);
-			}
-		}
+		NewOxygen = Oxygen + SwimOxygenConsumptionVelocity * DeltaTime;
 	}
+	NewOxygen = FMath::Clamp(NewOxygen, 0.0f, MaxOxygen);
+	SetOxygen(NewOxygen);
 }
 
 void UCharacterAttributeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -149,8 +118,70 @@ void UCharacterAttributeComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 }
 
-float UCharacterAttributeComponent::GetHealthPersent() const
+void UCharacterAttributeComponent::SetHealth(float NewHealth)
 {
-	return Health / MaxHealth;
+	if (Health != NewHealth)
+	{
+		Health = NewHealth;
+		OnHealthPersentChanged.Broadcast(Health / MaxHealth);
+		if (Health <= 0.0f)
+		{
+			if (OnDeathEvent.IsBound())
+			{
+				OnDeathEvent.Broadcast();
+			}
+		}
+	}
 }
+
+void UCharacterAttributeComponent::SetStamina(float NewStamina)
+{
+	if (Stamina != NewStamina)
+	{
+		Stamina = NewStamina;
+		OnStaminaPersentChanged.Broadcast(Stamina / MaxStamina);
+
+		if (Stamina == 0)
+		{
+			if (OnOutOfStaminaEvent.IsBound())
+			{
+				OnOutOfStaminaEvent.Broadcast(true);
+			}
+		}
+
+		if (Stamina == MaxStamina)
+		{
+			if (OnOutOfStaminaEvent.IsBound())
+			{
+				OnOutOfStaminaEvent.Broadcast(false);
+			}
+		}
+	}
+}
+
+void UCharacterAttributeComponent::SetOxygen(float NewOxygen)
+{
+	if (Oxygen != NewOxygen)
+	{
+		Oxygen = NewOxygen;
+		OnOxygenPersentChanged.Broadcast(Oxygen / MaxOxygen);
+	
+		if (FMath::IsNearlyZero(Oxygen, 1e-6f))
+		{
+			if (OnOutOfOxygenEvent.IsBound())
+			{
+				OnOutOfOxygenEvent.Broadcast(true);
+			}
+		}
+		else
+		{
+			if (OnOutOfOxygenEvent.IsBound())
+			{
+				OnOutOfOxygenEvent.Broadcast(false);
+			}
+		}
+
+	}
+}
+
 

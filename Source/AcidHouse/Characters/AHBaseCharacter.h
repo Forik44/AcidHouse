@@ -149,6 +149,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
 
+	FORCEINLINE  UCharacterAttributeComponent* GetCharacterAttributeComponent_Mutable() const { return CharacterAttributeComponent; }
+
 	FORCEINLINE const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent; }
 	FORCEINLINE  UCharacterEquipmentComponent* GetCharacterEquipmentComponent_Mutable() const { return CharacterEquipmentComponent; }
 

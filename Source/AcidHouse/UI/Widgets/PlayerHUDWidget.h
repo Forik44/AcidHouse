@@ -4,9 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerHUDWidget.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class ACIDHOUSE_API UPlayerHUDWidget : public UUserWidget
 {
@@ -16,14 +14,17 @@ public:
 	class UReticleWidget* GetReticleWidget();
 
 	class UAmmoWidget* GetAmmoWidget();
+	
+	class UCharacterAttributesWidget* GetCharacterAttributesWidget();
 
 protected:
-	UFUNCTION(BlueprintCallable)
-	float GetHealthPersent() const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
 	FName ReticleWidgetName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
 	FName AmmoWidgetName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
+	FName CharacterAttributesName;
 };
