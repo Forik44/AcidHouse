@@ -14,6 +14,12 @@
       "url": "https://json.schemastore.org/base-04.json"
     },
     {
+      "name": "1Password SSH Agent Config",
+      "description": "Configuration file for the 1Password SSH agent.",
+      "fileMatch": ["**/1password/ssh/agent.toml"],
+      "url": "https://developer.1password.com/schema/ssh-agent-config.json"
+    },
+    {
       "name": "Application Accelerator",
       "description": "Application Accelerator for VMware Tanzu",
       "fileMatch": ["accelerator.yaml"],
@@ -39,6 +45,24 @@
       "description": "AdonisJS configuration file",
       "fileMatch": [".adonisrc.json"],
       "url": "https://raw.githubusercontent.com/adonisjs/application/master/adonisrc.schema.json"
+    },
+    {
+      "name": "aerleon.yml",
+      "description": "Aerleon configuration file",
+      "fileMatch": ["aerleon.yml"],
+      "url": "https://raw.githubusercontent.com/aerleon/aerleon/main/schemas/aerleon-config.schema.json"
+    },
+    {
+      "name": "Aerleon Network & Service Definitions",
+      "description": "Aerleon network & service definition file",
+      "fileMatch": ["**/def/**/*.yaml"],
+      "url": "https://raw.githubusercontent.com/aerleon/aerleon/main/schemas/aerleon-definitions.schema.json"
+    },
+    {
+      "name": "Aerleon Policy",
+      "description": "Aerleon policy file",
+      "fileMatch": ["**/policies/**/*.yaml"],
+      "url": "https://raw.githubusercontent.com/aerleon/aerleon/main/schemas/aerleon-policies.schema.json"
     },
     {
       "name": ".agripparc.json",
@@ -296,6 +320,15 @@
       "url": "https://raw.githubusercontent.com/asyncapi/website/master/scripts/tools/tools-schema.json"
     },
     {
+      "name": "Aurora Agile Meta-Framework",
+      "description": "Yaml schema for Aurora Agile Meta-Framework",
+      "fileMatch": ["*.aurora.yaml", "*.aurora.yml"],
+      "url": "https://json.schemastore.org/aurora-1.0.json",
+      "versions": {
+        "1.0": "https://json.schemastore.org/aurora-1.0.json"
+      }
+    },
+    {
       "name": "Avro Avsc",
       "description": "Avro Schema Avsc file",
       "fileMatch": ["*.avsc"],
@@ -319,6 +352,14 @@
       "versions": {
         "4": "https://json.schemastore.org/azure-deviceupdate-update-manifest-4.json",
         "5": "https://json.schemastore.org/azure-deviceupdate-update-manifest-5.json"
+      }
+    },
+    {
+      "name": "Azure DevOps extension manifest",
+      "description": "Azure DevOps extension manifest schema",
+      "url": "https://json.schemastore.org/azure-devops-extension-manifest-1.0.json",
+      "versions": {
+        "1.0": "https://json.schemastore.org/azure-devops-extension-manifest-1.0.json"
       }
     },
     {
@@ -1025,6 +1066,12 @@
       "url": "https://json.schemastore.org/chrome-manifest.json"
     },
     {
+      "name": "chrome-extension-locales-messages.json",
+      "description": "Google Chrome extension localization file",
+      "fileMatch": ["**/_locales/*/messages.json"],
+      "url": "https://json.schemastore.org/chrome-extension-locales-messages.json"
+    },
+    {
       "name": "chutzpah.json",
       "description": "Chutzpah configuration file",
       "fileMatch": ["chutzpah.json"],
@@ -1374,6 +1421,17 @@
       "url": "https://json.schemastore.org/dotnetcli.host.json"
     },
     {
+      "name": "dprint.json",
+      "description": "dprint configuration file",
+      "fileMatch": [
+        "dprint.json",
+        "dprint.jsonc",
+        ".dprint.json",
+        ".dprint.jsonc"
+      ],
+      "url": "https://dprint.dev/schemas/v0.json"
+    },
+    {
       "name": "drone.json",
       "description": "Drone CI configuration file",
       "fileMatch": [".drone.yml"],
@@ -1563,6 +1621,12 @@
       "description": "JSON schema for ffizer template configuration files",
       "fileMatch": [".ffizer.yaml"],
       "url": "https://ffizer.github.io/ffizer/ffizer.schema.json"
+    },
+    {
+      "name": "Firebase",
+      "description": "JSON Schema for firebase",
+      "fileMatch": ["firebase.json"],
+      "url": "https://raw.githubusercontent.com/firebase/firebase-tools/master/schema/firebase-config.json"
     },
     {
       "name": "first-timers-bot",
@@ -2041,8 +2105,9 @@
       "name": "JReleaser",
       "description": "JSON schema for JReleaser config file",
       "fileMatch": ["jreleaser.yml", "jreleaser.json"],
-      "url": "https://json.schemastore.org/jreleaser-1.6.0.json",
+      "url": "https://json.schemastore.org/jreleaser-1.7.0.json",
       "versions": {
+        "1.7.0": "https://json.schemastore.org/jreleaser-1.7.0.json",
         "1.6.0": "https://json.schemastore.org/jreleaser-1.6.0.json"
       }
     },
@@ -2420,6 +2485,12 @@
       "url": "https://json.schemastore.org/minecraft-texture-mcmeta.json"
     },
     {
+      "name": "Minecraft Data Pack Trim Material",
+      "description": "Configuration file defining a trim material for a data pack for Minecraft.",
+      "fileMatch": ["**/data/*/trim_material/*.json"],
+      "url": "https://json.schemastore.org/minecraft-trim-material.json"
+    },
+    {
       "name": "MkDocs Configuration 1.0",
       "description": "JSON schema for MkDocs configuration file",
       "fileMatch": ["mkdocs.yml"],
@@ -2732,6 +2803,12 @@
       "url": "https://json.schemastore.org/packer.json"
     },
     {
+      "name": "Paper paper-plugin.yml",
+      "description": "JSON Schema for Paper Plugins YAML",
+      "fileMatch": ["paper-plugin.yml"],
+      "url": "https://json.schemastore.org/paper-plugin.json"
+    },
+    {
       "name": "pgap_yaml_input_reader",
       "description": "NCBI Prokaryotic Genome Annotation Pipeline (PGAP) input metadata (submol) JSON/YAML configuration file",
       "fileMatch": ["submol*.json", "submol*.yml", "submol*.yaml"],
@@ -2905,8 +2982,21 @@
     {
       "name": "prometheus.rules.json",
       "description": "Prometheus rules file",
-      "fileMatch": ["*.rules"],
+      "fileMatch": [
+        "*.rules.yml",
+        "*.rules.yaml",
+        "*rules.yml",
+        "*rules.yaml",
+        "rules.yml",
+        "rules.yaml"
+      ],
       "url": "https://json.schemastore.org/prometheus.rules.json"
+    },
+    {
+      "name": "prometheus.rules.test.json",
+      "description": "Prometheus rules test file",
+      "fileMatch": ["*.tests.yml", "*.tests.yaml", "*.test.yml", "*.test.yaml"],
+      "url": "https://json.schemastore.org/prometheus.rules.test.json"
     },
     {
       "name": "proxies.json",
@@ -3278,6 +3368,19 @@
         "*.silkit.yaml"
       ],
       "url": "https://json.schemastore.org/sil-kit-participant-configuration.json"
+    },
+    {
+      "name": "SIL Kit Registry Configuration",
+      "description": "Configuration file for Vector SIL Kit Registry Service",
+      "fileMatch": [
+        "silkit-registry.yaml",
+        "silkit-registry.yml",
+        "silkit-registry.json",
+        "*.silkit-registry.yaml",
+        "*.silkit-registry.yml",
+        "*.silkit-registry.json"
+      ],
+      "url": "https://json.schemastore.org/sil-kit-registry-configuration.json"
     },
     {
       "name": "size-limit configuration",
@@ -3654,6 +3757,7 @@
       "url": "https://json.schemastore.org/utam-page-object.json",
       "versions": {
         "1.5.0": "https://json.schemastore.org/utam-page-object-1.5.0.json",
+        "2.0.3": "https://json.schemastore.org/utam-page-object-2.0.3.json",
         "current": "https://json.schemastore.org/utam-page-object.json"
       }
     },
@@ -4082,6 +4186,12 @@
       "description": "Helmfile is a declarative spec for deploying helm charts",
       "fileMatch": ["helmfile.yaml", "**/helmfile.d/**/*.yaml"],
       "url": "https://json.schemastore.org/helmfile.json"
+    },
+    {
+      "name": "helmwave",
+      "description": "Helmwave is a declarative spec for deploying helm charts",
+      "fileMatch": ["helmwave.yml"],
+      "url": "https://github.com/helmwave/helmwave/releases/latest/download/schema.json"
     },
     {
       "name": "Container Structure Test",
@@ -4880,7 +4990,8 @@
       "url": "https://json.schemastore.org/pantsbuild-2.15.0.json",
       "versions": {
         "2.14.0": "https://json.schemastore.org/pantsbuild-2.14.0.json",
-        "2.15.0": "https://json.schemastore.org/pantsbuild-2.15.0.json"
+        "2.15.0": "https://json.schemastore.org/pantsbuild-2.15.0.json",
+        "2.16.0": "https://json.schemastore.org/pantsbuild-2.16.0.json"
       }
     },
     {
@@ -4894,6 +5005,18 @@
       "description": "The configuration file used for ES6 Import Sorter - a vscode extention .",
       "fileMatch": [".es6importsorterrc.json"],
       "url": "https://json.schemastore.org/es6importsorterrc.json"
+    },
+    {
+      "name": "completely.yml",
+      "description": "Completely completion",
+      "fileMatch": ["completely.yml", "completely.yaml"],
+      "url": "https://github.com/DannyBen/completely/blob/master/schemas/completely.json"
+    },
+    {
+      "name": "madness.yml",
+      "description": "Madness settings",
+      "fileMatch": ["madness.yml", "madness.yaml"],
+      "url": "https://raw.githubusercontent.com/DannyBen/madness/master/schemas/madness.json"
     },
     {
       "name": "bashly.yml",

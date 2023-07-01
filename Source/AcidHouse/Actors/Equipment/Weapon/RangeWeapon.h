@@ -122,8 +122,6 @@ private:
 	FTimerHandle ShotTimer;
 	FTimerHandle ReloadTimer;
 
-	FVector GetBulletSpreadOffset(float Angle, FRotator ShotRotation);
-
 	float GetShotTimerInterval() const;
 	void MakeShot();
 
