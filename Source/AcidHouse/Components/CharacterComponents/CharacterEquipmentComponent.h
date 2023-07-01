@@ -24,6 +24,7 @@ public:
 	FOnCurrentWeaponAmmoChanged OnCurrentWeaponAmmoChangedEvent;
 
 	void ReloadCurrentWeapon();
+	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);
 
 	void EquipItemInSlot(EEquipmentSlots Slot);
 

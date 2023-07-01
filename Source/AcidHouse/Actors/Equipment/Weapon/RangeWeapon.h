@@ -43,7 +43,7 @@ public:
 	bool CanShoot() const;
 
 	void StartReload();
-	void EndReload(bool bIsSuccess);
+	void EndReload(bool bIsSuccess, bool bJumpToEnd = false);
 
 	EAmunitionType GetAmmoType() const { return AmmoType; }
 

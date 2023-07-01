@@ -15,6 +15,8 @@ const FName CollisionProfilePawn = FName("Pawn");
 const FName CollisionProfileRagdoll = FName("Ragdoll");
 const FName CollisionProfilePawnInteractionVolume = FName("PawnInteractionVolume");
 
+const FName SectionMontageReloadEnd = FName("EndReload");
+
 const FName DebugCategoryLedgeDetection = FName("LedgeDetection");
 const FName DebugCategoryCharacterAttributes = FName("CharacterAttributes");
 const FName DebugCategoryRangeWeapon = FName("RangeWeapon");
