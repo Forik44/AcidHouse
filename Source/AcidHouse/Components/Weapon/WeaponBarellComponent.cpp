@@ -41,7 +41,11 @@ void UWeaponBarellComponent::Shot(FVector ShotStart, FVector ShotDirection, ACon
 				{
 					HitActor->TakeDamage(DamageAmount * FalloffDiagram->GetFloatValue((MuzzleLocation - ShotEnd).Size() * 0.01), FDamageEvent{}, Controller, GetOwner());
 				}
-				HitActor->TakeDamage(DamageAmount, FDamageEvent{}, Controller, GetOwner());
+				FPointDamageEvent DamageEvent;
+				DamageEvent.HitInfo = ShotResult;
+				DamageEvent.ShotDirection = ShotDirection;
+				DamageEvent.DamageTypeClass = DamageTypeClass;
+				HitActor->TakeDamage(DamageAmount, DamageEvent, Controller, GetOwner());
 			}
 		}
 

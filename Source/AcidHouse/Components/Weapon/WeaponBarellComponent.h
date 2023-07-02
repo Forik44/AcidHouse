@@ -41,6 +41,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | Damage")
 	float DamageAmount = 20.0f; 
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | Damage")
+	TSubclassOf<class UDamageType> DamageTypeClass;
+
 	//In meters
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | Damage")
 	class UCurveFloat* FalloffDiagram;

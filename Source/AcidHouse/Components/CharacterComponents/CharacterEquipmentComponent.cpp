@@ -57,7 +57,7 @@ void UCharacterEquipmentComponent::ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo 
 		bool bIsFullyReloaded = CurrentEquipmentWeapon->GetAmmo() == CurrentEquipmentWeapon->GetMaxAmmo();
 		if (AvailableAmunition == 0 || bIsFullyReloaded)
 		{
-			CurrentEquipmentWeapon->EndReload(true, true);
+			CurrentEquipmentWeapon->EndReload(true);
 		}
 	}
 }

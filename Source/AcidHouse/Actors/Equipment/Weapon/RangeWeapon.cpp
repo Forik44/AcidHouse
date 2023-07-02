@@ -22,12 +22,12 @@ ARangeWeapon::ARangeWeapon()
 
 void ARangeWeapon::StartFire()
 {
-	MakeShot(); 
-	if (WeaponFireMode == EWeaponFireMode::FullAuto)
+	if (GetWorld()->GetTimerManager().IsTimerActive(ShotTimer))
 	{
-		GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
-		GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeapon::MakeShot, GetShotTimerInterval(), true);
+		return;
 	}
+	bIsFiring = true;
+	MakeShot(); 
 }
 
 void ARangeWeapon::MakeShot()
@@ -64,6 +64,29 @@ void ARangeWeapon::MakeShot()
 
 	SetAmmo(Ammo - 1);
 	WeaponBarell->Shot(PlayerViewPoint, ViewDirection, Controller, GetCurrentBulletSpreadAngle());
+
+	GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeapon::OnShotTimerElapsed, GetShotTimerInterval(), false);
+}
+
+void ARangeWeapon::OnShotTimerElapsed()
+{
+	if (!bIsFiring)
+	{
+		return;
+	}
+
+	switch (WeaponFireMode)
+	{
+		case EWeaponFireMode::Single:
+		{
+			StopFire();
+			break;
+		}
+		case EWeaponFireMode::FullAuto:
+		{
+			MakeShot();
+		}
+	}
 }
 
 float ARangeWeapon::GetCurrentBulletSpreadAngle()
@@ -74,7 +97,7 @@ float ARangeWeapon::GetCurrentBulletSpreadAngle()
 
 void ARangeWeapon::StopFire()
 {
-	GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
+	bIsFiring = false;
 }
 
 void ARangeWeapon::StartAim()
@@ -111,7 +134,10 @@ void ARangeWeapon::StartReload()
 	{
 		float MontageDuration = CharacterOwner->PlayAnimMontage(CharacterReloadMontage);
 		PlayAnimMontage(WeaponReloadMontage);
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, [this](){ EndReload(true); }, MontageDuration, false);
+		if (ReloadType == EReloadType::FullClip)
+		{
+			GetWorld()->GetTimerManager().SetTimer(ReloadTimer, [this]() { EndReload(true); }, MontageDuration, false);
+		}
 	}
 	else 
 	{
@@ -119,7 +145,7 @@ void ARangeWeapon::StartReload()
 	}
 }
 
-void ARangeWeapon::EndReload(bool bIsSuccess, bool bJumpToEnd /*= false*/)
+void ARangeWeapon::EndReload(bool bIsSuccess)
 {
 	if (!bIsReloading)
 	{
@@ -134,7 +160,7 @@ void ARangeWeapon::EndReload(bool bIsSuccess, bool bJumpToEnd /*= false*/)
 		StopAnimMontage(WeaponReloadMontage);
 	}
 
-	if (bJumpToEnd)
+	if (ReloadType == EReloadType::ByBullet)
 	{
 		AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
 		UAnimInstance* CharacterAnimInstance = CharacterOwner->GetMesh()->GetAnimInstance();
