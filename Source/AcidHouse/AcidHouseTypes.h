@@ -4,6 +4,7 @@
 #define ECC_InteractionVolume ECC_GameTraceChannel2
 #define ECC_Bullet ECC_GameTraceChannel3
 
+
 const FName FXParamTraceEnd = FName("TraceEnd");
 
 const FName SocketFPCamera = FName("CameraSocket");
@@ -13,7 +14,8 @@ const FName SocketWeaponForeGrip = FName("ForeGripSocket");
 
 const FName CollisionProfilePawn = FName("Pawn");
 const FName CollisionProfileRagdoll = FName("Ragdoll");
-const FName CollisionProfilePawnInteractionVolume = FName("PawnInteractionVolume");
+const FName CollisionProfilePawnInteractionVolume = FName("PawnInteractionVolume");	
+const FName CollisionProfileProjectile = FName("Projectile");
 
 const FName SectionMontageReloadEnd = FName("EndReload");
 
