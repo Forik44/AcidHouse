@@ -79,6 +79,7 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 
 	CurrentEquippedItem = ItemsArray[(uint32)Slot];
 	CurrentEquipmentWeapon = Cast<ARangeWeapon>(CurrentEquippedItem);
+	CurrentThrowableItem = Cast<AThrowableItem>(CurrentEquippedItem);
 
 	if (IsValid(CurrentEquippedItem))
 	{
