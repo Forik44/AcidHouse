@@ -134,6 +134,8 @@ public:
 	void NextItem();
 	void PreviousItem();
 
+	void EquipPrimaryItem();
+
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 

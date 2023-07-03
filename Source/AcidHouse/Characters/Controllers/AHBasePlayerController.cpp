@@ -53,6 +53,7 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Reload);
 	InputComponent->BindAction("NextItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::NextItem);
 	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PreviousItem);
+	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::EquipPrimaryItem);
 }
 
 void AAHBasePlayerController::CreateAndInitializeWidgets()
@@ -289,5 +290,13 @@ void AAHBasePlayerController::Reload()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->Reload();
+	}
+}
+
+void AAHBasePlayerController::EquipPrimaryItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->EquipPrimaryItem();
 	}
 }

@@ -2,6 +2,7 @@
 #include "Characters/AHBaseCharacter.h"
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
 #include "AcidHouseTypes.h"
+#include "Actors/Equipment/Throwables/ThrowableItem.h"
 
 void UCharacterEquipmentComponent::BeginPlay()
 {
@@ -64,6 +65,11 @@ void UCharacterEquipmentComponent::ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo 
 
 void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 {
+	if (!IsValid(ItemsArray[(uint32)Slot]))
+	{
+		return;
+	}
+
 	if (bIsEquipping)
 	{
 		return;
@@ -103,6 +109,16 @@ void UCharacterEquipmentComponent::AttachCurrentItemToEquippedSocket()
 	CurrentEquippedItem->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurrentEquippedItem->GetEquippedSocketName());
 }
 
+void UCharacterEquipmentComponent::LaunchCurrentThrowableItem()
+{
+	if (CurrentThrowableItem)
+	{
+		CurrentThrowableItem->Throw();
+		bIsEquipping = false;
+		EquipItemInSlot(PreviousEquippedSlot);
+	}
+}
+
 void UCharacterEquipmentComponent::UnequipCurrentItem()
 {
 	if (IsValid(CurrentEquippedItem))
@@ -116,6 +132,7 @@ void UCharacterEquipmentComponent::UnequipCurrentItem()
 		CurrentEquipmentWeapon->OnAmmoChanged.Remove(OnCurrentWeaponAmmoChangedHanlde);
 		CurrentEquipmentWeapon->OnReloadComplete.Remove(OnCurrentWeaponReloadedHanlde);
 	}
+	PreviousEquippedSlot = CurrentEquippedSlot;
 	CurrentEquippedSlot = EEquipmentSlots::None;
 }
 
@@ -123,7 +140,7 @@ void UCharacterEquipmentComponent::EquipNextItem()
 {
 	uint32 CurrentSlotIndex = (uint32)CurrentEquippedSlot;
 	uint32 NextSlotIndex = NextItemsArraySlotIndex(CurrentSlotIndex);
-	while (CurrentSlotIndex != NextSlotIndex && !IsValid(ItemsArray[NextSlotIndex]))
+	while (CurrentSlotIndex != NextSlotIndex && !IgnoreSlotsWhileSwitching.Contains((EEquipmentSlots)NextSlotIndex) && !IsValid(ItemsArray[NextSlotIndex]))
 	{
 		NextSlotIndex = NextItemsArraySlotIndex(NextSlotIndex);
 	}
@@ -137,7 +154,7 @@ void UCharacterEquipmentComponent::EquipPreviousItem()
 {
 	uint32 CurrentSlotIndex = (uint32)CurrentEquippedSlot;
 	uint32 PreviousSlotIndex = PreviousItemsArraySlotIndex(CurrentSlotIndex);
-	while (CurrentSlotIndex != PreviousSlotIndex && !IsValid(ItemsArray[PreviousSlotIndex]))
+	while (CurrentSlotIndex != PreviousSlotIndex && !IgnoreSlotsWhileSwitching.Contains((EEquipmentSlots)PreviousSlotIndex) && !IsValid(ItemsArray[PreviousSlotIndex]))
 	{
 		PreviousSlotIndex = PreviousItemsArraySlotIndex(PreviousSlotIndex);
 	}
