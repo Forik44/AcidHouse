@@ -2,6 +2,7 @@
 #include "Characters/AHBaseCharacter.h"
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
 #include "AcidHouseTypes.h"
+#include "Actors/Equipment/Throwables/ThrowableItem.h"
 
 void UCharacterEquipmentComponent::BeginPlay()
 {
@@ -34,6 +35,34 @@ void UCharacterEquipmentComponent::ReloadCurrentWeapon()
 	CurrentEquipmentWeapon->StartReload();
 }
 
+void UCharacterEquipmentComponent::ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo /*= 0*/, bool bCheckIsFull /*= false*/)
+{
+	int32 AvailableAmunition = GetAvailableAmunitionForCurrentWeapon();
+	int32 CurrentAmmo = CurrentEquipmentWeapon->GetAmmo();
+	int32 AmmoToReload = CurrentEquipmentWeapon->GetMaxAmmo() - CurrentAmmo;
+
+	int32 ReloadedAmmo = FMath::Min(AvailableAmunition, AmmoToReload);
+	if (NumberOfAmmo > 0)
+	{
+		ReloadedAmmo = FMath::Min(ReloadedAmmo, NumberOfAmmo); 
+	}
+
+	AmunitionArray[(uint32)CurrentEquipmentWeapon->GetAmmoType()] -= ReloadedAmmo;
+
+	CurrentEquipmentWeapon->SetAmmo(ReloadedAmmo + CurrentAmmo);
+
+	if (bCheckIsFull)
+	{
+		AvailableAmunition = AmunitionArray[(uint32)CurrentEquipmentWeapon->GetAmmoType()];
+
+		bool bIsFullyReloaded = CurrentEquipmentWeapon->GetAmmo() == CurrentEquipmentWeapon->GetMaxAmmo();
+		if (AvailableAmunition == 0 || bIsFullyReloaded)
+		{
+			CurrentEquipmentWeapon->EndReload(true);
+		}
+	}
+}
+
 void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 {
 	if (bIsEquipping)
@@ -45,6 +74,7 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 
 	CurrentEquippedItem = ItemsArray[(uint32)Slot];
 	CurrentEquipmentWeapon = Cast<ARangeWeapon>(CurrentEquippedItem);
+	CurrentThrowableItem = Cast<AThrowableItem>(CurrentEquippedItem);
 
 	if (IsValid(CurrentEquippedItem))
 	{
@@ -60,6 +90,7 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 			AttachCurrentItemToEquippedSocket(); 
 		}
 		CurrentEquippedSlot = Slot;
+		CurrentEquippedItem->Equip();
 	}
 
 	if (IsValid(CurrentEquipmentWeapon))
@@ -72,7 +103,21 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 
 void UCharacterEquipmentComponent::AttachCurrentItemToEquippedSocket()
 {
+	if (!IsValid(CurrentEquippedItem))
+	{
+		return;
+	}
 	CurrentEquippedItem->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurrentEquippedItem->GetEquippedSocketName());
+}
+
+void UCharacterEquipmentComponent::LaunchCurrentThrowableItem()
+{
+	if (CurrentThrowableItem)
+	{
+		CurrentThrowableItem->Throw();
+		bIsEquipping = false;
+		EquipItemInSlot(PreviousEquippedSlot);
+	}
 }
 
 void UCharacterEquipmentComponent::UnequipCurrentItem()
@@ -80,6 +125,7 @@ void UCharacterEquipmentComponent::UnequipCurrentItem()
 	if (IsValid(CurrentEquippedItem))
 	{
 		CurrentEquippedItem->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurrentEquippedItem->GetUnEquippedSocketName());
+		CurrentEquippedItem->UnEquip();
 	}
 	if (IsValid(CurrentEquipmentWeapon))
 	{
@@ -88,6 +134,7 @@ void UCharacterEquipmentComponent::UnequipCurrentItem()
 		CurrentEquipmentWeapon->OnAmmoChanged.Remove(OnCurrentWeaponAmmoChangedHanlde);
 		CurrentEquipmentWeapon->OnReloadComplete.Remove(OnCurrentWeaponReloadedHanlde);
 	}
+	PreviousEquippedSlot = CurrentEquippedSlot;
 	CurrentEquippedSlot = EEquipmentSlots::None;
 }
 
@@ -95,7 +142,7 @@ void UCharacterEquipmentComponent::EquipNextItem()
 {
 	uint32 CurrentSlotIndex = (uint32)CurrentEquippedSlot;
 	uint32 NextSlotIndex = NextItemsArraySlotIndex(CurrentSlotIndex);
-	while (CurrentSlotIndex != NextSlotIndex && !IsValid(ItemsArray[NextSlotIndex]))
+	while (CurrentSlotIndex != NextSlotIndex && !IgnoreSlotsWhileSwitching.Contains((EEquipmentSlots)NextSlotIndex) && !IsValid(ItemsArray[NextSlotIndex]))
 	{
 		NextSlotIndex = NextItemsArraySlotIndex(NextSlotIndex);
 	}
@@ -109,7 +156,7 @@ void UCharacterEquipmentComponent::EquipPreviousItem()
 {
 	uint32 CurrentSlotIndex = (uint32)CurrentEquippedSlot;
 	uint32 PreviousSlotIndex = PreviousItemsArraySlotIndex(CurrentSlotIndex);
-	while (CurrentSlotIndex != PreviousSlotIndex && !IsValid(ItemsArray[PreviousSlotIndex]))
+	while (CurrentSlotIndex != PreviousSlotIndex && !IgnoreSlotsWhileSwitching.Contains((EEquipmentSlots)PreviousSlotIndex) && !IsValid(ItemsArray[PreviousSlotIndex]))
 	{
 		PreviousSlotIndex = PreviousItemsArraySlotIndex(PreviousSlotIndex);
 	}
@@ -135,14 +182,7 @@ void UCharacterEquipmentComponent::OnCurrentWeaponAmmoChanged(int32 Ammo)
 
 void UCharacterEquipmentComponent::OnWeaponReloadComplete()
 {
-	int32 AvailableAmunition = GetAvailableAmunitionForCurrentWeapon();
-	int32 CurrentAmmo = CurrentEquipmentWeapon->GetAmmo();
-	int32 AmmoToReload = CurrentEquipmentWeapon->GetMaxAmmo() - CurrentAmmo;
-	int32 ReloadedAmmo = FMath::Min(AvailableAmunition, AmmoToReload);
-
-	AmunitionArray[(uint32)CurrentEquipmentWeapon->GetAmmoType()] -= ReloadedAmmo;
-
-	CurrentEquipmentWeapon->SetAmmo(ReloadedAmmo + CurrentAmmo);
+	ReloadAmmoInCurrentWeapon();
 }
 
 void UCharacterEquipmentComponent::EquipAnimationFinished()
@@ -169,6 +209,7 @@ void UCharacterEquipmentComponent::CreateLoadout()
 		AEquipableItem* Item = GetWorld()->SpawnActor<AEquipableItem>(ItemPair.Value);
 		Item->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, Item->GetUnEquippedSocketName());
 		Item->SetOwner(CachedBaseCharacter.Get());
+		Item->UnEquip();
 		ItemsArray[(uint32)ItemPair.Key] = Item;
 	}
 }

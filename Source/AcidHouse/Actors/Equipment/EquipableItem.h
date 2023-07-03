@@ -5,8 +5,9 @@
 #include "AcidHouseTypes.h"
 #include "EquipableItem.generated.h"
 
-class UAnimMontage;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentStateChanged, bool, bIsEquipped);
 
+class UAnimMontage;
 UCLASS(Abstract, NotBlueprintable)
 class ACIDHOUSE_API AEquipableItem : public AActor
 {
@@ -20,7 +21,13 @@ public:
 	FORCEINLINE FName GetUnEquippedSocketName() const { return UnEquippedSocketName; }
 	FORCEINLINE FName GetEquippedSocketName() const { return EquippedSocketName; }
 
+	virtual void Equip();
+	virtual void UnEquip();
+
 protected:
+	UPROPERTY(BlueprintAssignable)
+	FOnEquipmentStateChanged OnEquipmentStateChanged;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
 	EEquipableItemType ItemType = EEquipableItemType::None;
 

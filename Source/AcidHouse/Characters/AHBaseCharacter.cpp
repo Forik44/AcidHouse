@@ -319,6 +319,11 @@ void AAHBaseCharacter::PreviousItem()
 	CharacterEquipmentComponent->EquipPreviousItem();
 }
 
+void AAHBaseCharacter::EquipPrimaryItem()
+{
+	CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::PrimaryItemSlot);
+}
+
 void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
 {
 	AvailableInteractiveActors.AddUnique(IntaractiveActor);

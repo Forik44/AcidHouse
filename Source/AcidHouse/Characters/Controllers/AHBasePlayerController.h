@@ -65,5 +65,7 @@ private:
 
 	void Reload();
 
+	void EquipPrimaryItem();
+
 	bool bIgnoreCameraPitch = false;
 };

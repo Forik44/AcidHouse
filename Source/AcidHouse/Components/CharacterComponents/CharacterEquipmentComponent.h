@@ -11,6 +11,7 @@ typedef TArray<int32, TInlineAllocator<(uint32)EAmunitionType::MAX>> TAmunitionA
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCurrentWeaponAmmoChanged, int32, int32);
 
 class ARangeWeapon;
+class AThrowableItem;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 {
@@ -24,10 +25,13 @@ public:
 	FOnCurrentWeaponAmmoChanged OnCurrentWeaponAmmoChangedEvent;
 
 	void ReloadCurrentWeapon();
+	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);
 
 	void EquipItemInSlot(EEquipmentSlots Slot);
 
 	void AttachCurrentItemToEquippedSocket();
+
+	void LaunchCurrentThrowableItem();
 
 	void UnequipCurrentItem();
 
@@ -45,6 +49,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
 	TMap<EEquipmentSlots, TSubclassOf<class AEquipableItem>> ItemsLodout;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
+	TSet<EEquipmentSlots> IgnoreSlotsWhileSwitching;
+
 private:
 	bool bIsEquipping = false;
 
@@ -55,7 +62,10 @@ private:
 
 	ARangeWeapon* CurrentEquipmentWeapon;
 	AEquipableItem* CurrentEquippedItem;
+	AThrowableItem* CurrentThrowableItem;
+
 	EEquipmentSlots CurrentEquippedSlot;
+	EEquipmentSlots PreviousEquippedSlot;
 
 	TWeakObjectPtr<class AAHBaseCharacter> CachedBaseCharacter;
 

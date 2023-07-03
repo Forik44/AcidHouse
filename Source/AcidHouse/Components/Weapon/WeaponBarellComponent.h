@@ -29,14 +29,20 @@ class ACIDHOUSE_API UWeaponBarellComponent : public USceneComponent
 	GENERATED_BODY()
 
 public:
-	void Shot(FVector ShotStart, FVector ShotDirection, AController* Controller);
+	void Shot(FVector ShotStart, FVector ShotDirection, AController* Controller, float SpreadAngle);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes")
 	float FiringRange = 5000.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes", meta=(ClampMin = 1, UIMin = 1))
+	int32 BulletsPerShot = 1;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | Damage")
 	float DamageAmount = 20.0f; 
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | Damage")
+	TSubclassOf<class UDamageType> DamageTypeClass;
 
 	//In meters
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | Damage")
@@ -50,5 +56,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes | Decals")
 	FDecalInfo DefaultDecalInfo;
+
+private:
+	FVector GetBulletSpreadOffset(float Angle, FRotator ShotRotation);
 
 };

@@ -4,16 +4,21 @@
 #define ECC_InteractionVolume ECC_GameTraceChannel2
 #define ECC_Bullet ECC_GameTraceChannel3
 
+
 const FName FXParamTraceEnd = FName("TraceEnd");
 
 const FName SocketFPCamera = FName("CameraSocket");
 const FName SocketCharacterWeapon = FName("CharacterWeaponSocket");
 const FName SocketWeaponMuzzle = FName("MuzzleSocket");
 const FName SocketWeaponForeGrip = FName("ForeGripSocket");
+const FName SocketCharacterThrowable = FName("ThrowableSocket");
 
 const FName CollisionProfilePawn = FName("Pawn");
 const FName CollisionProfileRagdoll = FName("Ragdoll");
-const FName CollisionProfilePawnInteractionVolume = FName("PawnInteractionVolume");
+const FName CollisionProfilePawnInteractionVolume = FName("PawnInteractionVolume");	
+const FName CollisionProfileProjectile = FName("Projectile");
+
+const FName SectionMontageReloadEnd = FName("EndReload");
 
 const FName DebugCategoryLedgeDetection = FName("LedgeDetection");
 const FName DebugCategoryCharacterAttributes = FName("CharacterAttributes");
@@ -24,7 +29,8 @@ enum class EEquipableItemType : uint8
 {
 	None,
 	Pistol,
-	Rifle 
+	Rifle,
+	Throwable
 };
 
 UENUM(BlueprintType)
@@ -33,6 +39,7 @@ enum class EAmunitionType : uint8
 	None,
 	Pistol,
 	Rifle,
+	Shotgun,
 	MAX UMETA(Hidden)
 };
 
@@ -42,5 +49,7 @@ enum class EEquipmentSlots : uint8
 	None,
 	SideArm,
 	PrimaryWeapon,
+	SecondaryWeapon,
+	PrimaryItemSlot,
 	MAX UMETA(Hidden)
 };

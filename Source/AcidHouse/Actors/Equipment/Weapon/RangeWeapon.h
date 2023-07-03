@@ -13,6 +13,13 @@ enum class EWeaponFireMode : uint8
 	FullAuto
 };
 
+UENUM(BlueprintType)
+enum class EReloadType : uint8
+{
+	FullClip,
+	ByBullet
+};
+
 DECLARE_MULTICAST_DELEGATE(FOnReloadComplete)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAmmoChanged, int32);
 
@@ -67,6 +74,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations | Weapon")
 	UAnimMontage* WeaponFireMontage;
+ 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations | Weapon")
+	EReloadType ReloadType = EReloadType::FullClip;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations | Character")
 	UAnimMontage* CharacterFireMontage;
@@ -111,8 +121,8 @@ protected:
 
 private:
 	bool bIsAiming = false;
-
 	bool bIsReloading = false;
+	bool bIsFiring = false;
 
 	int32 Ammo = 0;
 
@@ -122,10 +132,10 @@ private:
 	FTimerHandle ShotTimer;
 	FTimerHandle ReloadTimer;
 
-	FVector GetBulletSpreadOffset(float Angle, FRotator ShotRotation);
-
 	float GetShotTimerInterval() const;
 	void MakeShot();
+
+	void OnShotTimerElapsed();
 
 	float GetCurrentBulletSpreadAngle();
 };
