@@ -30,7 +30,7 @@ void AThrowableItem::Throw()
 	FVector SocketInViewSpace = PlayerViewTransform.InverseTransformPosition(ThrowableSocketLocation);
 
 	FVector SpawnLocation = PlayerViewPoint + ViewDirection * SocketInViewSpace.X + CharacterOwner->GetActorRightVector() * SocketInViewSpace.Y;
-	AAHProjectile* Projectile = GetWorld()->SpawnActor<AAHProjectile>(ProjectileClass, SpawnLocation, FRotator::ZeroRotator);
+	AAHProjectile* Projectile = GetWorld()->SpawnActor<AAHProjectile>(ProjectileClass, SpawnLocation, ViewDirection.ToOrientationRotator());
 	if (IsValid(Projectile))
 	{
 		Projectile->SetOwner(GetOwner());
