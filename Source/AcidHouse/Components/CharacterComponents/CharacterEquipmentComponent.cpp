@@ -81,16 +81,20 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 		UAnimMontage* EquipMontage = CurrentEquippedItem->GetCharacterEquipAnimMontage();
 		if (IsValid(EquipMontage))
 		{
-			bIsEquipping = true;
-			float EquipDuration = CachedBaseCharacter->PlayAnimMontage(EquipMontage);
-			GetWorld()->GetTimerManager().SetTimer(EquipTimer, this, &UCharacterEquipmentComponent::EquipAnimationFinished, EquipDuration, false);
+			if ((IsValid(CurrentThrowableItem) && GetAmmoCurrentThrowableItem() > 0) || !IsValid(CurrentThrowableItem))
+			{
+				bIsEquipping = true;
+				float EquipDuration = CachedBaseCharacter->PlayAnimMontage(EquipMontage);
+				GetWorld()->GetTimerManager().SetTimer(EquipTimer, this, &UCharacterEquipmentComponent::EquipAnimationFinished, EquipDuration, false);
+				CurrentEquippedItem->Equip();
+			}
 		}
 		else
 		{
 			AttachCurrentItemToEquippedSocket(); 
+			CurrentEquippedItem->Equip();
 		}
 		CurrentEquippedSlot = Slot;
-		CurrentEquippedItem->Equip();
 	}
 
 	if (IsValid(CurrentEquipmentWeapon))
@@ -142,7 +146,7 @@ void UCharacterEquipmentComponent::EquipNextItem()
 {
 	uint32 CurrentSlotIndex = (uint32)CurrentEquippedSlot;
 	uint32 NextSlotIndex = NextItemsArraySlotIndex(CurrentSlotIndex);
-	while (CurrentSlotIndex != NextSlotIndex && !IgnoreSlotsWhileSwitching.Contains((EEquipmentSlots)NextSlotIndex) && !IsValid(ItemsArray[NextSlotIndex]))
+	while (CurrentSlotIndex != NextSlotIndex && IgnoreSlotsWhileSwitching.Contains((EEquipmentSlots)NextSlotIndex) && !IsValid(ItemsArray[NextSlotIndex]))
 	{
 		NextSlotIndex = NextItemsArraySlotIndex(NextSlotIndex);
 	}
@@ -156,13 +160,29 @@ void UCharacterEquipmentComponent::EquipPreviousItem()
 {
 	uint32 CurrentSlotIndex = (uint32)CurrentEquippedSlot;
 	uint32 PreviousSlotIndex = PreviousItemsArraySlotIndex(CurrentSlotIndex);
-	while (CurrentSlotIndex != PreviousSlotIndex && !IgnoreSlotsWhileSwitching.Contains((EEquipmentSlots)PreviousSlotIndex) && !IsValid(ItemsArray[PreviousSlotIndex]))
+	while (CurrentSlotIndex != PreviousSlotIndex && IgnoreSlotsWhileSwitching.Contains((EEquipmentSlots)PreviousSlotIndex) && !IsValid(ItemsArray[PreviousSlotIndex]))
 	{
 		PreviousSlotIndex = PreviousItemsArraySlotIndex(PreviousSlotIndex);
 	}
 	if (CurrentSlotIndex != PreviousSlotIndex)
 	{
 		EquipItemInSlot((EEquipmentSlots)PreviousSlotIndex);
+	}
+}
+
+int32 UCharacterEquipmentComponent::GetAmmoCurrentThrowableItem()
+{
+	checkf(IsValid(CurrentThrowableItem), TEXT("UCharacterEquipmentComponent::GetAmmoCurrentThrowableItem() CurrentEquipmentItem doesn't define"));
+	return AmunitionArray[(uint32)GetCurrentThrowableItem()->GetAmmoType()];
+}
+
+void UCharacterEquipmentComponent::SetAmmoCurrentThrowableItem(int32 Ammo)
+{
+	checkf(IsValid(CurrentThrowableItem), TEXT("UCharacterEquipmentComponent::SetAmmoCurrentThrowableItem CurrentEquipmentItem doesn't define"));
+	AmunitionArray[(uint32)GetCurrentThrowableItem()->GetAmmoType()] = Ammo;
+	if (OnCurrentThrowableItemAmmoChanged.IsBound())
+	{
+		OnCurrentThrowableItemAmmoChanged.Broadcast(Ammo);
 	}
 }
 
@@ -211,6 +231,14 @@ void UCharacterEquipmentComponent::CreateLoadout()
 		Item->SetOwner(CachedBaseCharacter.Get());
 		Item->UnEquip();
 		ItemsArray[(uint32)ItemPair.Key] = Item;
+		if (Item->IsA<AThrowableItem>())
+		{
+			AThrowableItem* ThrowableItem = StaticCast<AThrowableItem*>(Item);
+			if (OnCurrentThrowableItemAmmoChanged.IsBound())
+			{
+				OnCurrentThrowableItemAmmoChanged.Broadcast(AmunitionArray[(uint32)ThrowableItem->GetAmmoType()]);
+			}
+		}
 	}
 }
 

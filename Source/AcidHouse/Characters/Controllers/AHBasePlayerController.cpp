@@ -80,6 +80,7 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 		{
 			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
 			CharacterEquipment->OnCurrentWeaponAmmoChangedEvent.AddUFunction(AmmoWidget, FName("UpdateAmmoCount"));
+			CharacterEquipment->OnCurrentThrowableItemAmmoChanged.AddUFunction(AmmoWidget, FName("UpdateThrowableItemAmmoCount"));
 		}
 
 		UCharacterAttributesWidget* CharacterAttributesWidget = PlayerHUDWidget->GetCharacterAttributesWidget();

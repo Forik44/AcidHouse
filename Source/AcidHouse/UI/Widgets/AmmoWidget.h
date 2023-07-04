@@ -16,7 +16,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
 	int32 TotalAmmo;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
+	int32 ThrowableItemAmmo;
+
 private:
 	UFUNCTION()
 	void UpdateAmmoCount(int32 NewAmmo, int32 NewTotalAmmo);
+
+	UFUNCTION()
+	void UpdateThrowableItemAmmoCount(int32 NewAmmo);
 };

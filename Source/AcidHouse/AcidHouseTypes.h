@@ -40,6 +40,7 @@ enum class EAmunitionType : uint8
 	Pistol,
 	Rifle,
 	Shotgun,
+	FragGrenades,
 	MAX UMETA(Hidden)
 };
 

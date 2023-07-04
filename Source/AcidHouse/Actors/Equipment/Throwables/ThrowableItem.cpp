@@ -1,6 +1,7 @@
 #include "Actors/Equipment/Throwables/ThrowableItem.h"
 #include "Characters/AHBaseCharacter.h"
 #include "Actors/Projectiles/AHProjectile.h"
+#include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 
 void AThrowableItem::Throw()
 {
@@ -34,5 +35,8 @@ void AThrowableItem::Throw()
 	{
 		Projectile->SetOwner(GetOwner());
 		Projectile->LaunchProjectile(LaunchDirection.GetSafeNormal());
+
+		int32 Ammo = CharacterOwner->GetCharacterEquipmentComponent_Mutable()->GetAmmoCurrentThrowableItem();
+		CharacterOwner->GetCharacterEquipmentComponent_Mutable()->SetAmmoCurrentThrowableItem(Ammo - 1);
 	}
 }

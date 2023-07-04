@@ -9,6 +9,7 @@ typedef TArray<class AEquipableItem*, TInlineAllocator<(uint32)EEquipmentSlots::
 typedef TArray<int32, TInlineAllocator<(uint32)EAmunitionType::MAX>> TAmunitionArray;
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCurrentWeaponAmmoChanged, int32, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentThrowableItemAmmoChanged, int32);
 
 class ARangeWeapon;
 class AThrowableItem;
@@ -21,8 +22,10 @@ public:
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
 	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquipmentWeapon; }
+	AThrowableItem* GetCurrentThrowableItem() const { return CurrentThrowableItem; }
 
 	FOnCurrentWeaponAmmoChanged OnCurrentWeaponAmmoChangedEvent;
+	FOnCurrentThrowableItemAmmoChanged OnCurrentThrowableItemAmmoChanged;
 
 	void ReloadCurrentWeapon();
 	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);
@@ -39,6 +42,9 @@ public:
 	void EquipPreviousItem();
 
 	FORCEINLINE bool IsEquipping() const { return bIsEquipping; }
+
+	int32 GetAmmoCurrentThrowableItem();
+	void SetAmmoCurrentThrowableItem(int32 Ammo);
 
 protected:
 	virtual void BeginPlay() override;
