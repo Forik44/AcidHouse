@@ -73,6 +73,8 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 		if (IsValid(ReticleWidget))
 		{
 			CachedBaseCharacter->OnAimingStateChanged.AddUFunction(ReticleWidget, FName("OnAimingStateChanged"));
+			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
+			CharacterEquipment->OnEquippedItemChanged.AddUFunction(ReticleWidget, FName("OnEquippedItemChanged"));
 		}
 
 		UAmmoWidget* AmmoWidget = PlayerHUDWidget->GetAmmoWidget();

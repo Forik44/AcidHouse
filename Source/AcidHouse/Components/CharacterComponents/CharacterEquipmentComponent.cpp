@@ -103,6 +103,11 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 		OnCurrentWeaponReloadedHanlde = CurrentEquipmentWeapon->OnReloadComplete.AddUFunction(this, FName("OnWeaponReloadComplete"));
 		OnCurrentWeaponAmmoChanged(CurrentEquipmentWeapon->GetAmmo());
 	}
+
+	if (OnEquippedItemChanged.IsBound())
+	{
+		OnEquippedItemChanged.Broadcast(CurrentEquippedItem);
+	}
 }
 
 void UCharacterEquipmentComponent::AttachCurrentItemToEquippedSocket()

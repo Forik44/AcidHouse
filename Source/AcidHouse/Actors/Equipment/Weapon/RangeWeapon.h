@@ -60,6 +60,8 @@ public:
 
 	FTransform GetForeGripTransform() const;
 
+	virtual EReticleType GetReticleType() const override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -118,6 +120,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Ammo")
 	bool bAutoReload = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Reticle")
+	EReticleType AimReticleType = EReticleType::Default;
 
 private:
 	bool bIsAiming = false;
