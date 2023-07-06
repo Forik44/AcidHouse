@@ -15,6 +15,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnEquippedItemChanged, const AEquipableItem
 
 class ARangeWeapon;
 class AThrowableItem;
+class AMeleeWeapon;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 {
@@ -25,6 +26,7 @@ public:
 
 	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquipmentWeapon; }
 	AThrowableItem* GetCurrentThrowableItem() const { return CurrentThrowableItem; }
+	AMeleeWeapon* GetCurrentMeleeWeapon() const { return CurrentMeleeWeapon; }
 
 	FOnCurrentWeaponAmmoChanged OnCurrentWeaponAmmoChangedEvent;
 	FOnCurrentThrowableItemAmmoChanged OnCurrentThrowableItemAmmoChanged;
@@ -73,6 +75,7 @@ private:
 	ARangeWeapon* CurrentEquipmentWeapon;
 	AEquipableItem* CurrentEquippedItem;
 	AThrowableItem* CurrentThrowableItem;
+	AMeleeWeapon* CurrentMeleeWeapon;
 
 	EEquipmentSlots CurrentEquippedSlot;
 	EEquipmentSlots PreviousEquippedSlot;

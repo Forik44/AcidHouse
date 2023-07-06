@@ -54,6 +54,8 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("NextItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::NextItem);
 	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PreviousItem);
 	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::EquipPrimaryItem);
+	InputComponent->BindAction("PrimaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PrimaryMeleeAttack);
+	InputComponent->BindAction("SecondaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::SecondaryMeleeAttack);
 }
 
 void AAHBasePlayerController::CreateAndInitializeWidgets()
@@ -301,5 +303,21 @@ void AAHBasePlayerController::EquipPrimaryItem()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->EquipPrimaryItem();
+	}
+}
+
+void AAHBasePlayerController::PrimaryMeleeAttack()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->PrimaryMeleeAttack();
+	}
+}
+
+void AAHBasePlayerController::SecondaryMeleeAttack()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SecondaryMeleeAttack();
 	}
 }

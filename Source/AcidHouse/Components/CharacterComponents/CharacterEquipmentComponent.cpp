@@ -1,6 +1,7 @@
 #include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 #include "Characters/AHBaseCharacter.h"
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
+#include "Actors/Equipment/Weapon/MeleeWeapon.h"
 #include "AcidHouseTypes.h"
 #include "Actors/Equipment/Throwables/ThrowableItem.h"
 
@@ -75,6 +76,7 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 	CurrentEquippedItem = ItemsArray[(uint32)Slot];
 	CurrentEquipmentWeapon = Cast<ARangeWeapon>(CurrentEquippedItem);
 	CurrentThrowableItem = Cast<AThrowableItem>(CurrentEquippedItem);
+	CurrentMeleeWeapon = Cast<AMeleeWeapon>(CurrentEquippedItem);
 
 	if (IsValid(CurrentEquippedItem))
 	{

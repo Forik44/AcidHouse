@@ -13,6 +13,7 @@
 #include "Curves/CurveVector.h"
 #include "AcidHouseTypes.h"
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
+#include "Actors/Equipment/Weapon/MeleeWeapon.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -322,6 +323,24 @@ void AAHBaseCharacter::PreviousItem()
 void AAHBaseCharacter::EquipPrimaryItem()
 {
 	CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::PrimaryItemSlot);
+}
+
+void AAHBaseCharacter::PrimaryMeleeAttack()
+{
+	AMeleeWeapon* CurrentMeleeWeapon = CharacterEquipmentComponent->GetCurrentMeleeWeapon();
+	if (IsValid(CurrentMeleeWeapon))
+	{
+		CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::PrimaryAttack);
+	}
+}
+
+void AAHBaseCharacter::SecondaryMeleeAttack()
+{
+	AMeleeWeapon* CurrentMeleeWeapon = CharacterEquipmentComponent->GetCurrentMeleeWeapon();
+	if (IsValid(CurrentMeleeWeapon))
+	{
+		CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::SecondaryAttack);
+	}
 }
 
 void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
