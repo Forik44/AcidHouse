@@ -17,30 +17,30 @@ void UCharacterEquipmentComponent::BeginPlay()
 EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() const
 {
 	EEquipableItemType Result = EEquipableItemType::None;
-	if (IsValid(CurrentEquipmentWeapon))
+	if (IsValid(CurrentEquippedItem))
 	{
-		Result = CurrentEquipmentWeapon->GetItemType();
+		Result = CurrentEquippedItem->GetItemType();
 	}
 	return Result;
 }
 
 void UCharacterEquipmentComponent::ReloadCurrentWeapon()
 {
-	checkf(IsValid(CurrentEquipmentWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
+	checkf(IsValid(CurrentEquippedWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
 	int32 AvailableAmunition = GetAvailableAmunitionForCurrentWeapon();
 	if (AvailableAmunition <= 0)
 	{
 		return;
 	}
 
-	CurrentEquipmentWeapon->StartReload();
+	CurrentEquippedWeapon->StartReload();
 }
 
 void UCharacterEquipmentComponent::ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo /*= 0*/, bool bCheckIsFull /*= false*/)
 {
 	int32 AvailableAmunition = GetAvailableAmunitionForCurrentWeapon();
-	int32 CurrentAmmo = CurrentEquipmentWeapon->GetAmmo();
-	int32 AmmoToReload = CurrentEquipmentWeapon->GetMaxAmmo() - CurrentAmmo;
+	int32 CurrentAmmo = CurrentEquippedWeapon->GetAmmo();
+	int32 AmmoToReload = CurrentEquippedWeapon->GetMaxAmmo() - CurrentAmmo;
 
 	int32 ReloadedAmmo = FMath::Min(AvailableAmunition, AmmoToReload);
 	if (NumberOfAmmo > 0)
@@ -48,18 +48,18 @@ void UCharacterEquipmentComponent::ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo 
 		ReloadedAmmo = FMath::Min(ReloadedAmmo, NumberOfAmmo); 
 	}
 
-	AmunitionArray[(uint32)CurrentEquipmentWeapon->GetAmmoType()] -= ReloadedAmmo;
+	AmunitionArray[(uint32)CurrentEquippedWeapon->GetAmmoType()] -= ReloadedAmmo;
 
-	CurrentEquipmentWeapon->SetAmmo(ReloadedAmmo + CurrentAmmo);
+	CurrentEquippedWeapon->SetAmmo(ReloadedAmmo + CurrentAmmo);
 
 	if (bCheckIsFull)
 	{
-		AvailableAmunition = AmunitionArray[(uint32)CurrentEquipmentWeapon->GetAmmoType()];
+		AvailableAmunition = AmunitionArray[(uint32)CurrentEquippedWeapon->GetAmmoType()];
 
-		bool bIsFullyReloaded = CurrentEquipmentWeapon->GetAmmo() == CurrentEquipmentWeapon->GetMaxAmmo();
+		bool bIsFullyReloaded = CurrentEquippedWeapon->GetAmmo() == CurrentEquippedWeapon->GetMaxAmmo();
 		if (AvailableAmunition == 0 || bIsFullyReloaded)
 		{
-			CurrentEquipmentWeapon->EndReload(true);
+			CurrentEquippedWeapon->EndReload(true);
 		}
 	}
 }
@@ -74,7 +74,7 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 	UnequipCurrentItem(); 
 
 	CurrentEquippedItem = ItemsArray[(uint32)Slot];
-	CurrentEquipmentWeapon = Cast<ARangeWeapon>(CurrentEquippedItem);
+	CurrentEquippedWeapon = Cast<ARangeWeapon>(CurrentEquippedItem);
 	CurrentThrowableItem = Cast<AThrowableItem>(CurrentEquippedItem);
 	CurrentMeleeWeapon = Cast<AMeleeWeapon>(CurrentEquippedItem);
 
@@ -99,11 +99,11 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 		CurrentEquippedSlot = Slot;
 	}
 
-	if (IsValid(CurrentEquipmentWeapon))
+	if (IsValid(CurrentEquippedWeapon))
 	{
-		OnCurrentWeaponAmmoChangedHanlde = CurrentEquipmentWeapon->OnAmmoChanged.AddUFunction(this, FName("OnCurrentWeaponAmmoChanged"));
-		OnCurrentWeaponReloadedHanlde = CurrentEquipmentWeapon->OnReloadComplete.AddUFunction(this, FName("OnWeaponReloadComplete"));
-		OnCurrentWeaponAmmoChanged(CurrentEquipmentWeapon->GetAmmo());
+		OnCurrentWeaponAmmoChangedHanlde = CurrentEquippedWeapon->OnAmmoChanged.AddUFunction(this, FName("OnCurrentWeaponAmmoChanged"));
+		OnCurrentWeaponReloadedHanlde = CurrentEquippedWeapon->OnReloadComplete.AddUFunction(this, FName("OnWeaponReloadComplete"));
+		OnCurrentWeaponAmmoChanged(CurrentEquippedWeapon->GetAmmo());
 	}
 
 	if (OnEquippedItemChanged.IsBound())
@@ -138,12 +138,12 @@ void UCharacterEquipmentComponent::UnequipCurrentItem()
 		CurrentEquippedItem->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurrentEquippedItem->GetUnEquippedSocketName());
 		CurrentEquippedItem->UnEquip();
 	}
-	if (IsValid(CurrentEquipmentWeapon))
+	if (IsValid(CurrentEquippedWeapon))
 	{
-		CurrentEquipmentWeapon->StopFire();
-		CurrentEquipmentWeapon->EndReload(false);
-		CurrentEquipmentWeapon->OnAmmoChanged.Remove(OnCurrentWeaponAmmoChangedHanlde);
-		CurrentEquipmentWeapon->OnReloadComplete.Remove(OnCurrentWeaponReloadedHanlde);
+		CurrentEquippedWeapon->StopFire();
+		CurrentEquippedWeapon->EndReload(false);
+		CurrentEquippedWeapon->OnAmmoChanged.Remove(OnCurrentWeaponAmmoChangedHanlde);
+		CurrentEquippedWeapon->OnReloadComplete.Remove(OnCurrentWeaponReloadedHanlde);
 	}
 	PreviousEquippedSlot = CurrentEquippedSlot;
 	CurrentEquippedSlot = EEquipmentSlots::None;
@@ -195,7 +195,7 @@ void UCharacterEquipmentComponent::SetAmmoCurrentThrowableItem(int32 Ammo)
 
 int32 UCharacterEquipmentComponent::GetAvailableAmunitionForCurrentWeapon()
 {
-	checkf(IsValid(CurrentEquipmentWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
+	checkf(IsValid(CurrentEquippedWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
 	return AmunitionArray[(uint32)GetCurrentRangeWeapon()->GetAmmoType()];
 }
 

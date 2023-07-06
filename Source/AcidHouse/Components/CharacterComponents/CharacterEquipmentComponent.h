@@ -24,7 +24,7 @@ class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 public:
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
-	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquipmentWeapon; }
+	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquippedWeapon; }
 	AThrowableItem* GetCurrentThrowableItem() const { return CurrentThrowableItem; }
 	AMeleeWeapon* GetCurrentMeleeWeapon() const { return CurrentMeleeWeapon; }
 
@@ -72,7 +72,7 @@ private:
 	TAmunitionArray AmunitionArray;
 	TItemsArray ItemsArray;
 
-	ARangeWeapon* CurrentEquipmentWeapon;
+	ARangeWeapon* CurrentEquippedWeapon;
 	AEquipableItem* CurrentEquippedItem;
 	AThrowableItem* CurrentThrowableItem;
 	AMeleeWeapon* CurrentMeleeWeapon;

@@ -20,6 +20,7 @@ struct FMeleeAttackDescription
 	class UAnimMontage* AttackMontage;
 };
 
+class UMeleeHitRegistrator;
 UCLASS(Blueprintable)
 class ACIDHOUSE_API AMeleeWeapon : public AEquipableItem
 {
@@ -30,13 +31,23 @@ public:
 
 	void StartAttack(EMeleeAttackTypes AttackType);
 
+	void SetIsHitRegistratorEnabled(bool bIsRegistrationEnabled);
+
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee Attack")
 	TMap<EMeleeAttackTypes, FMeleeAttackDescription> Attacks;
 
 private:
+	TArray<UMeleeHitRegistrator*> HitRegistartors;
+	TSet<AActor*> HitActors;
+
 	FTimerHandle AttackTimer;
 	FMeleeAttackDescription* CurrentAttack;
+
+	UFUNCTION()
+	void ProcessHit(const FHitResult& HitResult, FVector& HitDirection);
 
 	void OnAttackTimerElapsed();
 };
