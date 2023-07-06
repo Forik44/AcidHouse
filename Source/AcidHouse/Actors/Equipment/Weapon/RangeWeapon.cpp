@@ -34,8 +34,11 @@ void ARangeWeapon::StartFire()
 
 void ARangeWeapon::MakeShot()
 {
-	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::MakeShot() only character can be an owner of range weapon"));
-	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
+	AAHBaseCharacter* CharacterOwner = GetCharacterOwner();
+	if (!IsValid(CharacterOwner))
+	{
+		return;
+	}
 
 	if (!CanShoot())
 	{
@@ -128,8 +131,11 @@ bool ARangeWeapon::CanShoot() const
 
 void ARangeWeapon::StartReload()
 {
-	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::StartReload() only character can be an owner of range weapon"));
-	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
+	AAHBaseCharacter* CharacterOwner = GetCharacterOwner();
+	if (!IsValid(CharacterOwner))
+	{
+		return;
+	}
 
 	bIsReloading = true;
 	if (IsValid(CharacterReloadMontage))
@@ -154,18 +160,20 @@ void ARangeWeapon::EndReload(bool bIsSuccess)
 		return;
 	}
 
+	AAHBaseCharacter* CharacterOwner = GetCharacterOwner();
+
 	if (!bIsSuccess)
 	{
-		checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::StartReload() only character can be an owner of range weapon"));
-		AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
-		CharacterOwner->StopAnimMontage(CharacterReloadMontage);
+		if (IsValid(CharacterOwner))
+		{
+			CharacterOwner->StopAnimMontage(CharacterReloadMontage);
+		}
 		StopAnimMontage(WeaponReloadMontage);
 	}
 
 	if (ReloadType == EReloadType::ByBullet)
 	{
-		AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
-		UAnimInstance* CharacterAnimInstance = CharacterOwner->GetMesh()->GetAnimInstance();
+		UAnimInstance* CharacterAnimInstance = IsValid(CharacterOwner) ? CharacterOwner->GetMesh()->GetAnimInstance() : nullptr;
 		if (IsValid(CharacterAnimInstance))
 		{
 			CharacterAnimInstance->Montage_JumpToSection(SectionMontageReloadEnd, CharacterReloadMontage);

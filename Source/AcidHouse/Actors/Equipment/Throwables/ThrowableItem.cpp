@@ -5,8 +5,11 @@
 
 void AThrowableItem::Throw()
 {
-	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("AThrowableItem::Throw() only character can be an owner of throwable weapon"));
-	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
+	AAHBaseCharacter* CharacterOwner = GetCharacterOwner();
+	if (!IsValid(CharacterOwner))
+	{
+		return;
+	}
 
 	APlayerController* Controller = CharacterOwner->GetController<APlayerController>();
 	if (!IsValid(Controller))
