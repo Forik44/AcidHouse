@@ -136,6 +136,9 @@ public:
 
 	void EquipPrimaryItem();
 
+	void PrimaryMeleeAttack();
+	void SecondaryMeleeAttack();
+
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 

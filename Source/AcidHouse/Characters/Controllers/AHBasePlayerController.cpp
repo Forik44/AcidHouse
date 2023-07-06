@@ -54,6 +54,8 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("NextItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::NextItem);
 	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PreviousItem);
 	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::EquipPrimaryItem);
+	InputComponent->BindAction("PrimaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PrimaryMeleeAttack);
+	InputComponent->BindAction("SecondaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::SecondaryMeleeAttack);
 }
 
 void AAHBasePlayerController::CreateAndInitializeWidgets()
@@ -73,6 +75,8 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 		if (IsValid(ReticleWidget))
 		{
 			CachedBaseCharacter->OnAimingStateChanged.AddUFunction(ReticleWidget, FName("OnAimingStateChanged"));
+			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
+			CharacterEquipment->OnEquippedItemChanged.AddUFunction(ReticleWidget, FName("OnEquippedItemChanged"));
 		}
 
 		UAmmoWidget* AmmoWidget = PlayerHUDWidget->GetAmmoWidget();
@@ -80,6 +84,7 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 		{
 			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
 			CharacterEquipment->OnCurrentWeaponAmmoChangedEvent.AddUFunction(AmmoWidget, FName("UpdateAmmoCount"));
+			CharacterEquipment->OnCurrentThrowableItemAmmoChanged.AddUFunction(AmmoWidget, FName("UpdateThrowableItemAmmoCount"));
 		}
 
 		UCharacterAttributesWidget* CharacterAttributesWidget = PlayerHUDWidget->GetCharacterAttributesWidget();
@@ -298,5 +303,21 @@ void AAHBasePlayerController::EquipPrimaryItem()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->EquipPrimaryItem();
+	}
+}
+
+void AAHBasePlayerController::PrimaryMeleeAttack()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->PrimaryMeleeAttack();
+	}
+}
+
+void AAHBasePlayerController::SecondaryMeleeAttack()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SecondaryMeleeAttack();
 	}
 }

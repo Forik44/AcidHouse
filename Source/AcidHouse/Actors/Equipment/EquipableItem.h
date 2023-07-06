@@ -8,12 +8,15 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentStateChanged, bool, bIsEquipped);
 
 class UAnimMontage;
+class AAHBaseCharacter;
 UCLASS(Abstract, NotBlueprintable)
 class ACIDHOUSE_API AEquipableItem : public AActor
 {
 	GENERATED_BODY()
 
 public:
+	virtual void SetOwner(AActor* NewOwner) override;
+
 	EEquipableItemType GetItemType() const { return ItemType; }
 
 	UAnimMontage* GetCharacterEquipAnimMontage() const { return CharacterEquipAnimMontage; };
@@ -23,6 +26,8 @@ public:
 
 	virtual void Equip();
 	virtual void UnEquip();
+
+	virtual EReticleType GetReticleType() const;
 
 protected:
 	UPROPERTY(BlueprintAssignable)
@@ -39,4 +44,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
 	FName EquippedSocketName = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Reticle")
+	EReticleType ReticleType = EReticleType::None;
+
+	AAHBaseCharacter* GetCharacterOwner() const;
+
+private:
+	TWeakObjectPtr<AAHBaseCharacter> CachedCharacterOwner;
 };

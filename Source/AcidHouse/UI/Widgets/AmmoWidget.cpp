@@ -5,3 +5,8 @@ void UAmmoWidget::UpdateAmmoCount(int32 NewAmmo, int32 NewTotalAmmo)
 	Ammo = NewAmmo;
 	TotalAmmo = NewTotalAmmo;
 }
+
+void UAmmoWidget::UpdateThrowableItemAmmoCount(int32 NewAmmo)
+{
+	ThrowableItemAmmo = NewAmmo;
+}

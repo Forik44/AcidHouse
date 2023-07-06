@@ -67,5 +67,8 @@ private:
 
 	void EquipPrimaryItem();
 
+	void PrimaryMeleeAttack();
+	void SecondaryMeleeAttack();
+
 	bool bIgnoreCameraPitch = false;
 };

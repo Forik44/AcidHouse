@@ -1,11 +1,15 @@
 #include "Actors/Equipment/Throwables/ThrowableItem.h"
 #include "Characters/AHBaseCharacter.h"
 #include "Actors/Projectiles/AHProjectile.h"
+#include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 
 void AThrowableItem::Throw()
 {
-	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("AThrowableItem::Throw() only character can be an owner of throwable weapon"));
-	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
+	AAHBaseCharacter* CharacterOwner = GetCharacterOwner();
+	if (!IsValid(CharacterOwner))
+	{
+		return;
+	}
 
 	APlayerController* Controller = CharacterOwner->GetController<APlayerController>();
 	if (!IsValid(Controller))
@@ -29,10 +33,13 @@ void AThrowableItem::Throw()
 	FVector SocketInViewSpace = PlayerViewTransform.InverseTransformPosition(ThrowableSocketLocation);
 
 	FVector SpawnLocation = PlayerViewPoint + ViewDirection * SocketInViewSpace.X + CharacterOwner->GetActorRightVector() * SocketInViewSpace.Y;
-	AAHProjectile* Projectile = GetWorld()->SpawnActor<AAHProjectile>(ProjectileClass, SpawnLocation, FRotator::ZeroRotator);
+	AAHProjectile* Projectile = GetWorld()->SpawnActor<AAHProjectile>(ProjectileClass, SpawnLocation, ViewDirection.ToOrientationRotator());
 	if (IsValid(Projectile))
 	{
 		Projectile->SetOwner(GetOwner());
 		Projectile->LaunchProjectile(LaunchDirection.GetSafeNormal());
+
+		int32 Ammo = CharacterOwner->GetCharacterEquipmentComponent_Mutable()->GetAmmoCurrentThrowableItem();
+		CharacterOwner->GetCharacterEquipmentComponent_Mutable()->SetAmmoCurrentThrowableItem(Ammo - 1);
 	}
 }

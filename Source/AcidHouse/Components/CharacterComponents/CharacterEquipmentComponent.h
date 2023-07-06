@@ -9,9 +9,13 @@ typedef TArray<class AEquipableItem*, TInlineAllocator<(uint32)EEquipmentSlots::
 typedef TArray<int32, TInlineAllocator<(uint32)EAmunitionType::MAX>> TAmunitionArray;
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCurrentWeaponAmmoChanged, int32, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentThrowableItemAmmoChanged, int32);
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnEquippedItemChanged, const AEquipableItem*)
 
 class ARangeWeapon;
 class AThrowableItem;
+class AMeleeWeapon;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 {
@@ -20,9 +24,14 @@ class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 public:
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
-	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquipmentWeapon; }
+	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquippedWeapon; }
+	AThrowableItem* GetCurrentThrowableItem() const { return CurrentThrowableItem; }
+	AMeleeWeapon* GetCurrentMeleeWeapon() const { return CurrentMeleeWeapon; }
 
 	FOnCurrentWeaponAmmoChanged OnCurrentWeaponAmmoChangedEvent;
+	FOnCurrentThrowableItemAmmoChanged OnCurrentThrowableItemAmmoChanged;
+
+	FOnEquippedItemChanged OnEquippedItemChanged;
 
 	void ReloadCurrentWeapon();
 	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);
@@ -39,6 +48,9 @@ public:
 	void EquipPreviousItem();
 
 	FORCEINLINE bool IsEquipping() const { return bIsEquipping; }
+
+	int32 GetAmmoCurrentThrowableItem();
+	void SetAmmoCurrentThrowableItem(int32 Ammo);
 
 protected:
 	virtual void BeginPlay() override;
@@ -60,9 +72,10 @@ private:
 	TAmunitionArray AmunitionArray;
 	TItemsArray ItemsArray;
 
-	ARangeWeapon* CurrentEquipmentWeapon;
+	ARangeWeapon* CurrentEquippedWeapon;
 	AEquipableItem* CurrentEquippedItem;
 	AThrowableItem* CurrentThrowableItem;
+	AMeleeWeapon* CurrentMeleeWeapon;
 
 	EEquipmentSlots CurrentEquippedSlot;
 	EEquipmentSlots PreviousEquippedSlot;

@@ -17,6 +17,8 @@ ARangeWeapon::ARangeWeapon()
 	WeaponBarell = CreateDefaultSubobject<UWeaponBarellComponent>(TEXT("WeaponBarell"));
 	WeaponBarell->SetupAttachment(WeaponMesh, SocketWeaponMuzzle);
 
+	ReticleType = EReticleType::Default;
+
 	EquippedSocketName = SocketCharacterWeapon;
 }
 
@@ -32,8 +34,11 @@ void ARangeWeapon::StartFire()
 
 void ARangeWeapon::MakeShot()
 {
-	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::MakeShot() only character can be an owner of range weapon"));
-	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
+	AAHBaseCharacter* CharacterOwner = GetCharacterOwner();
+	if (!IsValid(CharacterOwner))
+	{
+		return;
+	}
 
 	if (!CanShoot())
 	{
@@ -63,7 +68,7 @@ void ARangeWeapon::MakeShot()
 	FVector ViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
 
 	SetAmmo(Ammo - 1);
-	WeaponBarell->Shot(PlayerViewPoint, ViewDirection, Controller, GetCurrentBulletSpreadAngle());
+	WeaponBarell->Shot(PlayerViewPoint, ViewDirection, GetCurrentBulletSpreadAngle());
 
 	GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeapon::OnShotTimerElapsed, GetShotTimerInterval(), false);
 }
@@ -126,8 +131,11 @@ bool ARangeWeapon::CanShoot() const
 
 void ARangeWeapon::StartReload()
 {
-	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::StartReload() only character can be an owner of range weapon"));
-	AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
+	AAHBaseCharacter* CharacterOwner = GetCharacterOwner();
+	if (!IsValid(CharacterOwner))
+	{
+		return;
+	}
 
 	bIsReloading = true;
 	if (IsValid(CharacterReloadMontage))
@@ -152,18 +160,20 @@ void ARangeWeapon::EndReload(bool bIsSuccess)
 		return;
 	}
 
+	AAHBaseCharacter* CharacterOwner = GetCharacterOwner();
+
 	if (!bIsSuccess)
 	{
-		checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("ARangeWeapon::StartReload() only character can be an owner of range weapon"));
-		AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
-		CharacterOwner->StopAnimMontage(CharacterReloadMontage);
+		if (IsValid(CharacterOwner))
+		{
+			CharacterOwner->StopAnimMontage(CharacterReloadMontage);
+		}
 		StopAnimMontage(WeaponReloadMontage);
 	}
 
 	if (ReloadType == EReloadType::ByBullet)
 	{
-		AAHBaseCharacter* CharacterOwner = StaticCast<AAHBaseCharacter*>(GetOwner());
-		UAnimInstance* CharacterAnimInstance = CharacterOwner->GetMesh()->GetAnimInstance();
+		UAnimInstance* CharacterAnimInstance = IsValid(CharacterOwner) ? CharacterOwner->GetMesh()->GetAnimInstance() : nullptr;
 		if (IsValid(CharacterAnimInstance))
 		{
 			CharacterAnimInstance->Montage_JumpToSection(SectionMontageReloadEnd, CharacterReloadMontage);
@@ -188,6 +198,11 @@ void ARangeWeapon::EndReload(bool bIsSuccess)
 FTransform ARangeWeapon::GetForeGripTransform() const
 {
 	return WeaponMesh->GetSocketTransform(SocketWeaponForeGrip);
+}
+
+EReticleType ARangeWeapon::GetReticleType() const
+{
+	return bIsAiming ? AimReticleType : Super::GetReticleType();
 }
 
 void ARangeWeapon::BeginPlay()
