@@ -2,6 +2,7 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "AI/Characters/Turret.h"
+#include "Perception/AISense_Damage.h"
 
 AAITurretController::AAITurretController()
 {
@@ -43,6 +44,18 @@ void AAITurretController::ActorsPerceptionUpdated(const TArray<AActor*>& Updated
 		{
 			MinSquaredDistance = CurrentSquaredDistance;
 			ClosestActor = SeenActor;
+		}
+	}
+
+	TArray<AActor*> DamagingActors;
+	PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Damage::StaticClass(), DamagingActors);
+	for (AActor* DamagingActor : DamagingActors)
+	{
+		float CurrentSquaredDistance = (TurretLocation - DamagingActor->GetActorLocation()).SizeSquared();
+		if (CurrentSquaredDistance < MinSquaredDistance)
+		{
+			MinSquaredDistance = CurrentSquaredDistance;
+			ClosestActor = DamagingActor;
 		}
 	}
 

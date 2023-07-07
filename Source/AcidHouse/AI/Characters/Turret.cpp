@@ -2,6 +2,8 @@
 #include "Components/Weapon/WeaponBarellComponent.h"
 #include "AIController.h"
 #include "GenericTeamAgentInterface.h"
+#include "Perception/AISense_Damage.h"
+#include "Components/SceneComponents/ExplosionComponent.h"
 
 ATurret::ATurret()
 {
@@ -18,6 +20,9 @@ ATurret::ATurret()
 
 	WeaponBarell = CreateDefaultSubobject<UWeaponBarellComponent>(TEXT("WeaponBarrel"));
 	WeaponBarell->SetupAttachment(TurretBarellComponent);
+
+	ExplosionComponent = CreateDefaultSubobject<UExplosionComponent>(TEXT("ExplosionComponent"));
+	ExplosionComponent->SetupAttachment(TurretRoot);
 }
 
 void ATurret::PossessedBy(AController* NewController)
@@ -34,6 +39,11 @@ void ATurret::PossessedBy(AController* NewController)
 void ATurret::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!bIsAlive)
+	{
+		return;
+	}
 
 	switch (CurrentTurretState)
 	{
@@ -67,6 +77,35 @@ FVector ATurret::GetPawnViewLocation() const
 FRotator ATurret::GetViewRotation() const
 {
 	return WeaponBarell->GetComponentRotation();
+}
+
+float ATurret::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (!bIsAlive)
+	{
+		return 0;
+	}
+	UAISense_Damage::ReportDamageEvent(GetWorld(), this, DamageCauser, Damage, DamageCauser->GetActorLocation(), GetActorLocation());
+	Health -= Damage;
+	if (Health <= 0)
+	{
+		OnDeath();
+	}
+	return Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void ATurret::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	Health = MaxHealth;
+}
+
+void ATurret::OnDeath_Implementation()
+{
+	bIsAlive = false;
+	GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
+	ExplosionComponent->Explode(GetController());
 }
 
 float ATurret::GetFireInterval() const

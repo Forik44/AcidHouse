@@ -30,7 +30,11 @@ public:
 	virtual FVector GetPawnViewLocation() const override;
 	virtual FRotator GetViewRotation() const override;
 
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneComponent* TurretBaseComponent;
 
@@ -39,6 +43,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UWeaponBarellComponent* WeaponBarell;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UExplosionComponent* ExplosionComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float MaxHealth = 100.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters", meta = (ClampMin = 0.0f, UIMin = 0.0f))
 	float BaseSearchingRotationRate = 60.0f;
@@ -67,7 +77,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters | Team")
 	ETeams Team = ETeams::Enemy;
 
+	UFUNCTION(BlueprintNativeEvent)
+	void OnDeath();
+
 private:
+	float Health;
+	bool bIsAlive = true;
+
 	ETurretState CurrentTurretState = ETurretState::Searching;
 
 	AActor* CurrentTarget = nullptr;
