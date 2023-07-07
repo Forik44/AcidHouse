@@ -51,13 +51,29 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters", meta = (ClampMin = 0.0f, UIMin = 0.0f))
 	float BaseTrackingInterpSpeed = 5.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters | Fire", meta = (ClampMin = 1.0f, UIMin = 1.0f))
+	float RateOfFire = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters | Fire", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float BulletSpreadAngle = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters | Fire", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float FireDelayTime = 3.0f;
 
 private:
+	ETurretState CurrentTurretState = ETurretState::Searching;
+
+	AActor* CurrentTarget = nullptr;
+
+	FTimerHandle ShotTimer;
+
+	float GetFireInterval() const;
+
 	void SearchingMovement(float DeltaTime);
 	void TrackingMovement(float DeltaTime);
 
 	void SetCurrentTurretState(ETurretState NewState);
-	ETurretState CurrentTurretState = ETurretState::Searching;
 
-	AActor* CurrentTarget = nullptr;
+	void MakeShot();
 };
