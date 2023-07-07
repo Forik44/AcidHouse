@@ -14,6 +14,7 @@
 #include "AcidHouseTypes.h"
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
 #include "Actors/Equipment/Weapon/MeleeWeapon.h"
+#include "AIController.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -243,6 +244,17 @@ void AAHBaseCharacter::Tick(float DeltaTime)
 	TryChangeFastSwimState(DeltaTime);
 }
 
+void AAHBaseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	AAIController* AIController = Cast<AAIController>(NewController);
+	if (IsValid(AIController))
+	{
+		FGenericTeamId TeamID((uint8)Team);
+		AIController->SetGenericTeamId(TeamID);
+	}
+}
+
 void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 {
 	if (!(CanMantle() || bForce))
@@ -373,6 +385,11 @@ void AAHBaseCharacter::Landed(const FHitResult& Hit)
 		float DamageAmount = FallDamageCurve->GetFloatValue(FallHeight);
 		TakeDamage(DamageAmount, FDamageEvent(), GetController(), Hit.Actor.Get());
 	}
+}
+
+FGenericTeamId AAHBaseCharacter::GetGenericTeamId() const
+{
+	return FGenericTeamId(uint8(Team));
 }
 
 bool AAHBaseCharacter::CanMantle()

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "AcidHouseTypes.h"
 #include "Turret.generated.h"
 
 UENUM(BlueprintType)
@@ -19,6 +20,8 @@ class ACIDHOUSE_API ATurret : public APawn
 
 public:
 	ATurret();
+
+	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -60,6 +63,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters | Fire", meta = (ClampMin = 0.0f, UIMin = 0.0f))
 	float FireDelayTime = 3.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters | Team")
+	ETeams Team = ETeams::Enemy;
 
 private:
 	ETurretState CurrentTurretState = ETurretState::Searching;

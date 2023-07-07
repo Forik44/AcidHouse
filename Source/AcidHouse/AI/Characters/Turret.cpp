@@ -1,5 +1,7 @@
 #include "AI/Characters/Turret.h"
 #include "Components/Weapon/WeaponBarellComponent.h"
+#include "AIController.h"
+#include "GenericTeamAgentInterface.h"
 
 ATurret::ATurret()
 {
@@ -16,6 +18,17 @@ ATurret::ATurret()
 
 	WeaponBarell = CreateDefaultSubobject<UWeaponBarellComponent>(TEXT("WeaponBarrel"));
 	WeaponBarell->SetupAttachment(TurretBarellComponent);
+}
+
+void ATurret::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	AAIController* AIController = Cast<AAIController>(NewController);
+	if (IsValid(AIController))
+	{
+		FGenericTeamId TeamID((uint8)Team);
+		AIController->SetGenericTeamId(TeamID);
+	}
 }
 
 void ATurret::Tick(float DeltaTime)
