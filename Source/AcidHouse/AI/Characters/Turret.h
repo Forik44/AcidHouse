@@ -24,6 +24,9 @@ public:
 
 	void SetCurrentTarget(AActor* NewTarget);
 
+	virtual FVector GetPawnViewLocation() const override;
+	virtual FRotator GetViewRotation() const override;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneComponent* TurretBaseComponent;
@@ -46,9 +49,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters", meta = (ClampMin = 0.0f, UIMin = 0.0f))
 	float MinBarrelPitchAngle = -30.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float BaseTrackingInterpSpeed = 5.0f;
+
 private:
 	void SearchingMovement(float DeltaTime);
-	void FiringMovement(float DeltaTime);
+	void TrackingMovement(float DeltaTime);
 
 	void SetCurrentTurretState(ETurretState NewState);
 	ETurretState CurrentTurretState = ETurretState::Searching;

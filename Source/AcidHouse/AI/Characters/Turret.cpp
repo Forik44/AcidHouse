@@ -31,7 +31,7 @@ void ATurret::Tick(float DeltaTime)
 		}
 		case ETurretState::Firing:
 		{
-			FiringMovement(DeltaTime);
+			TrackingMovement(DeltaTime);
 			break;
 		}
 		default:
@@ -46,6 +46,16 @@ void ATurret::SetCurrentTarget(AActor* NewTarget)
 	SetCurrentTurretState(NewState);
 }
 
+FVector ATurret::GetPawnViewLocation() const
+{
+	return WeaponBarell->GetComponentLocation();
+}
+
+FRotator ATurret::GetViewRotation() const
+{
+	return WeaponBarell->GetComponentRotation();
+}
+
 void ATurret::SearchingMovement(float DeltaTime)
 {
 	FRotator TurretBaseRotation = TurretBaseComponent->GetRelativeRotation();
@@ -57,9 +67,19 @@ void ATurret::SearchingMovement(float DeltaTime)
 	TurretBarellComponent->SetRelativeRotation(TurretBarrelRotation);
 }
 
-void ATurret::FiringMovement(float DeltaTime)
+void ATurret::TrackingMovement(float DeltaTime)
 {
-	//TODO
+	FVector BaseLookAtDirection = (CurrentTarget->GetActorLocation() - TurretBaseComponent->GetComponentLocation()).GetSafeNormal();
+	FQuat LookAtQuat = BaseLookAtDirection.ToOrientationQuat();
+	FQuat TargetQuat = FMath::QInterpTo(TurretBaseComponent->GetComponentQuat(), LookAtQuat, DeltaTime, BaseTrackingInterpSpeed);
+	TurretBaseComponent->SetWorldRotation(TargetQuat);
+
+	FVector BarrelLookAtDirection = (CurrentTarget->GetActorLocation() - TurretBarellComponent->GetComponentLocation()).GetSafeNormal();
+	float LookAtPitchAngle = BarrelLookAtDirection.ToOrientationRotator().Pitch;
+
+	FRotator TurretBarrelRotation = TurretBarellComponent->GetRelativeRotation();
+	TurretBarrelRotation.Pitch = FMath::FInterpTo(TurretBarrelRotation.Pitch, LookAtPitchAngle, DeltaTime, BarrelPitchRotationRate);
+	TurretBarellComponent->SetRelativeRotation(TurretBarrelRotation);
 }
 
 void ATurret::SetCurrentTurretState(ETurretState NewState)
