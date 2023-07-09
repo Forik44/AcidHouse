@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AcidHouseTypes.h"
+#include "GenericTeamAgentInterface.h"
 #include "AHBaseCharacter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -49,7 +51,7 @@ class UCharacterAttributeComponent;
 typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
 
 UCLASS(Abstract, NotBlueprintable)
-class ACIDHOUSE_API AAHBaseCharacter : public ACharacter
+class ACIDHOUSE_API AAHBaseCharacter : public ACharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -59,6 +61,8 @@ public:
 	bool bIsProning = false;
 
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void MoveForward(float Value) {};
 	virtual void MoveRight(float Value) {};
@@ -146,6 +150,10 @@ public:
 	virtual void NotifyJumpApex() override;
 	virtual void Landed(const FHitResult& Hit) override;
 
+	/** IGenericTeamAgentInterface */
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	/** ~IGenericTeamAgentInterface */
+
 	FORCEINLINE UAHBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return AHBaseCharacterMovementComponent; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -206,6 +214,9 @@ protected:
 	//Damage depending from fall height (in meters)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Attributes")
 	class UCurveFloat* FallDamageCurve; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Team")
+	ETeams Team = ETeams::Enemy;
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Character | Movement")
 	void OnSprintStart();
