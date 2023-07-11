@@ -20,6 +20,7 @@ FVector UAIPatrollingComponent::SelectClosestWayPoint()
 		float CurrentSqDistance = (OwnerLocation - WayPointWorld).SizeSquared();
 		if (CurrentSqDistance < MinSqDistance)
 		{
+			MinSqDistance = CurrentSqDistance;
 			ClosestWayPoint = WayPointWorld; 
 			CurrentWayPointIndex = i;
 		}

@@ -105,6 +105,7 @@ public:
 	void OnSwimEnd();
 	virtual void OnSwimEnd_Implementation();
 
+	UFUNCTION(BlueprintCallable)
 	void Mantle(bool bForce = false);
 
 	void ClimbLadderUp(float Value);
