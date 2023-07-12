@@ -6,6 +6,14 @@
 #include "Components/ActorComponent.h"
 #include "AIPatrollingComponent.generated.h"
 
+UENUM(BlueprintType)
+enum class EPatrollingType : uint8
+{
+	None,
+	Circle,
+	PingPong
+};
+
 class APatrollingPath;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACIDHOUSE_API UAIPatrollingComponent : public UActorComponent
@@ -21,6 +29,12 @@ protected:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Path")
 	APatrollingPath* PatrollingPath;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Path")
+	EPatrollingType PatrollingType = EPatrollingType::Circle;
+
+
 private:
 	int32 CurrentWayPointIndex = -1;
+
+	bool bIsForward = true;
 };
