@@ -12,6 +12,7 @@ void UCharacterEquipmentComponent::BeginPlay()
  	checkf(GetOwner()->IsA<AAHBaseCharacter>(), TEXT("UCharacterEquipmentComponent::BeginPlay() CharacterEquipmentComponent can be used only with BaseCharacter"));
  	CachedBaseCharacter = StaticCast<AAHBaseCharacter*>(GetOwner());
  	CreateLoadout();
+	AutoEquip();
 }
 
 EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() const
@@ -246,6 +247,14 @@ void UCharacterEquipmentComponent::CreateLoadout()
 				OnCurrentThrowableItemAmmoChanged.Broadcast(AmunitionArray[(uint32)ThrowableItem->GetAmmoType()]);
 			}
 		}
+	}
+}
+
+void UCharacterEquipmentComponent::AutoEquip()
+{
+	if (AutoEquipItemInSlot != EEquipmentSlots::None)
+	{
+		EquipItemInSlot(AutoEquipItemInSlot);
 	}
 }
 
