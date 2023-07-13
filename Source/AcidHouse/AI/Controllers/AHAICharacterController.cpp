@@ -2,6 +2,8 @@
 #include "AI/Characters/AHAICharacter.h"
 #include "Perception/AISense_Sight.h"
 #include "Components/CharacterComponents/AIPatrollingComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "AcidHouseTypes.h"
 
 void AAHAICharacterController::SetPawn(APawn* InPawn)
 {
@@ -10,6 +12,7 @@ void AAHAICharacterController::SetPawn(APawn* InPawn)
 	{
 		checkf(InPawn->IsA<AAHAICharacter>(), TEXT("AAHAICharacterController::SetPawn AHAICharacterController can posses only AHAICharacter"));
 		CachedAICharacter = StaticCast<AAHAICharacter*>(InPawn);
+		RunBehaviorTree(CachedAICharacter->GetBehaviorTree());
 	}
 	else
 	{
@@ -45,7 +48,11 @@ void AAHAICharacterController::BeginPlay()
 	if (PatrollingComponent->CanPatrol())
 	{
 		FVector ClosestWayPoint = PatrollingComponent->SelectClosestWayPoint();
-		MoveToLocation(ClosestWayPoint);
+		if (IsValid(Blackboard))
+		{
+			Blackboard->SetValueAsVector(BB_NextLocation, ClosestWayPoint);
+			Blackboard->SetValueAsObject(BB_CurrentTarget, nullptr);
+		}
 		bIsPatrolling = true;
 	}
 }
@@ -56,18 +63,19 @@ void AAHAICharacterController::TryMoveToNextTarget()
 	AActor* ClosestActor = GetClosestSensedActor(UAISense_Sight::StaticClass());
 	if (IsValid(ClosestActor))
 	{
-		if (!IsTargetReached(ClosestActor->GetActorLocation()))
+		if (IsValid(Blackboard))
 		{
-			MoveToActor(ClosestActor);
+			Blackboard->SetValueAsObject(BB_CurrentTarget, ClosestActor);
 		}
 		bIsPatrolling = false; 
 	}
 	else if (PatrollingComponent->CanPatrol())
 	{
 		FVector WayPoint = bIsPatrolling ? PatrollingComponent->SelectNextWayPoint() : PatrollingComponent->SelectClosestWayPoint();
-		if (!IsTargetReached(WayPoint))
+		if (IsValid(Blackboard))
 		{
-			MoveToLocation(WayPoint);
+			Blackboard->SetValueAsVector(BB_NextLocation, WayPoint);
+			Blackboard->SetValueAsObject(BB_CurrentTarget, nullptr);
 		}
 		bIsPatrolling = true;
 	}

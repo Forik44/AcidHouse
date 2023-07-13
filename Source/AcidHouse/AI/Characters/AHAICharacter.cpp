@@ -6,3 +6,8 @@ AAHAICharacter::AAHAICharacter(const FObjectInitializer& ObjectInitializer)
 {
 	AIPatrollingComponent = CreateDefaultSubobject<UAIPatrollingComponent>(TEXT("UAIPatrolling"));
 }
+
+UBehaviorTree* AAHAICharacter::GetBehaviorTree() const
+{
+	return BehaviorTree;
+}

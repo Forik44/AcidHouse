@@ -957,7 +957,12 @@
     {
       "name": "clangd",
       "description": "Clang language server daemon",
-      "fileMatch": [".clangd", ".clangd.yml", ".clangd.yaml"],
+      "fileMatch": [
+        ".clangd",
+        ".clangd.yml",
+        ".clangd.yaml",
+        "**/clangd/config.yaml"
+      ],
       "url": "https://json.schemastore.org/clangd.json"
     },
     {
@@ -2252,6 +2257,12 @@
       "url": "https://json.schemastore.org/launchsettings.json"
     },
     {
+      "name": "lefthook.json",
+      "description": "Fast and powerful Git hooks manager",
+      "fileMatch": ["lefthook.json"],
+      "url": "https://json.schemastore.org/lefthook.json"
+    },
+    {
       "name": "lego.json",
       "description": "Config file for the lego-build CLI tool.",
       "fileMatch": ["lego.json"],
@@ -3178,7 +3189,7 @@
     {
       "name": "RoadRunner",
       "description": "Spiral Roadrunner config file schema",
-      "url": "https://cdn.jsdelivr.net/gh/roadrunner-server/roadrunner@latest/schemas/config/2.0.schema.json",
+      "url": "https://cdn.jsdelivr.net/gh/roadrunner-server/roadrunner@latest/schemas/config/3.0.schema.json",
       "fileMatch": [".rr*.yml", ".rr*.yaml"],
       "versions": {
         "1.0": "https://cdn.jsdelivr.net/gh/roadrunner-server/roadrunner@latest/schemas/config/1.0.schema.json",
@@ -4295,6 +4306,12 @@
         "5.0": "https://json.schemastore.org/devinit.schema-5.0.json",
         "6.0": "https://json.schemastore.org/devinit.schema-6.0.json"
       }
+    },
+    {
+      "name": "djlint",
+      "description": "JSON Schema for djLint configuration file",
+      "url": "https://json.schemastore.org/djlint.json",
+      "fileMatch": [".djlintrc"]
     },
     {
       "name": "tsoa",
