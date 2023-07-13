@@ -78,6 +78,11 @@ float UAHBaseCharacterMovementComponent::GetMaxSpeed() const
 {
 	float Result = Super::GetMaxSpeed();
 
+	if (!IsValid(GetBaseCharacterOwner()))
+	{
+		return Result;
+	}
+
 	if (IsSprinting())
 	{
 		Result = SprintSpeed;

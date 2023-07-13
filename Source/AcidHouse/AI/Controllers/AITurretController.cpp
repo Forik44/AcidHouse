@@ -4,11 +4,6 @@
 #include "AI/Characters/Turret.h"
 #include "Perception/AISense_Damage.h"
 
-AAITurretController::AAITurretController()
-{
-	PerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("TurretPerception"));
-}
-
 void AAITurretController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);
@@ -25,39 +20,29 @@ void AAITurretController::SetPawn(APawn* InPawn)
 
 void AAITurretController::ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 {
+	Super::ActorsPerceptionUpdated(UpdatedActors);
 	if (!CachedTurret.IsValid())
 	{
 		return;
 	}
 
-	TArray<AActor*> SeenActors;
-	PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SeenActors);
-
-	AActor* ClosestActor = nullptr;
-	float MinSquaredDistance = FLT_MAX;
-	FVector TurretLocation = CachedTurret->GetActorLocation();
-
-	for (AActor* SeenActor : SeenActors)
+	AActor* ClosestSightActor = GetClosestSensedActor(UAISense_Sight::StaticClass());
+	AActor* ClosestDamagingActor = GetClosestSensedActor(UAISense_Damage::StaticClass());
+	
+	
+	if (!IsValid(ClosestSightActor) || !IsValid(ClosestDamagingActor))
 	{
-		float CurrentSquaredDistance = (TurretLocation - SeenActor->GetActorLocation()).SizeSquared();
-		if (CurrentSquaredDistance < MinSquaredDistance)
-		{
-			MinSquaredDistance = CurrentSquaredDistance;
-			ClosestActor = SeenActor;
-		}
+		CachedTurret->SetCurrentTarget(IsValid(ClosestSightActor) ? ClosestSightActor : ClosestDamagingActor);
+		return;
 	}
-
-	TArray<AActor*> DamagingActors;
-	PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Damage::StaticClass(), DamagingActors);
-	for (AActor* DamagingActor : DamagingActors)
+	
+	if ((GetPawn()->GetActorLocation() - ClosestSightActor->GetActorLocation()).SizeSquared() 
+		< (GetPawn()->GetActorLocation() - ClosestDamagingActor->GetActorLocation()).SizeSquared())
 	{
-		float CurrentSquaredDistance = (TurretLocation - DamagingActor->GetActorLocation()).SizeSquared();
-		if (CurrentSquaredDistance < MinSquaredDistance)
-		{
-			MinSquaredDistance = CurrentSquaredDistance;
-			ClosestActor = DamagingActor;
-		}
+		CachedTurret->SetCurrentTarget(ClosestSightActor);
 	}
-
-	CachedTurret->SetCurrentTarget(ClosestActor);
+	else
+	{
+		CachedTurret->SetCurrentTarget(ClosestDamagingActor);
+	}
 }

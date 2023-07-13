@@ -1,18 +1,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AIController.h"
+#include "AI/Controllers/AHAIController.h"
 #include "AITurretController.generated.h"
 
 class ATurret;
 UCLASS()
-class ACIDHOUSE_API AAITurretController : public AAIController
+class ACIDHOUSE_API AAITurretController : public AAHAIController
 {
 	GENERATED_BODY()
 
 public:
-	AAITurretController();
-
 	virtual void SetPawn(APawn* InPawn) override;
 
 	virtual void ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
