@@ -66,6 +66,7 @@ void AAHAICharacterController::TryMoveToNextTarget()
 		if (IsValid(Blackboard))
 		{
 			Blackboard->SetValueAsObject(BB_CurrentTarget, ClosestActor);
+			SetFocus(ClosestActor, EAIFocusPriority::Gameplay);
 		}
 		bIsPatrolling = false; 
 	}
@@ -74,6 +75,7 @@ void AAHAICharacterController::TryMoveToNextTarget()
 		FVector WayPoint = bIsPatrolling ? PatrollingComponent->SelectNextWayPoint() : PatrollingComponent->SelectClosestWayPoint();
 		if (IsValid(Blackboard))
 		{
+			ClearFocus(EAIFocusPriority::Gameplay);
 			Blackboard->SetValueAsVector(BB_NextLocation, WayPoint);
 			Blackboard->SetValueAsObject(BB_CurrentTarget, nullptr);
 		}

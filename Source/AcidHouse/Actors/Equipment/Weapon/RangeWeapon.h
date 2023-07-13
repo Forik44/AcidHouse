@@ -35,6 +35,9 @@ public:
 	void StartFire();
 	void StopFire();
 
+	bool IsFiring() const { return bIsFiring; }
+	bool IsReloading() const { return bIsReloading; }
+
 	void StartAim();
 	void StopAim();
 
