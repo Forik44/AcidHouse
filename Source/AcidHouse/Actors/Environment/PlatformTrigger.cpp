@@ -4,12 +4,20 @@
 #include "PlatformTrigger.h"
 #include "AcidHouseTypes.h"
 #include "Components/BoxComponent.h"
+#include "Net/UnrealNetwork.h"
 
 APlatformTrigger::APlatformTrigger()
 {
+	bReplicates = true;
 	TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
 	TriggerBox->SetCollisionProfileName(CollisionProfilePawnInteractionVolume);
 	SetRootComponent(TriggerBox);
+}
+
+void APlatformTrigger::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APlatformTrigger, bIsActivated);
 }
 
 void APlatformTrigger::BeginPlay()
@@ -19,13 +27,17 @@ void APlatformTrigger::BeginPlay()
 	TriggerBox->OnComponentEndOverlap.AddDynamic(this, &APlatformTrigger::OnTriggerOverlapEnd);
 }
 
-void APlatformTrigger::SetIsActivated(bool bIsActivated_In)
+void APlatformTrigger::OnIsActivated(bool bIsActivated_In)
 {
-	bIsActivated = bIsActivated_In;
 	if (OnTriggerActivated.IsBound())
 	{
-		OnTriggerActivated.Broadcast(bIsActivated);
+		OnTriggerActivated.Broadcast(bIsActivated_In);
 	}
+}
+
+void APlatformTrigger::OnRep_IsActivated(bool bIsActivated_Old)
+{
+	OnIsActivated(bIsActivated);
 }
 
 void APlatformTrigger::OnTriggerOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -36,11 +48,15 @@ void APlatformTrigger::OnTriggerOverlapBegin(UPrimitiveComponent* OverlappedComp
 		return;
 	}
 
-	OverlappedPawns.AddUnique(OtherPawn);
-
-	if (!bIsActivated && OverlappedPawns.Num() > 0)
+	if (GetLocalRole() == ROLE_Authority)
 	{
-		SetIsActivated(true);
+		OverlappedPawns.AddUnique(OtherPawn);
+
+		if (!bIsActivated && OverlappedPawns.Num() > 0)
+		{
+			bIsActivated = true;
+			OnIsActivated(true);
+		}
 	}
 }
 
@@ -52,10 +68,14 @@ void APlatformTrigger::OnTriggerOverlapEnd(UPrimitiveComponent* OverlappedCompon
 		return;
 	}
 
-	OverlappedPawns.RemoveSingleSwap(OtherPawn);
-
-	if (bIsActivated && OverlappedPawns.Num() == 0)
+	if (GetLocalRole() == ROLE_Authority)
 	{
-		SetIsActivated(false);
+		OverlappedPawns.RemoveSingleSwap(OtherPawn);
+
+		if (bIsActivated && OverlappedPawns.Num() == 0)
+		{
+			bIsActivated = false;
+			OnIsActivated(false);
+		}
 	}
 }

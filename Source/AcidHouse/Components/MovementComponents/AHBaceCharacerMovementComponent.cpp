@@ -565,6 +565,10 @@ void UAHBaseCharacterMovementComponent::PhysMantling(float DeltaTime, int32 Iter
 {
 	float ElapsedTime = GetWorld()->GetTimerManager().GetTimerElapsed(MantlingTimer) + CurrentMantlingParametrs.StartTime;
 
+	if (!IsValid(CurrentMantlingParametrs.MantlingCurve))
+	{
+		return;
+	}
 	FVector MantlingCurveValue = CurrentMantlingParametrs.MantlingCurve->GetVectorValue(ElapsedTime);
 
 	float PositionAlpha = MantlingCurveValue.X;
