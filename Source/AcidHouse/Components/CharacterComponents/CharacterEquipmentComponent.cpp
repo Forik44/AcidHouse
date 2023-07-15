@@ -4,6 +4,7 @@
 #include "Actors/Equipment/Weapon/MeleeWeapon.h"
 #include "AcidHouseTypes.h"
 #include "Actors/Equipment/Throwables/ThrowableItem.h"
+#include "Net/UnrealNetwork.h"
 
 void UCharacterEquipmentComponent::BeginPlay()
 {
@@ -13,6 +14,17 @@ void UCharacterEquipmentComponent::BeginPlay()
  	CachedBaseCharacter = StaticCast<AAHBaseCharacter*>(GetOwner());
  	CreateLoadout();
 	AutoEquip();
+}
+
+UCharacterEquipmentComponent::UCharacterEquipmentComponent()
+{
+	SetIsReplicatedByDefault(true);
+}
+
+void UCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UCharacterEquipmentComponent, CurrentEquippedSlot);
 }
 
 EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() const
@@ -97,7 +109,6 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 			AttachCurrentItemToEquippedSocket(); 
 			CurrentEquippedItem->Equip();
 		}
-		CurrentEquippedSlot = Slot;
 	}
 
 	if (IsValid(CurrentEquippedWeapon))
@@ -110,6 +121,12 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 	if (OnEquippedItemChanged.IsBound())
 	{
 		OnEquippedItemChanged.Broadcast(CurrentEquippedItem);
+	}
+
+	CurrentEquippedSlot = Slot;
+	if (GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		Server_EquipItemInSlot(CurrentEquippedSlot);
 	}
 }
 
@@ -194,6 +211,11 @@ void UCharacterEquipmentComponent::SetAmmoCurrentThrowableItem(int32 Ammo)
 	}
 }
 
+void UCharacterEquipmentComponent::OnRep_CurrentEquippedSlot(EEquipmentSlots CurrentEquippedSlot_Old)
+{
+	EquipItemInSlot(CurrentEquippedSlot);
+}
+
 int32 UCharacterEquipmentComponent::GetAvailableAmunitionForCurrentWeapon()
 {
 	checkf(IsValid(CurrentEquippedWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
@@ -256,6 +278,11 @@ void UCharacterEquipmentComponent::AutoEquip()
 	{
 		EquipItemInSlot(AutoEquipItemInSlot);
 	}
+}
+
+void UCharacterEquipmentComponent::Server_EquipItemInSlot_Implementation(EEquipmentSlots Slot)
+{
+	EquipItemInSlot(Slot);
 }
 
 uint32 UCharacterEquipmentComponent::NextItemsArraySlotIndex(uint32 CurrentSlotIndex)

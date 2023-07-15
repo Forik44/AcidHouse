@@ -22,6 +22,10 @@ class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	UCharacterEquipmentComponent();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
 	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquippedWeapon; }
@@ -80,7 +84,12 @@ private:
 	AThrowableItem* CurrentThrowableItem;
 	AMeleeWeapon* CurrentMeleeWeapon;
 
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentEquippedSlot)
 	EEquipmentSlots CurrentEquippedSlot;
+
+	UFUNCTION()
+	void OnRep_CurrentEquippedSlot(EEquipmentSlots CurrentEquippedSlot_Old);
+
 	EEquipmentSlots PreviousEquippedSlot;
 
 	TWeakObjectPtr<class AAHBaseCharacter> CachedBaseCharacter;
@@ -101,6 +110,9 @@ private:
 	void CreateLoadout();
 
 	void AutoEquip();
+
+	UFUNCTION(Server, Reliable)
+	void Server_EquipItemInSlot(EEquipmentSlots Slot);
 
 	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
 	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);
