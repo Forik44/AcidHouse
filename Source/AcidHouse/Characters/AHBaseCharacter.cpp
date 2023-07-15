@@ -327,6 +327,15 @@ float AAHBaseCharacter::GetAimingMovementSpeed() const
 	return CurrentAimingMovementSpeed;
 }
 
+FRotator AAHBaseCharacter::GetAimOffset()
+{
+	FVector AimDirectionWorld = GetBaseAimRotation().Vector();
+	FVector AimDirectionLocal = GetTransform().InverseTransformVectorNoScale(AimDirectionWorld);
+	FRotator Result = AimDirectionLocal.ToOrientationRotator();
+
+	return Result;
+}
+
 void AAHBaseCharacter::OnStartAiming_Implementation()
 {
 	OnStartAimingInternal();

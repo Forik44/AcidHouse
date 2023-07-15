@@ -134,6 +134,8 @@ public:
 	bool IsAiming() const { return bIsAiming; }
 	float GetAimingMovementSpeed() const;
 
+	FRotator GetAimOffset();
+
 	FOnAimingStateChanged OnAimingStateChanged;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
