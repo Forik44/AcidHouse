@@ -13,13 +13,18 @@ void ULedgeDetectorComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	checkf(GetOwner()->IsA<ACharacter>(), TEXT("ULedgeDetectorComponent::BeginPlay() only character can use"));
-	CashedCharacterOwner = StaticCast<ACharacter*>(GetOwner());
+	CachedCharacterOwner = StaticCast<ACharacter*>(GetOwner());
 	
 }
 
 bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescription)
 {
-	UCapsuleComponent* CapsuleComponent = CashedCharacterOwner->GetCapsuleComponent();
+	if (CachedCharacterOwner == nullptr)
+	{
+		return false;
+	}
+
+	UCapsuleComponent* CapsuleComponent = CachedCharacterOwner->GetCapsuleComponent();
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.bTraceComplex = true;
@@ -35,9 +40,9 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 	float DrawTime = 100.0f;
 
 	float BottomZOffset = 2.0f;
-	AAHBaseCharacter* DefaultAHBaseCharacter = CashedCharacterOwner->GetClass()->GetDefaultObject<AAHBaseCharacter>();
+	AAHBaseCharacter* DefaultAHBaseCharacter = CachedCharacterOwner->GetClass()->GetDefaultObject<AAHBaseCharacter>();
 
-	FVector CharacterBottom = CashedCharacterOwner->GetActorLocation() - (DefaultAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() - BottomZOffset) * FVector::UpVector;
+	FVector CharacterBottom = CachedCharacterOwner->GetActorLocation() - (DefaultAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() - BottomZOffset) * FVector::UpVector;
 
 	//1. Forward check
 	float ForwardCheckCapsuleRadius = DefaultAHBaseCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
@@ -45,7 +50,7 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 
 	FHitResult ForwardCheckHitResult;
 	FVector ForwardStartLocation = CharacterBottom + (MinimumLedgeHeight + ForwardCheckCapsuleHalfHeight) * FVector::UpVector;
-	FVector ForwardEndLocation = ForwardStartLocation + CashedCharacterOwner->GetActorForwardVector() * ForwardCheckDistance;
+	FVector ForwardEndLocation = ForwardStartLocation + CachedCharacterOwner->GetActorForwardVector() * ForwardCheckDistance;
 
 	if (!AHTraceUtils::SweepCapsuleSingleByChanel(GetWorld(), ForwardCheckHitResult, ForwardStartLocation, ForwardEndLocation, ForwardCheckCapsuleRadius, ForwardCheckCapsuleHalfHeight, FQuat::Identity, ECC_Climbing, QueryParams, FCollisionResponseParams::DefaultResponseParam, bIsDebugEnabled, DrawTime))
 	{

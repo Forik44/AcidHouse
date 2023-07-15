@@ -9,6 +9,8 @@
 APlatformTrigger::APlatformTrigger()
 {
 	bReplicates = true;
+	NetUpdateFrequency = 2.0f;
+	MinNetUpdateFrequency = 2.0f;
 	TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
 	TriggerBox->SetCollisionProfileName(CollisionProfilePawnInteractionVolume);
 	SetRootComponent(TriggerBox);
@@ -48,7 +50,7 @@ void APlatformTrigger::OnTriggerOverlapBegin(UPrimitiveComponent* OverlappedComp
 		return;
 	}
 
-	if (GetLocalRole() == ROLE_Authority)
+	if (OtherPawn->IsLocallyControlled() || GetLocalRole() == ROLE_Authority)
 	{
 		OverlappedPawns.AddUnique(OtherPawn);
 
@@ -68,7 +70,7 @@ void APlatformTrigger::OnTriggerOverlapEnd(UPrimitiveComponent* OverlappedCompon
 		return;
 	}
 
-	if (GetLocalRole() == ROLE_Authority)
+	if (OtherPawn->IsLocallyControlled() || GetLocalRole() == ROLE_Authority)
 	{
 		OverlappedPawns.RemoveSingleSwap(OtherPawn);
 

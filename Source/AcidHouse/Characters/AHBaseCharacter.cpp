@@ -15,6 +15,7 @@
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
 #include "Actors/Equipment/Weapon/MeleeWeapon.h"
 #include "AIController.h"
+#include "Net/UnrealNetwork.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -233,6 +234,17 @@ void AAHBaseCharacter::OnStopAimingInternal()
 	}
 }
 
+void AAHBaseCharacter::OnRep_IsMantling(bool bWasMantling)
+{
+	if (GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		if (!bWasMantling && bIsMantling)
+		{
+			Mantle(true);
+		}
+	}
+}
+
 void AAHBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -255,6 +267,12 @@ void AAHBaseCharacter::PossessedBy(AController* NewController)
 	}
 }
 
+void AAHBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AAHBaseCharacter, bIsMantling);
+}
+
 void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 {
 	if (!(CanMantle() || bForce))
@@ -265,6 +283,8 @@ void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 	FLedgeDescription LedgeDescription;
 	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
 	{
+		bIsMantling = true;
+
 		FMantlingMovementParameters MantlingParametrs;
 
 		MantlingParametrs.InitialLocation = GetActorLocation();
@@ -291,7 +311,10 @@ void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 
 		MantlingParametrs.InitialAimationLocation = MantlingParametrs.TargetLocation - MantlingSettings.AnimationCorrectionZ * FVector::UpVector + MantlingSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
 
-		GetBaseCharacterMovementComponent()->StartMantle(MantlingParametrs);
+		if (GetLocalRole() > ROLE_SimulatedProxy)
+		{
+			GetBaseCharacterMovementComponent()->StartMantle(MantlingParametrs);
+		}
 
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParametrs.StartTime);

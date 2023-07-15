@@ -10,6 +10,7 @@
 #include "DrawDebugHelpers.h"
 #include "Actors/Interactive/Enviroment/Ladder.h"
 #include "Actors/Interactive/Enviroment/Zipline.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 void UAHBaseCharacterMovementComponent::BeginPlay()
 {
@@ -19,7 +20,43 @@ void UAHBaseCharacterMovementComponent::BeginPlay()
 
 bool UAHBaseCharacterMovementComponent::IsProning() const
 {
-	return GetBaseCharacterOwner()->bIsProning;
+	return GetBaseCharacterOwner() && GetBaseCharacterOwner()->bIsProning;
+}
+
+FNetworkPredictionData_Client* UAHBaseCharacterMovementComponent::GetPredictionData_Client() const 
+{
+	if (!ClientPredictionData)
+	{
+		UAHBaseCharacterMovementComponent* MutableThis = const_cast<UAHBaseCharacterMovementComponent*>(this);
+		MutableThis->ClientPredictionData = new FNetworkPredictionData_Client_Character_AH(*this);
+	}
+
+	return ClientPredictionData;
+}
+
+void UAHBaseCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
+{
+	Super::UpdateFromCompressedFlags(Flags);
+
+	//	FLAG_Reserved_1 = 0x04,	// Reserved for future use
+	//	FLAG_Reserved_2 = 0x08,	// Reserved for future use
+	//	// Remaining bit masks are available for custom flags.
+	//	FLAG_Custom_0 = 0x10, - Sprinting flag
+	//	FLAG_Custom_1 = 0x20, - Mantling flag
+	//	FLAG_Custom_2 = 0x40,
+	//	FLAG_Custom_3 = 0x80,
+
+	bool bWasMantling = GetBaseCharacterOwner()->bIsMantling;
+	bIsSprinting = (Flags & FSavedMove_Character::FLAG_Custom_0) != 0;
+	bool bIsMantling = (Flags & FSavedMove_Character::FLAG_Custom_1) != 0;
+
+	if (GetBaseCharacterOwner()->GetLocalRole() == ROLE_Authority)
+	{
+		if (!bWasMantling && bIsMantling)
+		{
+			GetBaseCharacterOwner()->Mantle(true);
+		}
+	}
 }
 
 void UAHBaseCharacterMovementComponent::PhysicsRotation(float DeltaTime)
@@ -342,6 +379,7 @@ void UAHBaseCharacterMovementComponent::StartMantle(const FMantlingMovementParam
 
 void UAHBaseCharacterMovementComponent::EndMantle()
 {
+	GetBaseCharacterOwner()->bIsMantling = false;
 	SetMovementMode(MOVE_Walking);
 }
 
@@ -537,6 +575,11 @@ void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 
 void UAHBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterations)
 {
+	if (GetBaseCharacterOwner()->GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		return;
+	}
+
 	switch (CustomMovementMode)
 	{
 		case (uint8)ECustomMovementMode::CMOVE_Mantling:
@@ -565,10 +608,6 @@ void UAHBaseCharacterMovementComponent::PhysMantling(float DeltaTime, int32 Iter
 {
 	float ElapsedTime = GetWorld()->GetTimerManager().GetTimerElapsed(MantlingTimer) + CurrentMantlingParametrs.StartTime;
 
-	if (!IsValid(CurrentMantlingParametrs.MantlingCurve))
-	{
-		return;
-	}
 	FVector MantlingCurveValue = CurrentMantlingParametrs.MantlingCurve->GetVectorValue(ElapsedTime);
 
 	float PositionAlpha = MantlingCurveValue.X;
@@ -586,6 +625,7 @@ void UAHBaseCharacterMovementComponent::PhysMantling(float DeltaTime, int32 Iter
 	FRotator NewRotation = FMath::Lerp(CurrentMantlingParametrs.InitialRotation, CurrentMantlingParametrs.TargetRotation, PositionAlpha);
 
 	FVector Delta = NewLocation - GetActorLocation();
+	Velocity = Delta / DeltaTime;
 
 	FHitResult Hit;
 	SafeMoveUpdatedComponent(Delta, NewRotation, false, Hit);
@@ -678,4 +718,82 @@ void UAHBaseCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float
 		}
 	}
 
+}
+
+void FSavedMove_AH::Clear()
+{
+	Super::Clear();
+	bSavedIsSprinting = 0;
+	bSavedIsMantling = 0;
+}
+
+uint8 FSavedMove_AH::GetCompressedFlags() const
+{
+	uint8 Result = Super::GetCompressedFlags();
+
+	//	FLAG_Reserved_1 = 0x04,	// Reserved for future use
+	//	FLAG_Reserved_2 = 0x08,	// Reserved for future use
+	//	// Remaining bit masks are available for custom flags.
+	//	FLAG_Custom_0 = 0x10, - Sprinting flag
+	//	FLAG_Custom_1 = 0x20, - Mantling flag
+	//	FLAG_Custom_2 = 0x40,
+	//	FLAG_Custom_3 = 0x80,
+
+	if (bSavedIsSprinting)
+	{
+		Result |= FLAG_Custom_0;
+	}
+
+	if (bSavedIsMantling)
+	{
+		Result &= ~FLAG_JumpPressed;
+		Result |= FLAG_Custom_1;
+	}
+
+	return Result;
+}
+
+bool FSavedMove_AH::CanCombineWith(const FSavedMovePtr& NewMovePtr, ACharacter* InCharacter, float MaxDelta) const
+{
+	const FSavedMove_AH* NewMove = StaticCast<const FSavedMove_AH*>(NewMovePtr.Get());
+
+	if (bSavedIsSprinting != NewMove->bSavedIsSprinting || bSavedIsMantling != NewMove->bSavedIsMantling)
+	{
+		return false;
+	}
+
+	return Super::CanCombineWith(NewMovePtr, InCharacter, MaxDelta);
+}
+
+void FSavedMove_AH::SetMoveFor(ACharacter* C, float InDeltaTime, FVector const& NewAccel, class FNetworkPredictionData_Client_Character& ClientData)
+{
+	Super::SetMoveFor(C, InDeltaTime, NewAccel, ClientData);
+
+	checkf(C->IsA<AAHBaseCharacter>(), TEXT("FSavedMove_AH::SetMoveFor working only with AAHBaseCharacter"));
+	AAHBaseCharacter* InBaseCharacter = StaticCast<AAHBaseCharacter*>(C);
+	UAHBaseCharacterMovementComponent* MovementComponent = InBaseCharacter->GetBaseCharacterMovementComponent();
+
+	bSavedIsSprinting = MovementComponent->bIsSprinting;
+	bSavedIsMantling = InBaseCharacter->bIsMantling;
+}
+
+void FSavedMove_AH::PrepMoveFor(ACharacter* C)
+{
+	Super::PrepMoveFor(C);
+
+	UAHBaseCharacterMovementComponent* MovementComponent = StaticCast<UAHBaseCharacterMovementComponent*>(C->GetMovementComponent());
+
+	MovementComponent->bIsSprinting = bSavedIsSprinting;
+}
+
+FNetworkPredictionData_Client_Character_AH::FNetworkPredictionData_Client_Character_AH(const UAHBaseCharacterMovementComponent& ClientMovement) 
+	:
+	Super(ClientMovement)
+{
+
+}
+
+FSavedMovePtr FNetworkPredictionData_Client_Character_AH::AllocateNewMove()
+{
+	return FSavedMovePtr(new FSavedMove_AH());
 }
