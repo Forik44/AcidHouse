@@ -12,7 +12,11 @@ void AAHBasePlayerController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);
 	CachedBaseCharacter = Cast<AAHBaseCharacter>(InPawn); 
-	CreateAndInitializeWidgets();
+
+	if (IsLocalController())
+	{
+		CreateAndInitializeWidgets();
+	}
 }
 
 bool AAHBasePlayerController::GetIgnoreCameraPitch() const
