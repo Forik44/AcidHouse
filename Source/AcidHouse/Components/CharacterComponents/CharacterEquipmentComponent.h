@@ -76,8 +76,11 @@ private:
 
 	FTimerHandle EquipTimer;
 
-	TAmunitionArray AmunitionArray;
-	TItemsArray ItemsArray;
+	UPROPERTY(Replicated)
+	TArray<int32> AmunitionArray;
+
+	UPROPERTY(ReplicatedUsing=OnRep_ItemsArray)
+	TArray<AEquipableItem*> ItemsArray;
 
 	ARangeWeapon* CurrentEquippedWeapon;
 	AEquipableItem* CurrentEquippedItem;
@@ -86,9 +89,6 @@ private:
 
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentEquippedSlot)
 	EEquipmentSlots CurrentEquippedSlot;
-
-	UFUNCTION()
-	void OnRep_CurrentEquippedSlot(EEquipmentSlots CurrentEquippedSlot_Old);
 
 	EEquipmentSlots PreviousEquippedSlot;
 
@@ -113,6 +113,12 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void Server_EquipItemInSlot(EEquipmentSlots Slot);
+
+	UFUNCTION()
+	void OnRep_CurrentEquippedSlot(EEquipmentSlots CurrentEquippedSlot_Old);
+
+	UFUNCTION()
+	void OnRep_ItemsArray();
 
 	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
 	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);
