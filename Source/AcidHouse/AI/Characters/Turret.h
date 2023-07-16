@@ -21,16 +21,23 @@ class ACIDHOUSE_API ATurret : public APawn
 public:
 	ATurret();
 
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentTarget)
+	AActor* CurrentTarget = nullptr;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void Tick(float DeltaTime) override;
 
-	void SetCurrentTarget(AActor* NewTarget);
+	void OnCurrentTargetSet();
 
 	virtual FVector GetPawnViewLocation() const override;
 	virtual FRotator GetViewRotation() const override;
 
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	void SetHealth(float NewHealth);
 
 protected:
 	virtual void BeginPlay() override;
@@ -81,14 +88,20 @@ protected:
 	void OnDeath();
 
 private:
+	UPROPERTY(ReplicatedUsing=OnRep_Health)
 	float Health;
+
 	bool bIsAlive = true;
 
 	ETurretState CurrentTurretState = ETurretState::Searching;
 
-	AActor* CurrentTarget = nullptr;
-
 	FTimerHandle ShotTimer;
+
+	UFUNCTION()
+	void OnRep_CurrentTarget();
+
+	UFUNCTION()
+	void OnRep_Health();
 
 	float GetFireInterval() const;
 

@@ -4,6 +4,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "Perception/AISense_Damage.h"
 #include "Components/SceneComponents/ExplosionComponent.h"
+#include "Net/UnrealNetwork.h"
 
 ATurret::ATurret()
 {
@@ -23,6 +24,15 @@ ATurret::ATurret()
 
 	ExplosionComponent = CreateDefaultSubobject<UExplosionComponent>(TEXT("ExplosionComponent"));
 	ExplosionComponent->SetupAttachment(TurretRoot);
+
+	SetReplicates(true);
+}
+
+void ATurret::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ATurret, CurrentTarget);
+	DOREPLIFETIME(ATurret, Health);
 }
 
 void ATurret::PossessedBy(AController* NewController)
@@ -62,9 +72,8 @@ void ATurret::Tick(float DeltaTime)
 	}
 }
 
-void ATurret::SetCurrentTarget(AActor* NewTarget)
+void ATurret::OnCurrentTargetSet()
 {
-	CurrentTarget = NewTarget;
 	ETurretState NewState = IsValid(CurrentTarget) ? ETurretState::Firing : ETurretState::Searching;
 	SetCurrentTurretState(NewState);
 }
@@ -86,12 +95,18 @@ float ATurret::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, 
 		return 0;
 	}
 	UAISense_Damage::ReportDamageEvent(GetWorld(), this, DamageCauser, Damage, DamageCauser->GetActorLocation(), GetActorLocation());
-	Health -= Damage;
+	SetHealth(Health - Damage);
+
+	return Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void ATurret::SetHealth(float NewHealth)
+{
+	Health = NewHealth;
 	if (Health <= 0)
 	{
 		OnDeath();
 	}
-	return Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 }
 
 void ATurret::BeginPlay()
@@ -106,6 +121,16 @@ void ATurret::OnDeath_Implementation()
 	bIsAlive = false;
 	GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
 	ExplosionComponent->Explode(GetController());
+}
+
+void ATurret::OnRep_CurrentTarget()
+{
+	OnCurrentTargetSet();
+}
+
+void ATurret::OnRep_Health()
+{
+	SetHealth(Health);
 }
 
 float ATurret::GetFireInterval() const

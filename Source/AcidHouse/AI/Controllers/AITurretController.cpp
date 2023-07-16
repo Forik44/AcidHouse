@@ -32,17 +32,20 @@ void AAITurretController::ActorsPerceptionUpdated(const TArray<AActor*>& Updated
 	
 	if (!IsValid(ClosestSightActor) || !IsValid(ClosestDamagingActor))
 	{
-		CachedTurret->SetCurrentTarget(IsValid(ClosestSightActor) ? ClosestSightActor : ClosestDamagingActor);
+		CachedTurret->CurrentTarget = (IsValid(ClosestSightActor) ? ClosestSightActor : ClosestDamagingActor);
+		CachedTurret->OnCurrentTargetSet();
 		return;
 	}
 	
 	if ((GetPawn()->GetActorLocation() - ClosestSightActor->GetActorLocation()).SizeSquared() 
 		< (GetPawn()->GetActorLocation() - ClosestDamagingActor->GetActorLocation()).SizeSquared())
 	{
-		CachedTurret->SetCurrentTarget(ClosestSightActor);
+		CachedTurret->CurrentTarget = (ClosestSightActor);
+		CachedTurret->OnCurrentTargetSet();
 	}
 	else
 	{
-		CachedTurret->SetCurrentTarget(ClosestDamagingActor);
+		CachedTurret->CurrentTarget = (ClosestDamagingActor);
+		CachedTurret->OnCurrentTargetSet();
 	}
 }
