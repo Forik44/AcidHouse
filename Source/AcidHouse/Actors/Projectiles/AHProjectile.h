@@ -4,7 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "AHProjectile.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnProjectileHit, const FHitResult&, Hit, const FVector&, Direction);
+class AAHProjectile;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnProjectileHit, AAHProjectile*, Projectile, const FHitResult&, Hit, const FVector&, Direction);
 
 UCLASS()
 class ACIDHOUSE_API AAHProjectile : public AActor
@@ -14,11 +15,14 @@ class ACIDHOUSE_API AAHProjectile : public AActor
 public:	
 	AAHProjectile();
 
+	UPROPERTY(BlueprintAssignable)
+	FOnProjectileHit OnProjectileHit;
+
 	UFUNCTION(BlueprintCallable)
 	void LaunchProjectile(FVector Direction);
 
-	UPROPERTY(BlueprintAssignable)
-	FOnProjectileHit OnProjectileHit;
+	UFUNCTION(BlueprintNativeEvent)
+	void SetProjectileActive(bool bIsProjectileActive);
 
 protected:
 	virtual void BeginPlay() override;
