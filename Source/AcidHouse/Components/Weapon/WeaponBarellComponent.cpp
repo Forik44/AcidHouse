@@ -93,7 +93,7 @@ void UWeaponBarellComponent::ProcessHit(const FHitResult& HitResult, const FVect
 {
 	AActor* HitActor = HitResult.GetActor();
 	AController* Controller = GetController();
-	if (IsValid(HitActor))
+	if (GetOwner()->GetLocalRole() == ROLE_Authority && IsValid(HitActor))
 	{
 		if (IsValid(FalloffDiagram))
 		{
