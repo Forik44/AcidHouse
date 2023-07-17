@@ -26,6 +26,8 @@ ATurret::ATurret()
 	ExplosionComponent->SetupAttachment(TurretRoot);
 
 	SetReplicates(true);
+	NetUpdateFrequency = 2.0f;
+	MinNetUpdateFrequency = 2.0f;
 }
 
 void ATurret::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

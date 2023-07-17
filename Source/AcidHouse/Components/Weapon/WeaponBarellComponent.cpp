@@ -12,6 +12,7 @@
 UWeaponBarellComponent::UWeaponBarellComponent()
 {
 	SetIsReplicatedByDefault(true);
+	
 }
 
 void UWeaponBarellComponent::Shot(FVector ShotStart, FVector ShotDirection, float SpreadAngle)
@@ -71,12 +72,13 @@ void UWeaponBarellComponent::BeginPlay()
 	}
 }
 
-bool UWeaponBarellComponent::HitScan(FVector ShotStart, OUT FVector& ShotEnd, FVector ShotDirection)
+bool UWeaponBarellComponent::HitScan(FVector ShotStart, OUT FVector& ShotEnd, OUT FVector& HitLocation, FVector ShotDirection)
 {
 	FHitResult ShotResult;
 	bool bHasHit = GetWorld()->LineTraceSingleByChannel(ShotResult, ShotStart, ShotEnd, ECC_Bullet);
 	if (bHasHit)
 	{
+		HitLocation = ShotResult.Location;
 		ProcessHit(ShotResult, ShotDirection);
 	}		
 	return bHasHit;
@@ -104,6 +106,7 @@ void UWeaponBarellComponent::ProcessProjectileHit(AAHProjectile* Projectile, con
 	Projectile->SetActorRotation(FRotator::ZeroRotator);
 	Projectile->OnProjectileHit.RemoveAll(this);
 
+	FVector HitLocation = FVector::ZeroVector;
 	ProcessHit(HitResult, Direction);
 }
 
@@ -184,11 +187,13 @@ void UWeaponBarellComponent::ShotInternal(const TArray<FShotInfo>& ShotsInfo)
 		bool bIsDebugEnabled = false;
 #endif
 
+		FVector HitLocation = FVector::ZeroVector;
+		bool bHasHit = false;
 		switch (HitRegistrationType)
 		{
 		case EHitRegistrationType::HitScan:
 		{
-			bool bHasHit = HitScan(ShotStart, ShotEnd, ShotDirection);
+			bHasHit = HitScan(ShotStart, ShotEnd, HitLocation, ShotDirection);
 			if (bIsDebugEnabled && bHasHit)
 			{
 				DrawDebugSphere(GetWorld(), ShotEnd, 10.0f, 24, FColor::Red, false, 1.0f);
@@ -207,7 +212,14 @@ void UWeaponBarellComponent::ShotInternal(const TArray<FShotInfo>& ShotsInfo)
 		UNiagaraComponent* TraceFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TraceFX, MuzzleLocation, GetComponentRotation());
 		if (IsValid(TraceFXComponent))
 		{
-			TraceFXComponent->SetVectorParameter(FXParamTraceEnd, ShotEnd);
+			if (bHasHit)
+			{
+				TraceFXComponent->SetVectorParameter(FXParamTraceEnd, HitLocation);
+			}
+			else
+			{
+				TraceFXComponent->SetVectorParameter(FXParamTraceEnd, ShotEnd);
+			}
 		}
 
 		if (bIsDebugEnabled)

@@ -17,18 +17,18 @@ struct FShotInfo
 	GENERATED_BODY()
 
 	FShotInfo()
-		: Location_Mul_10(FVector_NetQuantize100::ZeroVector),
-		Direction(FVector::ZeroVector) {};
+		: Location_Mul_10(FVector::ZeroVector),
+		Direction(FVector::ZeroVector){};
 
 	FShotInfo(FVector Location, FVector Direction)
 		: Location_Mul_10(Location * 10.0f), 
-		Direction(Direction) {};
+		Direction(Direction){};
 
 	UPROPERTY()
-	FVector_NetQuantize100 Location_Mul_10;
+	FVector Location_Mul_10;
 
 	UPROPERTY()
-	FVector_NetQuantizeNormal Direction;
+	FVector Direction;
 
 	FVector GetLocation() const { return Location_Mul_10 * 0.1f; }
 	FVector GetDirection() const { return Direction; }
@@ -129,7 +129,7 @@ private:
 
 	void ShotInternal(const TArray<FShotInfo>& ShotsInfo);
 
-	bool HitScan(FVector ShotStart, OUT FVector& ShotEnd, FVector ShotDirection);
+	bool HitScan(FVector ShotStart, OUT FVector& ShotEnd, OUT FVector& HitLocation, FVector ShotDirection);
 	void LauchProjectile(const FVector& LauchStart, const FVector& LaunchDirection);
 
 	UFUNCTION()
