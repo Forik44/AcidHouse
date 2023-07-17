@@ -45,5 +45,5 @@ protected:
 	float ForwardCheckDistance = 100.0f;
 		
 private:
-	TWeakObjectPtr<class ACharacter> CashedCharacterOwner;
+	TWeakObjectPtr<class ACharacter> CachedCharacterOwner;
 };

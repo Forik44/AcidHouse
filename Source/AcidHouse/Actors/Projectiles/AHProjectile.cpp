@@ -12,6 +12,10 @@ AAHProjectile::AAHProjectile()
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComponent"));
 	ProjectileMovementComponent->InitialSpeed = 2000.0f;
+	ProjectileMovementComponent->bAutoActivate = false;
+
+	SetReplicates(true);
+	SetReplicateMovement(true);
 }
 
 void AAHProjectile::LaunchProjectile(FVector Direction)
@@ -19,6 +23,11 @@ void AAHProjectile::LaunchProjectile(FVector Direction)
 	ProjectileMovementComponent->Velocity = Direction * ProjectileMovementComponent->InitialSpeed;
 	CollisionComponent->IgnoreActorWhenMoving(GetOwner(), true);
 	OnProjectileLaunched();
+}
+
+void AAHProjectile::SetProjectileActive_Implementation(bool bIsProjectileActive)
+{
+	ProjectileMovementComponent->SetActive(bIsProjectileActive);
 }
 
 void AAHProjectile::BeginPlay()
@@ -36,7 +45,7 @@ void AAHProjectile::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Ot
 {
 	if (OnProjectileHit.IsBound())
 	{
-		OnProjectileHit.Broadcast(Hit, ProjectileMovementComponent->Velocity.GetSafeNormal());
+		OnProjectileHit.Broadcast(this, Hit, ProjectileMovementComponent->Velocity.GetSafeNormal());
 	}
 }
 

@@ -22,6 +22,10 @@ class ACIDHOUSE_API UCharacterEquipmentComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	UCharacterEquipmentComponent();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
 	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquippedWeapon; }
@@ -72,15 +76,20 @@ private:
 
 	FTimerHandle EquipTimer;
 
-	TAmunitionArray AmunitionArray;
-	TItemsArray ItemsArray;
+	UPROPERTY(Replicated)
+	TArray<int32> AmunitionArray;
+
+	UPROPERTY(ReplicatedUsing=OnRep_ItemsArray)
+	TArray<AEquipableItem*> ItemsArray;
 
 	ARangeWeapon* CurrentEquippedWeapon;
 	AEquipableItem* CurrentEquippedItem;
 	AThrowableItem* CurrentThrowableItem;
 	AMeleeWeapon* CurrentMeleeWeapon;
 
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentEquippedSlot)
 	EEquipmentSlots CurrentEquippedSlot;
+
 	EEquipmentSlots PreviousEquippedSlot;
 
 	TWeakObjectPtr<class AAHBaseCharacter> CachedBaseCharacter;
@@ -101,6 +110,15 @@ private:
 	void CreateLoadout();
 
 	void AutoEquip();
+
+	UFUNCTION(Server, Reliable)
+	void Server_EquipItemInSlot(EEquipmentSlots Slot);
+
+	UFUNCTION()
+	void OnRep_CurrentEquippedSlot(EEquipmentSlots CurrentEquippedSlot_Old);
+
+	UFUNCTION()
+	void OnRep_ItemsArray();
 
 	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
 	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);

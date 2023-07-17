@@ -64,6 +64,8 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	virtual void MoveForward(float Value) {};
 	virtual void MoveRight(float Value) {};
 	virtual void Turn(float Value) {};
@@ -108,6 +110,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Mantle(bool bForce = false);
 
+	UPROPERTY(ReplicatedUsing = OnRep_IsMantling)
+	bool bIsMantling;
+
+	UFUNCTION()
+	void OnRep_IsMantling(bool bWasMantling);
+
 	void ClimbLadderUp(float Value);
 	void InteractWithLadder();
 	const class ALadder* GetAvailableLadder() const;
@@ -125,6 +133,8 @@ public:
 	void StopAiming();
 	bool IsAiming() const { return bIsAiming; }
 	float GetAimingMovementSpeed() const;
+
+	FRotator GetAimOffset();
 
 	FOnAimingStateChanged OnAimingStateChanged;
 

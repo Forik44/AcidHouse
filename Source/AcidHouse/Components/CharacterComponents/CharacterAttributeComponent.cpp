@@ -7,11 +7,18 @@
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 UCharacterAttributeComponent::UCharacterAttributeComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	SetIsReplicatedByDefault(true);
+}
 
+void UCharacterAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UCharacterAttributeComponent, Health);
 }
 
 void UCharacterAttributeComponent::BeginPlay()
@@ -26,7 +33,10 @@ void UCharacterAttributeComponent::BeginPlay()
 	SetStamina(MaxStamina);
 	SetOxygen(MaxOxygen);
 
-	CashedBaseCharacterOwner->OnTakeAnyDamage.AddDynamic(this, &UCharacterAttributeComponent::OnTakeAnyDamage);
+	if (GetOwner()->GetLocalRole() == ROLE_Authority)
+	{
+		CashedBaseCharacterOwner->OnTakeAnyDamage.AddDynamic(this, &UCharacterAttributeComponent::OnTakeAnyDamage);
+	}
 }
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
@@ -56,6 +66,11 @@ void UCharacterAttributeComponent::OnTakeAnyDamage(AActor* DamagedActor, float D
 	UE_LOG(LogDamage, Warning, TEXT("UCharacterAttributeComponent::OnTakeAnyDamage %s recevied %.2f amount of damage from %s"), *CashedBaseCharacterOwner->GetName(), Damage, *DamageCauser->GetName());
 	float NewHealth = FMath::Clamp(Health - Damage, 0.0f, MaxHealth);
 	SetHealth(NewHealth);
+}
+
+void UCharacterAttributeComponent::OnRep_Health()
+{
+	SetHealth(Health);
 }
 
 void UCharacterAttributeComponent::UpdateStaminaValue(float DeltaTime)
@@ -120,18 +135,16 @@ void UCharacterAttributeComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 void UCharacterAttributeComponent::SetHealth(float NewHealth)
 {
-	if (Health != NewHealth)
+	Health = NewHealth;
+	OnHealthPersentChanged.Broadcast(Health / MaxHealth);
+	if (Health <= 0.0f)
 	{
-		Health = NewHealth;
-		OnHealthPersentChanged.Broadcast(Health / MaxHealth);
-		if (Health <= 0.0f)
+		if (OnDeathEvent.IsBound())
 		{
-			if (OnDeathEvent.IsBound())
-			{
-				OnDeathEvent.Broadcast();
-			}
+			OnDeathEvent.Broadcast();
 		}
 	}
+
 }
 
 void UCharacterAttributeComponent::SetStamina(float NewStamina)

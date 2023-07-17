@@ -19,6 +19,8 @@ class ACIDHOUSE_API UCharacterAttributeComponent : public UActorComponent
 public:	
 	UCharacterAttributeComponent();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FOnDeathEventSignature OnDeathEvent;
@@ -72,7 +74,9 @@ protected:
 	float OutOfOxygenDamageAmount = 10.0f;
 
 private:
+	UPROPERTY(ReplicatedUsing=OnRep_Health)
 	float Health = 0.0f;
+
 	float Stamina = 0.0f;
 	float Oxygen = 0.0f;
 
@@ -82,6 +86,9 @@ private:
 
 	UFUNCTION()
 	void OnTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+	UFUNCTION()
+	void OnRep_Health();
 
 	void UpdateStaminaValue(float DeltaTime);
 	void UpdateOxygenValue(float DeltaTime);
