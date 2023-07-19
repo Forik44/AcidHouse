@@ -254,7 +254,7 @@ void UAHBaseCharacterMovementComponent::Prone()
 	bForceNextFloorCheck = true;
 
 	const float MeshAdjust = ScaledHalfHeightAdjust;
-	HalfHeightAdjust = (CrouchedHalfHeight - ClampedPronedHalfHeight);
+	HalfHeightAdjust = (GetCrouchedHalfHeight() - ClampedPronedHalfHeight);
 	ScaledHalfHeightAdjust = HalfHeightAdjust * ComponentScale;
 
 	AdjustProxyCapsuleSize();
@@ -270,7 +270,7 @@ void UAHBaseCharacterMovementComponent::UnProne()
 
 	AAHBaseCharacter* DefaultAHBaseCharacter = GetBaseCharacterOwner()->GetClass()->GetDefaultObject<AAHBaseCharacter>();
 
-	if (GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() == CrouchedHalfHeight)
+	if (GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() == GetCrouchedHalfHeight())
 	{
 		GetBaseCharacterOwner()->bIsProning = false;
 		GetBaseCharacterOwner()->OnEndProne(0.f, 0.f);
@@ -281,7 +281,7 @@ void UAHBaseCharacterMovementComponent::UnProne()
 
 	const float ComponentScale = GetBaseCharacterOwner()->GetCapsuleComponent()->GetShapeScale();
 	const float OldUnscaledHalfHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
-	const float HalfHeightAdjust = CrouchedHalfHeight - OldUnscaledHalfHeight;
+	const float HalfHeightAdjust = GetCrouchedHalfHeight() - OldUnscaledHalfHeight;
 	const float ScaledHalfHeightAdjust = HalfHeightAdjust * ComponentScale;
 	const FVector PawnLocation = UpdatedComponent->GetComponentLocation();
 
@@ -364,7 +364,7 @@ void UAHBaseCharacterMovementComponent::UnProne()
 
 	GetBaseCharacterOwner()->bIsProning = false;
 
-	GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(DefaultAHBaseCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), CrouchedHalfHeight, true);
+	GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(DefaultAHBaseCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), GetCrouchedHalfHeight(), true);
 
 	const float MeshAdjust = ScaledHalfHeightAdjust;
 	AdjustProxyCapsuleSize();

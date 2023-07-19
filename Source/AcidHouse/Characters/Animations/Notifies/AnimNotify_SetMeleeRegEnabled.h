@@ -12,7 +12,7 @@ class ACIDHOUSE_API UAnimNotify_SetMeleeRegEnabled : public UAnimNotify
 {
 	GENERATED_BODY()
 	
-	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Melee weapon")

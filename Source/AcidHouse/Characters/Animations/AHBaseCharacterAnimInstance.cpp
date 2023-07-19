@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "AHBaseCharacterAnimInstance.h"
 #include "Characters/AHBaseCharacter.h"
 #include "Components/MovementComponents/AHBaceCharacerMovementComponent.h" 
@@ -17,7 +14,7 @@ void UAHBaseCharacterAnimInstance::NativeBeginPlay()
 void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-	if(!CachedBaseCharacter.IsValid())
+	if (!CachedBaseCharacter.IsValid())
 	{
 		return;
 	}

@@ -415,7 +415,7 @@ void AAHBaseCharacter::Landed(const FHitResult& Hit)
 	if (IsValid(FallDamageCurve))
 	{
 		float DamageAmount = FallDamageCurve->GetFloatValue(FallHeight);
-		TakeDamage(DamageAmount, FDamageEvent(), GetController(), Hit.Actor.Get());
+		TakeDamage(DamageAmount, FDamageEvent(), GetController(), Hit.GetActor());
 	}
 }
 

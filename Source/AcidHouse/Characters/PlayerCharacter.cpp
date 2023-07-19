@@ -28,7 +28,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 
 	GetBaseCharacterMovementComponent()->bOrientRotationToMovement = 1;
 	GetBaseCharacterMovementComponent()->NavAgentProps.bCanCrouch = 1;
-	GetBaseCharacterMovementComponent()->CrouchedHalfHeight = 60;
+	GetBaseCharacterMovementComponent()->SetCrouchedHalfHeight(60);
 
 	Team = ETeams::Player;
 }
