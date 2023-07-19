@@ -44,7 +44,12 @@ void UCharacterEquipmentComponent::ReloadCurrentWeapon()
 {
 	checkf(IsValid(CurrentEquippedWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
 
-	if (CurrentEquippedWeapon->IsReloading() && GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
+	if (CurrentEquippedWeapon->IsReloading() && GetOwner()->GetLocalRole() >= ROLE_AutonomousProxy)
+	{
+		return;
+	}
+
+	if (bIsReloading && GetOwner()->GetLocalRole() == ROLE_Authority)
 	{
 		return;
 	}
