@@ -267,6 +267,8 @@ protected:
 private:
 	bool bIsSprintRequested = false;
 	bool bIsFastSwimRequested = false;
+
+	UPROPERTY(ReplicatedUsing=OnRep_bIsAiming)
 	bool bIsAiming = false;
 
 	float CurrentAimingMovementSpeed = 0.0f;
@@ -282,8 +284,16 @@ private:
 
 	TInteractiveActorsArray AvailableInteractiveActors;
 
-	void TryChangeSprintState(float DeltaTime);
+	UFUNCTION()
+	void OnRep_bIsAiming(bool bWasAiming);
 
+	UFUNCTION(Server, Reliable)
+	void Server_StartAiming();
+
+	UFUNCTION(Server, Reliable)
+	void Server_StopAiming();
+
+	void TryChangeSprintState(float DeltaTime);
 	void TryChangeFastSwimState(float DeltaTime);
 
 	void OutOfOxygenDamage();

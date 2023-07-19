@@ -271,6 +271,7 @@ void AAHBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AAHBaseCharacter, bIsMantling);
+	DOREPLIFETIME(AAHBaseCharacter, bIsAiming);
 }
 
 void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
@@ -467,6 +468,31 @@ bool AAHBaseCharacter::CanFastSwim()
 
 }
 
+void AAHBaseCharacter::OnRep_bIsAiming(bool bWasAiming)
+{
+
+	if (bWasAiming && !bIsAiming)
+	{
+		StopAiming();
+	}
+
+	if (!bWasAiming && bIsAiming)
+	{
+		StartAiming();
+	}
+
+}
+
+void AAHBaseCharacter::Server_StartAiming_Implementation()
+{
+	StartAiming();
+}
+
+void AAHBaseCharacter::Server_StopAiming_Implementation()
+{
+	StopAiming();
+}
+
 void AAHBaseCharacter::TryChangeSprintState(float DeltaTime)
 {
 
@@ -656,11 +682,17 @@ void AAHBaseCharacter::StartAiming()
 	{
 		return;
 	}
-
+	
 	CurrentAimingMovementSpeed = CurrentRangeWeapon->GetAimMovementMaxSpeed();
-	bIsAiming = true;
-	CurrentRangeWeapon->StartAim();
 
+	bIsAiming = true;
+
+	CurrentRangeWeapon->StartAim();
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		Server_StartAiming();
+
+	}
 	OnStartAiming();
 }
 
@@ -672,13 +704,20 @@ void AAHBaseCharacter::StopAiming()
 	}
 
 	ARangeWeapon* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
-	if (IsValid(CurrentRangeWeapon))
+	if (!IsValid(CurrentRangeWeapon))
 	{
-		CurrentRangeWeapon->StopAim();
+		return;
 	}
 
+	
 	bIsAiming = false;
 	CurrentAimingMovementSpeed = 0;
+
+	CurrentRangeWeapon->StopAim();
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		Server_StopAiming();
+	}
 	OnStopAiming();
 }
 

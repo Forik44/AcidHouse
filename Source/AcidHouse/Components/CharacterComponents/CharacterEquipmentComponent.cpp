@@ -27,6 +27,7 @@ void UCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME(UCharacterEquipmentComponent, CurrentEquippedSlot);
 	DOREPLIFETIME(UCharacterEquipmentComponent, AmunitionArray);
 	DOREPLIFETIME(UCharacterEquipmentComponent, ItemsArray);
+	DOREPLIFETIME(UCharacterEquipmentComponent, bIsReloading);
 }
 
 EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() const
@@ -42,12 +43,32 @@ EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() co
 void UCharacterEquipmentComponent::ReloadCurrentWeapon()
 {
 	checkf(IsValid(CurrentEquippedWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
+
+	if (CurrentEquippedWeapon->IsReloading() && GetOwner()->GetLocalRole() >= ROLE_AutonomousProxy)
+	{
+		return;
+	}
+
+	if (bIsReloading && GetOwner()->GetLocalRole() == ROLE_Authority)
+	{
+		return;
+	}
+
 	int32 AvailableAmunition = GetAvailableAmunitionForCurrentWeapon();
 	if (AvailableAmunition <= 0)
 	{
 		return;
 	}
 
+	if (GetOwner()->GetLocalRole() == ROLE_Authority)
+	{
+		bIsReloading = true;
+	}
+
+	if (GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		Server_ReloadCurrentWeapon();
+	}
 	CurrentEquippedWeapon->StartReload();
 }
 
@@ -229,6 +250,12 @@ void UCharacterEquipmentComponent::OnRep_ItemsArray()
 	}
 }
 
+void UCharacterEquipmentComponent::OnRep_bIsReloading()
+{
+	bIsReloading = false;
+	ReloadCurrentWeapon();
+}
+
 int32 UCharacterEquipmentComponent::GetAvailableAmunitionForCurrentWeapon()
 {
 	checkf(IsValid(CurrentEquippedWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
@@ -246,6 +273,7 @@ void UCharacterEquipmentComponent::OnCurrentWeaponAmmoChanged(int32 Ammo)
 void UCharacterEquipmentComponent::OnWeaponReloadComplete()
 {
 	ReloadAmmoInCurrentWeapon();
+	bIsReloading = false;
 }
 
 void UCharacterEquipmentComponent::EquipAnimationFinished()
@@ -301,6 +329,11 @@ void UCharacterEquipmentComponent::AutoEquip()
 void UCharacterEquipmentComponent::Server_EquipItemInSlot_Implementation(EEquipmentSlots Slot)
 {
 	EquipItemInSlot(Slot);
+}
+
+void UCharacterEquipmentComponent::Server_ReloadCurrentWeapon_Implementation()
+{
+	ReloadCurrentWeapon();
 }
 
 uint32 UCharacterEquipmentComponent::NextItemsArraySlotIndex(uint32 CurrentSlotIndex)
