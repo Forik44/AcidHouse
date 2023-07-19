@@ -27,6 +27,7 @@ void UCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME(UCharacterEquipmentComponent, CurrentEquippedSlot);
 	DOREPLIFETIME(UCharacterEquipmentComponent, AmunitionArray);
 	DOREPLIFETIME(UCharacterEquipmentComponent, ItemsArray);
+	DOREPLIFETIME(UCharacterEquipmentComponent, bIsReloading);
 }
 
 EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() const
@@ -48,6 +49,11 @@ void UCharacterEquipmentComponent::ReloadCurrentWeapon()
 		return;
 	}
 
+	if (GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		Server_ReloadCurrentWeapon();
+	}
+	bIsReloading = true;
 	CurrentEquippedWeapon->StartReload();
 }
 
@@ -229,6 +235,11 @@ void UCharacterEquipmentComponent::OnRep_ItemsArray()
 	}
 }
 
+void UCharacterEquipmentComponent::OnRep_bIsReloading()
+{
+	ReloadCurrentWeapon();
+}
+
 int32 UCharacterEquipmentComponent::GetAvailableAmunitionForCurrentWeapon()
 {
 	checkf(IsValid(CurrentEquippedWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
@@ -246,6 +257,7 @@ void UCharacterEquipmentComponent::OnCurrentWeaponAmmoChanged(int32 Ammo)
 void UCharacterEquipmentComponent::OnWeaponReloadComplete()
 {
 	ReloadAmmoInCurrentWeapon();
+	bIsReloading = false;
 }
 
 void UCharacterEquipmentComponent::EquipAnimationFinished()
@@ -301,6 +313,11 @@ void UCharacterEquipmentComponent::AutoEquip()
 void UCharacterEquipmentComponent::Server_EquipItemInSlot_Implementation(EEquipmentSlots Slot)
 {
 	EquipItemInSlot(Slot);
+}
+
+void UCharacterEquipmentComponent::Server_ReloadCurrentWeapon_Implementation()
+{
+	ReloadCurrentWeapon();
 }
 
 uint32 UCharacterEquipmentComponent::NextItemsArraySlotIndex(uint32 CurrentSlotIndex)

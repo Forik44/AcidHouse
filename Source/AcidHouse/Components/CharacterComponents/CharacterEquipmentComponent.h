@@ -72,6 +72,9 @@ protected:
 	EEquipmentSlots AutoEquipItemInSlot = EEquipmentSlots::None;
 
 private:
+	UPROPERTY(ReplicatedUsing = OnRep_bIsReloading)
+	bool bIsReloading = false;
+
 	bool bIsEquipping = false;
 
 	FTimerHandle EquipTimer;
@@ -114,11 +117,17 @@ private:
 	UFUNCTION(Server, Reliable)
 	void Server_EquipItemInSlot(EEquipmentSlots Slot);
 
+	UFUNCTION(Server, Reliable)
+	void Server_ReloadCurrentWeapon();
+
 	UFUNCTION()
 	void OnRep_CurrentEquippedSlot(EEquipmentSlots CurrentEquippedSlot_Old);
 
 	UFUNCTION()
 	void OnRep_ItemsArray();
+
+	UFUNCTION()
+	void OnRep_bIsReloading();
 
 	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
 	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);
