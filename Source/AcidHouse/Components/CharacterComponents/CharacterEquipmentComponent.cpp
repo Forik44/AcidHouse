@@ -43,17 +43,27 @@ EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() co
 void UCharacterEquipmentComponent::ReloadCurrentWeapon()
 {
 	checkf(IsValid(CurrentEquippedWeapon), TEXT("UCharacterEquipmentComponent::ReloadCurrentWeapon() CurrentEquipmentWeapon doesn't define"));
+
+	if (CurrentEquippedWeapon->IsReloading() && GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		return;
+	}
+
 	int32 AvailableAmunition = GetAvailableAmunitionForCurrentWeapon();
 	if (AvailableAmunition <= 0)
 	{
 		return;
 	}
 
+	if (GetOwner()->GetLocalRole() == ROLE_Authority)
+	{
+		bIsReloading = true;
+	}
+
 	if (GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		Server_ReloadCurrentWeapon();
 	}
-	bIsReloading = true;
 	CurrentEquippedWeapon->StartReload();
 }
 
@@ -237,6 +247,7 @@ void UCharacterEquipmentComponent::OnRep_ItemsArray()
 
 void UCharacterEquipmentComponent::OnRep_bIsReloading()
 {
+	bIsReloading = false;
 	ReloadCurrentWeapon();
 }
 
