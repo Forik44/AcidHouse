@@ -685,17 +685,14 @@ void AAHBaseCharacter::StartAiming()
 	
 	CurrentAimingMovementSpeed = CurrentRangeWeapon->GetAimMovementMaxSpeed();
 
-	if (HasAuthority())
-	{
-		bIsAiming = true;
-	}
+	bIsAiming = true;
 
+	CurrentRangeWeapon->StartAim();
 	if (GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		Server_StartAiming();
-		CurrentRangeWeapon->StartAim();
-	}
 
+	}
 	OnStartAiming();
 }
 
@@ -707,20 +704,20 @@ void AAHBaseCharacter::StopAiming()
 	}
 
 	ARangeWeapon* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
-	if (IsValid(CurrentRangeWeapon))
+	if (!IsValid(CurrentRangeWeapon))
 	{
-		if (GetLocalRole() == ROLE_AutonomousProxy)
-		{
-			Server_StopAiming();
-			CurrentRangeWeapon->StopAim();
-		}
+		return;
 	}
 
-	if (HasAuthority())
-	{
-		bIsAiming = false;
-	}
+	
+	bIsAiming = false;
 	CurrentAimingMovementSpeed = 0;
+
+	CurrentRangeWeapon->StopAim();
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		Server_StopAiming();
+	}
 	OnStopAiming();
 }
 
