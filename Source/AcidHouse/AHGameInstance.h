@@ -26,6 +26,10 @@ public:
 	virtual void Shutdown() override;
 
 	void LaunchLobby(uint32 MaxPlayers_In, FName ServetName_In, bool bIsLAN);
+		
+	void FindMatch(bool bIsLan);
+
+	void JoinOnlineGame();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Server Settings")
