@@ -52,6 +52,13 @@ void UAHGameInstance::Shutdown()
 	Super::Shutdown();
 }
 
+void UAHGameInstance::LaunchLobby(uint32 MaxPlayers_In, FName ServetName_In, bool bIsLAN)
+{
+	MaxPlayers = MaxPlayers_In;
+	ServerName = ServetName_In;
+	HostSession(GetPrimaryPlayerUniqueId(), ServerName, bIsLAN, true, MaxPlayers);
+}
+
 bool UAHGameInstance::HostSession(TSharedPtr<const FUniqueNetId> UserId, FName SessionName, bool bIsLAN, bool bIsPresence, int32 MaxNumPlayers)
 {
 	// Get the Online Subsystem to work with

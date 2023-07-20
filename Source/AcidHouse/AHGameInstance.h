@@ -25,6 +25,8 @@ public:
 
 	virtual void Shutdown() override;
 
+	void LaunchLobby(uint32 MaxPlayers_In, FName ServetName_In, bool bIsLAN);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Server Settings")
 	FName LobbyMapName;
