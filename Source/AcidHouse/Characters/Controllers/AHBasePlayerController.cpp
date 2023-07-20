@@ -60,6 +60,8 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::EquipPrimaryItem);
 	InputComponent->BindAction("PrimaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PrimaryMeleeAttack);
 	InputComponent->BindAction("SecondaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::SecondaryMeleeAttack);
+	FInputActionBinding& ToggleMenuBinding = InputComponent->BindAction("ToggleMainMenu", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::ToggleMainMenu);
+	ToggleMenuBinding.bExecuteWhenPaused = true;
 }
 
 void AAHBasePlayerController::CreateAndInitializeWidgets()
@@ -71,6 +73,11 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 		{
 			PlayerHUDWidget->AddToViewport();
 		}
+	}
+
+	if (!IsValid(MainMenuWidget))
+	{
+		MainMenuWidget = CreateWidget<UUserWidget>(GetWorld(), MainMenuWidgetClass);
 	}
 
 	if (CachedBaseCharacter.IsValid() && IsValid(PlayerHUDWidget))
@@ -323,5 +330,30 @@ void AAHBasePlayerController::SecondaryMeleeAttack()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->SecondaryMeleeAttack();
+	}
+}
+
+void AAHBasePlayerController::ToggleMainMenu()
+{
+	if (!IsValid(MainMenuWidget) || !IsValid(PlayerHUDWidget))
+	{
+		return;
+	}
+
+	if (MainMenuWidget->IsVisible())
+	{
+		MainMenuWidget->RemoveFromParent();
+		PlayerHUDWidget->AddToViewport();
+		SetInputMode(FInputModeGameOnly{});
+		bShowMouseCursor = false;
+		SetPause(false);
+	}
+	else
+	{
+		MainMenuWidget->AddToViewport();
+		PlayerHUDWidget->RemoveFromParent();
+		SetInputMode(FInputModeGameAndUI{});
+		SetPause(true);
+		bShowMouseCursor = true;
 	}
 }
