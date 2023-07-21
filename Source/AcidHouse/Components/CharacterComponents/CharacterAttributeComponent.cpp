@@ -43,6 +43,12 @@ void UCharacterAttributeComponent::BeginPlay()
 void UCharacterAttributeComponent::DebugDrawAttributes()
 {
 	UDebugSubsystem* DebugSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UDebugSubsystem>();
+
+	if (!IsValid(DebugSubsystem))
+	{
+		return;
+	}
+
 	if (!DebugSubsystem->IsCategoryEnabled(DebugCategoryCharacterAttributes))
 	{
 		return;

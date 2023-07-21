@@ -78,6 +78,10 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 	if (!IsValid(MainMenuWidget))
 	{
 		MainMenuWidget = CreateWidget<UUserWidget>(GetWorld(), MainMenuWidgetClass);
+		if (IsValid(PlayerHUDWidget))
+		{
+			MainMenuWidget->AddToViewport();
+		}
 	}
 
 	if (CachedBaseCharacter.IsValid() && IsValid(PlayerHUDWidget))
@@ -107,6 +111,10 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 			CharacterAttribute->OnOxygenPersentChanged.AddUFunction(CharacterAttributesWidget, FName("OnOxygenPersentChanged"));
 		}
 	}
+
+	MainMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+	PlayerHUDWidget->SetVisibility(ESlateVisibility::Visible);
+	SetInputMode(FInputModeGameOnly{});
 }
 
 void AAHBasePlayerController::MoveForward(float Value)
@@ -342,16 +350,16 @@ void AAHBasePlayerController::ToggleMainMenu()
 
 	if (MainMenuWidget->IsVisible())
 	{
-		MainMenuWidget->RemoveFromParent();
-		PlayerHUDWidget->AddToViewport();
+		MainMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+		PlayerHUDWidget->SetVisibility(ESlateVisibility::Visible);
 		SetInputMode(FInputModeGameOnly{});
 		bShowMouseCursor = false;
 		SetPause(false);
 	}
 	else
 	{
-		MainMenuWidget->AddToViewport();
-		PlayerHUDWidget->RemoveFromParent();
+		PlayerHUDWidget->SetVisibility(ESlateVisibility::Hidden);
+		MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
 		SetInputMode(FInputModeGameAndUI{});
 		SetPause(true);
 		bShowMouseCursor = true;

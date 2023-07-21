@@ -263,7 +263,7 @@ void UAHBaseCharacterMovementComponent::Prone()
 
 void UAHBaseCharacterMovementComponent::UnProne()
 {
-	if (!HasValidData())
+	if (!HasValidData() || !IsValid(GetBaseCharacterOwner()))
 	{
 		return;
 	}

@@ -21,7 +21,7 @@ public class AcidHouse : ModuleRules
             "OnlineSubsystemUtils"
         });
 
-        DynamicallyLoadedModuleNames.Add("OnlineSubsystemSteam");
+        //DynamicallyLoadedModuleNames.Add("OnlineSubsystemSteam");
 
         PrivateDependencyModuleNames.AddRange(new string[] {  });
 

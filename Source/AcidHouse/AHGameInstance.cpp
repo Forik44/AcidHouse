@@ -56,7 +56,8 @@ void UAHGameInstance::LaunchLobby(uint32 MaxPlayers_In, FName ServetName_In, boo
 {
 	MaxPlayers = MaxPlayers_In;
 	ServerName = ServetName_In;
-	HostSession(GetPrimaryPlayerUniqueId(), ServerName, bIsLAN, true, MaxPlayers);
+	FUniqueNetIdPtr UniqueNetId = GetPrimaryPlayerUniqueId();
+	HostSession(UniqueNetId, ServerName, bIsLAN, true, MaxPlayers);
 }
 
 void UAHGameInstance::FindMatch(bool bIsLan)
@@ -80,9 +81,12 @@ void UAHGameInstance::JoinOnlineGame()
 			{
 				SearchResult = SessionSearch->SearchResults[i];
 
+				FString SessionNameStr = SearchResult.Session.SessionSettings.Settings.FindRef("SESSION_NAME").Data.ToString();
+				FName SessName = FName("123");
+				SessName = FName(*SessionNameStr);
 				// Once we found sounce a Session that is not ours, just join it. Instead of using a for loop, you could
 				// use a widget where you click on and have a reference for the GameSession it represents which you can use
-				if (!JoinFoundOnlineSession(PlayerUniqueNetId, NAME_GameSession, SearchResult))
+				if (!JoinFoundOnlineSession(PlayerUniqueNetId, SessName, SearchResult))
 				{
 					DisplayNetworkErrorMessage("Failed to join a session! Please try again!");
 				}
@@ -115,17 +119,25 @@ bool UAHGameInstance::HostSession(TSharedPtr<const FUniqueNetId> UserId, FName S
 			SessionSettings->bIsLANMatch = bIsLAN;
 			SessionSettings->bUsesPresence = bIsPresence;
 			SessionSettings->NumPublicConnections = MaxNumPlayers;
-			SessionSettings->NumPrivateConnections = 0;
+			SessionSettings->NumPrivateConnections = MaxNumPlayers;
 			SessionSettings->bAllowInvites = true;
 			SessionSettings->bAllowJoinInProgress = true;
 			SessionSettings->bShouldAdvertise = true;
 			SessionSettings->bAllowJoinViaPresence = true;
 			SessionSettings->bAllowJoinViaPresenceFriendsOnly = false;
+			//SessionSettings->bUseLobbiesIfAvailable = true;
 
 			SessionSettings->Set(SETTING_MAPNAME, LobbyMapName.ToString(), EOnlineDataAdvertisementType::ViaOnlineService);
 
+			FOnlineSessionSetting compoundSessionName;
+			compoundSessionName.AdvertisementType = EOnlineDataAdvertisementType::ViaOnlineService;
+			compoundSessionName.Data = SessionName.ToString();
+			SessionSettings->Settings.Add(FName("SESSION_NAME"), compoundSessionName);
+
 			// Set the delegate to the Handle of the SessionInterface
 			OnCreateSessionCompleteDelegateHandle = Sessions->AddOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegate);
+
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("UserId: %s"), *UserId->ToString()));
 
 			// Our delegate should get called when this is complete (doesn't need to be successful!)
 			return Sessions->CreateSession(*UserId, SessionName, *SessionSettings);
@@ -218,7 +230,7 @@ void UAHGameInstance::FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool b
 
 			SessionSearch->bIsLanQuery = bIsLAN;
 			SessionSearch->MaxSearchResults = 20;
-			SessionSearch->PingBucketSize = 50;
+			SessionSearch->PingBucketSize = 100;
 
 			// We only want to set this Query Setting if "bIsPresence" is true
 			if (bIsPresence)
@@ -230,6 +242,8 @@ void UAHGameInstance::FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool b
 
 			// Set the Delegate to the Delegate Handle of the FindSession function
 			OnFindSessionsCompleteDelegateHandle = Sessions->AddOnFindSessionsCompleteDelegate_Handle(OnFindSessionsCompleteDelegate);
+
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("UserId: %s"), *UserId->ToString()));
 
 			// Finally call the SessionInterface function. The Delegate gets called once this is finished
 			Sessions->FindSessions(*UserId, SearchSettingsRef);
@@ -267,11 +281,18 @@ void UAHGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
 				// "SessionSearch->SearchResults" is an Array that contains all the information. You can access the Session in this and get a lot of information.
 				// This can be customized later on with your own classes to add more information that can be set and displayed
 				bIsMatchfound = true;
+				FOnlineSessionSearchResult SearchResult;
 				for (int32 SearchIdx = 0; SearchIdx < SessionSearch->SearchResults.Num(); SearchIdx++)
 				{
 					// OwningUserName is just the SessionName for now. I guess you can create your own Host Settings class and GameSession Class and add a proper GameServer Name here.
 					// This is something you can't do in Blueprint for example!
-					GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Session Number: %d | Sessionname: %s "), SearchIdx + 1, *(SessionSearch->SearchResults[SearchIdx].Session.OwningUserName)));
+					SearchResult = SessionSearch->SearchResults[SearchIdx];
+
+					FString SessionNameStr = SearchResult.Session.SessionSettings.Settings.FindRef("SESSION_NAME").Data.ToString();
+					FName SessName = FName("123");
+					SessName = FName(*SessionNameStr);
+
+					GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Session Number: %d | Sessionname: %s "), SearchIdx + 1, *(SessionNameStr)));
 				}
 			}
 		}
@@ -303,6 +324,7 @@ bool UAHGameInstance::JoinFoundOnlineSession(TSharedPtr<const FUniqueNetId> User
 
 			// Call the "JoinSession" Function with the passed "SearchResult". The "SessionSearch->SearchResults" can be used to get such a
 			// "FOnlineSessionSearchResult" and pass it. Pretty straight forward!
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("OnJoinSession started NAME: %s"), *SessionName.ToString()));
 			bSuccessful = Sessions->JoinSession(*UserId, SessionName, SearchResult);
 		}
 	}
@@ -339,6 +361,7 @@ void UAHGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCom
 			{
 				// Finally call the ClienTravel. If you want, you could print the TravelURL to see
 				// how it really looks like
+				GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("GetResolvedConnectString %s, %s"), *SessionName.ToString(), *TravelURL));
 				PlayerController->ClientTravel(TravelURL, ETravelType::TRAVEL_Absolute);
 			}
 		}

@@ -32,10 +32,10 @@ public:
 	void JoinOnlineGame();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Server Settings")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName LobbyMapName;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Server Settings")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName MainMenuMapName;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = "Server Settings")
