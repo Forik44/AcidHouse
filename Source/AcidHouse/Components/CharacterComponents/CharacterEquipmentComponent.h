@@ -93,6 +93,7 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentEquippedSlot)
 	EEquipmentSlots CurrentEquippedSlot;
 
+	UPROPERTY(ReplicatedUsing=OnRep_PreviousEquippedSlot)
 	EEquipmentSlots PreviousEquippedSlot;
 
 	TWeakObjectPtr<class AAHBaseCharacter> CachedBaseCharacter;
@@ -120,6 +121,9 @@ private:
 	UFUNCTION(Server, Reliable)
 	void Server_ReloadCurrentWeapon();
 
+	UFUNCTION(Server, Reliable)
+	void Server_SetPreviousEquippedSlot(EEquipmentSlots NewPreviousEquippedSlot);
+
 	UFUNCTION()
 	void OnRep_CurrentEquippedSlot(EEquipmentSlots CurrentEquippedSlot_Old);
 
@@ -128,6 +132,9 @@ private:
 
 	UFUNCTION()
 	void OnRep_bIsReloading();
+
+	UFUNCTION()
+	void OnRep_PreviousEquippedSlot(EEquipmentSlots PreviousEquippedSlot_Old);
 
 	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
 	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);
