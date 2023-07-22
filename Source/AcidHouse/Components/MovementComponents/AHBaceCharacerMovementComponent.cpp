@@ -177,6 +177,31 @@ void UAHBaseCharacterMovementComponent::StopFastSwim()
 	bIsFastSwimming = false;
 }
 
+bool UAHBaseCharacterMovementComponent::CanMeleeAttack()
+{
+	if (MovementMode == MOVE_Walking)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool UAHBaseCharacterMovementComponent::CanFire()
+{
+	if (HasAnimRootMotion())
+	{
+		return false;
+	}
+
+	if (MovementMode == MOVE_Walking)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 bool UAHBaseCharacterMovementComponent::CanEverSprint()
 {
 	return !FMath::IsNearlyZero(GetOwner()->GetVelocity().Size(), 1e-6f) && !bIsOutOfStamina;
@@ -263,7 +288,7 @@ void UAHBaseCharacterMovementComponent::Prone()
 
 void UAHBaseCharacterMovementComponent::UnProne()
 {
-	if (!HasValidData())
+	if (!HasValidData() || !IsValid(GetBaseCharacterOwner()))
 	{
 		return;
 	}
@@ -432,6 +457,8 @@ void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 	GetOwner()->SetActorLocation(NewCharacterLocation);
 	GetOwner()->SetActorRotation(TargetOrientationRotation);
 
+	GetBaseCharacterOwner()->bUseControllerRotationYaw = false;
+
 	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Ladder);
 }
 
@@ -454,6 +481,8 @@ float UAHBaseCharacterMovementComponent::GetActorToCurrentZiplineProjection(cons
 
 void UAHBaseCharacterMovementComponent::DetachFromLadder(EDetachFromLadderMethod DetachFromLadderMethod /*= EDetachFromLadderMethod::Fall*/)
 {
+	GetBaseCharacterOwner()->bUseControllerRotationYaw = true;
+
 	switch (DetachFromLadderMethod)
 	{
 	case EDetachFromLadderMethod::Fall:

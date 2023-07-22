@@ -271,6 +271,12 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_bIsAiming)
 	bool bIsAiming = false;
 
+	UPROPERTY(ReplicatedUsing=OnRep_bIsMeleeAttacking)
+	bool bIsMeleeAttacking = false;
+
+	UPROPERTY(Replicated)
+	EMeleeAttackTypes CurrentMeleeAttackType = EMeleeAttackTypes::None;
+
 	float CurrentAimingMovementSpeed = 0.0f;
 
 	float IKRightFootOffset = 0.0f;
@@ -285,6 +291,12 @@ private:
 	TInteractiveActorsArray AvailableInteractiveActors;
 
 	UFUNCTION()
+	void OnMeleeAttackEnded();
+
+	UFUNCTION()
+	void OnRep_bIsMeleeAttacking(bool bWasMeleeAttacking);
+
+	UFUNCTION()
 	void OnRep_bIsAiming(bool bWasAiming);
 
 	UFUNCTION(Server, Reliable)
@@ -292,6 +304,15 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void Server_StopAiming();
+
+	UFUNCTION(Server, Reliable)
+	void Server_StartMeleeAttack(EMeleeAttackTypes MeleeAttackType);
+
+	UFUNCTION(Server, Reliable)
+	void Server_EndMeleeAttack();
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetCurrentMeleeAttackType(EMeleeAttackTypes MeleeAttackType);
 
 	void TryChangeSprintState(float DeltaTime);
 	void TryChangeFastSwimState(float DeltaTime);

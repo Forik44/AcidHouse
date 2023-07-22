@@ -71,6 +71,10 @@ public:
 	void StartFastSwim();
 	void StopFastSwim();
 
+	virtual bool CanMeleeAttack();
+
+	virtual bool CanFire();
+
 	virtual bool CanCrouchInCurrentState() const override;
 
 	virtual bool CanAttemptJump() const override;

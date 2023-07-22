@@ -272,6 +272,8 @@ void AAHBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AAHBaseCharacter, bIsMantling);
 	DOREPLIFETIME(AAHBaseCharacter, bIsAiming);
+	DOREPLIFETIME(AAHBaseCharacter, bIsMeleeAttacking);
+	DOREPLIFETIME(AAHBaseCharacter, CurrentMeleeAttackType);
 }
 
 void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
@@ -372,19 +374,51 @@ void AAHBaseCharacter::EquipPrimaryItem()
 
 void AAHBaseCharacter::PrimaryMeleeAttack()
 {
-	AMeleeWeapon* CurrentMeleeWeapon = CharacterEquipmentComponent->GetCurrentMeleeWeapon();
-	if (IsValid(CurrentMeleeWeapon))
+	if (bIsMeleeAttacking && GetLocalRole() == ROLE_AutonomousProxy)
 	{
-		CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::PrimaryAttack);
+		return;
+	}
+
+	if (GetBaseCharacterMovementComponent()->CanMeleeAttack())
+	{
+		AMeleeWeapon* CurrentMeleeWeapon = CharacterEquipmentComponent->GetCurrentMeleeWeapon();
+		if (IsValid(CurrentMeleeWeapon))
+		{
+			CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::PrimaryAttack);
+			CurrentMeleeWeapon->OnAttackEnded.AddUFunction(this, FName("OnMeleeAttackEnded"));
+			if (GetLocalRole() == ROLE_AutonomousProxy)
+			{
+				CurrentMeleeAttackType = EMeleeAttackTypes::PrimaryAttack;
+				Server_SetCurrentMeleeAttackType(EMeleeAttackTypes::PrimaryAttack);
+				Server_StartMeleeAttack(EMeleeAttackTypes::PrimaryAttack);
+			}
+			bIsMeleeAttacking = true;
+		}
 	}
 }
 
 void AAHBaseCharacter::SecondaryMeleeAttack()
 {
-	AMeleeWeapon* CurrentMeleeWeapon = CharacterEquipmentComponent->GetCurrentMeleeWeapon();
-	if (IsValid(CurrentMeleeWeapon))
+	if (bIsMeleeAttacking && GetLocalRole() == ROLE_AutonomousProxy)
 	{
-		CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::SecondaryAttack);
+		return;
+	}
+
+	if (GetBaseCharacterMovementComponent()->CanMeleeAttack())
+	{
+		AMeleeWeapon* CurrentMeleeWeapon = CharacterEquipmentComponent->GetCurrentMeleeWeapon();
+		if (IsValid(CurrentMeleeWeapon))
+		{
+			CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::SecondaryAttack);
+			CurrentMeleeWeapon->OnAttackEnded.AddUFunction(this, FName("OnMeleeAttackEnded"));
+			if (GetLocalRole() == ROLE_AutonomousProxy)
+			{
+				CurrentMeleeAttackType = EMeleeAttackTypes::SecondaryAttack;
+				Server_SetCurrentMeleeAttackType(EMeleeAttackTypes::SecondaryAttack);
+				Server_StartMeleeAttack(EMeleeAttackTypes::SecondaryAttack);
+			}
+			bIsMeleeAttacking = true;
+		}
 	}
 }
 
@@ -468,6 +502,42 @@ bool AAHBaseCharacter::CanFastSwim()
 
 }
 
+void AAHBaseCharacter::OnMeleeAttackEnded()
+{
+	AMeleeWeapon* CurrentMeleeWeapon = CharacterEquipmentComponent->GetCurrentMeleeWeapon();
+	if (IsValid(CurrentMeleeWeapon))
+	{
+		CurrentMeleeWeapon->OnAttackEnded.RemoveAll(this);
+	}
+
+	bIsMeleeAttacking = false;
+	CurrentMeleeAttackType = EMeleeAttackTypes::None;
+	Server_SetCurrentMeleeAttackType(EMeleeAttackTypes::None);
+	Server_EndMeleeAttack();
+}
+
+void AAHBaseCharacter::OnRep_bIsMeleeAttacking(bool bWasMeleeAttacking)
+{
+  	if (bIsMeleeAttacking)
+  	{
+		switch (CurrentMeleeAttackType)
+		{
+			case EMeleeAttackTypes::PrimaryAttack:
+			{
+				PrimaryMeleeAttack();
+				break;
+			}
+			case EMeleeAttackTypes::SecondaryAttack:
+			{
+				SecondaryMeleeAttack();
+				break;
+			}
+			default:
+				break;
+		}
+	}
+}
+
 void AAHBaseCharacter::OnRep_bIsAiming(bool bWasAiming)
 {
 
@@ -491,6 +561,37 @@ void AAHBaseCharacter::Server_StartAiming_Implementation()
 void AAHBaseCharacter::Server_StopAiming_Implementation()
 {
 	StopAiming();
+}
+
+void AAHBaseCharacter::Server_StartMeleeAttack_Implementation(EMeleeAttackTypes MeleeAttackType)
+{
+	switch (MeleeAttackType)
+	{
+		case EMeleeAttackTypes::PrimaryAttack:
+		{
+			PrimaryMeleeAttack();
+			break;
+		}
+		case EMeleeAttackTypes::SecondaryAttack:
+		{
+			SecondaryMeleeAttack();
+			break;
+		}
+
+	default:
+		break;
+	}
+}
+
+void AAHBaseCharacter::Server_EndMeleeAttack_Implementation()
+{
+	CurrentMeleeAttackType = EMeleeAttackTypes::None;
+	bIsMeleeAttacking = false;
+}
+
+void AAHBaseCharacter::Server_SetCurrentMeleeAttackType_Implementation(EMeleeAttackTypes MeleeAttackType)
+{
+	CurrentMeleeAttackType = MeleeAttackType;
 }
 
 void AAHBaseCharacter::TryChangeSprintState(float DeltaTime)
@@ -658,7 +759,7 @@ void AAHBaseCharacter::StartFire()
 
 bool AAHBaseCharacter::CanFire()
 {
-	if (CharacterEquipmentComponent->IsEquipping())
+	if (CharacterEquipmentComponent->IsEquipping() && GetBaseCharacterMovementComponent()->CanFire())
 	{
 		return false;
 	}

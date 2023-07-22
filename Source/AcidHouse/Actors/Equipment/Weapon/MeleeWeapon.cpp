@@ -89,4 +89,9 @@ void AMeleeWeapon::OnAttackTimerElapsed()
 {
 	CurrentAttack = nullptr;
 	SetIsHitRegistratorEnabled(false);
+
+	if (OnAttackEnded.IsBound())
+	{
+		OnAttackEnded.Broadcast();
+	}
 }

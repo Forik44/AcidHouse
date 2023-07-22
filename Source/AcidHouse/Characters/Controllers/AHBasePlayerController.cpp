@@ -60,6 +60,8 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::EquipPrimaryItem);
 	InputComponent->BindAction("PrimaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PrimaryMeleeAttack);
 	InputComponent->BindAction("SecondaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::SecondaryMeleeAttack);
+	FInputActionBinding& ToggleMenuBinding = InputComponent->BindAction("ToggleMainMenu", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::ToggleMainMenu);
+	ToggleMenuBinding.bExecuteWhenPaused = true;
 }
 
 void AAHBasePlayerController::CreateAndInitializeWidgets()
@@ -70,6 +72,15 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 		if (IsValid(PlayerHUDWidget))
 		{
 			PlayerHUDWidget->AddToViewport();
+		}
+	}
+
+	if (!IsValid(MainMenuWidget))
+	{
+		MainMenuWidget = CreateWidget<UUserWidget>(GetWorld(), MainMenuWidgetClass);
+		if (IsValid(PlayerHUDWidget))
+		{
+			MainMenuWidget->AddToViewport();
 		}
 	}
 
@@ -100,6 +111,10 @@ void AAHBasePlayerController::CreateAndInitializeWidgets()
 			CharacterAttribute->OnOxygenPersentChanged.AddUFunction(CharacterAttributesWidget, FName("OnOxygenPersentChanged"));
 		}
 	}
+
+	MainMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+	PlayerHUDWidget->SetVisibility(ESlateVisibility::Visible);
+	SetInputMode(FInputModeGameOnly{});
 }
 
 void AAHBasePlayerController::MoveForward(float Value)
@@ -323,5 +338,30 @@ void AAHBasePlayerController::SecondaryMeleeAttack()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->SecondaryMeleeAttack();
+	}
+}
+
+void AAHBasePlayerController::ToggleMainMenu()
+{
+	if (!IsValid(MainMenuWidget) || !IsValid(PlayerHUDWidget))
+	{
+		return;
+	}
+
+	if (MainMenuWidget->IsVisible())
+	{
+		MainMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+		PlayerHUDWidget->SetVisibility(ESlateVisibility::Visible);
+		SetInputMode(FInputModeGameOnly{});
+		bShowMouseCursor = false;
+		SetPause(false);
+	}
+	else
+	{
+		PlayerHUDWidget->SetVisibility(ESlateVisibility::Hidden);
+		MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
+		SetInputMode(FInputModeGameAndUI{});
+		SetPause(true);
+		bShowMouseCursor = true;
 	}
 }

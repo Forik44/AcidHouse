@@ -87,6 +87,12 @@ bool UWeaponBarellComponent::HitScan(FVector ShotStart, OUT FVector& ShotEnd, OU
 void UWeaponBarellComponent::LauchProjectile(const FVector& LauchStart, const FVector& LaunchDirection)
 {
 	AAHProjectile* Projectile = ProjectilePool[CurrentProjectileIndex];
+
+	if (!IsValid(Projectile))
+	{
+		return;
+	}
+
 	Projectile->SetActorLocation(LauchStart);
 	Projectile->SetActorRotation(LaunchDirection.ToOrientationRotator());
 	Projectile->SetProjectileActive(true);

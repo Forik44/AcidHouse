@@ -7,10 +7,23 @@ public class AcidHouse : ModuleRules
 	public AcidHouse(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Niagara", "UMG", "GameplayTasks", "NavigationSystem" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+        PublicDependencyModuleNames.AddRange(new string[] {
+            "Core",
+            "CoreUObject",
+            "Engine",
+            "InputCore",
+            "Niagara",
+            "UMG",
+            "GameplayTasks",
+            "NavigationSystem",
+            "OnlineSubsystem",
+            "OnlineSubsystemUtils"
+        });
+
+        //DynamicallyLoadedModuleNames.Add("OnlineSubsystemSteam");
+
+        PrivateDependencyModuleNames.AddRange(new string[] {  });
 
 		PrivateIncludePaths.AddRange(new string[] { Name });
 

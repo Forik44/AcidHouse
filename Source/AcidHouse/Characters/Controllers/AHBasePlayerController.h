@@ -22,10 +22,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 	TSubclassOf<UPlayerHUDWidget> PlayerHUDWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+	TSubclassOf<UUserWidget> MainMenuWidgetClass;
+
 private:
 	TSoftObjectPtr<class AAHBaseCharacter> CachedBaseCharacter;
 
 	UPlayerHUDWidget* PlayerHUDWidget = nullptr;
+	UUserWidget* MainMenuWidget = nullptr;
 
 	void CreateAndInitializeWidgets();
 
@@ -69,6 +73,8 @@ private:
 
 	void PrimaryMeleeAttack();
 	void SecondaryMeleeAttack();
+
+	void ToggleMainMenu();
 
 	bool bIgnoreCameraPitch = false;
 };
