@@ -20,6 +20,8 @@ struct FMeleeAttackDescription
 	class UAnimMontage* AttackMontage;
 };
 
+DECLARE_MULTICAST_DELEGATE(FOnAttackEnded);
+
 class UMeleeHitRegistrator;
 UCLASS(Blueprintable)
 class ACIDHOUSE_API AMeleeWeapon : public AEquipableItem
@@ -28,6 +30,8 @@ class ACIDHOUSE_API AMeleeWeapon : public AEquipableItem
 
 public:
 	AMeleeWeapon();
+
+	FOnAttackEnded OnAttackEnded;
 
 	void StartAttack(EMeleeAttackTypes AttackType);
 
