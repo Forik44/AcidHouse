@@ -4,6 +4,8 @@
 #include "Actors/Projectiles/AHProjectile.h"
 #include "ExplosiveProjectile.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnExplosiveProjectileEndLife, AExplosiveProjectile*)
+
 class UExplosionComponent;
 UCLASS()
 class ACIDHOUSE_API AExplosiveProjectile : public AAHProjectile
@@ -12,6 +14,8 @@ class ACIDHOUSE_API AExplosiveProjectile : public AAHProjectile
 	
 public:
 	AExplosiveProjectile();
+
+	FOnExplosiveProjectileEndLife OnExplosiveProjectileEndLife;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")

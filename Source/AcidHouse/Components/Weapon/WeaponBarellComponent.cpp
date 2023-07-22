@@ -48,7 +48,7 @@ void UWeaponBarellComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GetOwnerRole() < ROLE_Authority)
+	if (!GetOwner()->HasAuthority())
 	{
 		return;
 	}

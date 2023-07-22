@@ -28,6 +28,7 @@ void UCharacterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME(UCharacterEquipmentComponent, AmunitionArray);
 	DOREPLIFETIME(UCharacterEquipmentComponent, ItemsArray);
 	DOREPLIFETIME(UCharacterEquipmentComponent, bIsReloading);
+	DOREPLIFETIME(UCharacterEquipmentComponent, PreviousEquippedSlot);
 }
 
 EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() const
@@ -107,30 +108,40 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 		return;
 	}
 
-	UnequipCurrentItem(); 
+	AEquipableItem* Item = ItemsArray[(uint32)Slot];
 
-	CurrentEquippedItem = ItemsArray[(uint32)Slot];
-	CurrentEquippedWeapon = Cast<ARangeWeapon>(CurrentEquippedItem);
-	CurrentThrowableItem = Cast<AThrowableItem>(CurrentEquippedItem);
-	CurrentMeleeWeapon = Cast<AMeleeWeapon>(CurrentEquippedItem);
+	CurrentThrowableItem = Cast<AThrowableItem>(Item);
+	if ((IsValid(CurrentThrowableItem) && GetAmmoCurrentThrowableItem() <= 0))
+	{
+		return;
+	}
+
+	UnequipCurrentItem();
+	CurrentEquippedItem = Item;
+	CurrentEquippedWeapon = Cast<ARangeWeapon>(Item);
+	CurrentMeleeWeapon = Cast<AMeleeWeapon>(Item);
 
 	if (IsValid(CurrentEquippedItem))
 	{
 		UAnimMontage* EquipMontage = CurrentEquippedItem->GetCharacterEquipAnimMontage();
 		if (IsValid(EquipMontage))
 		{
-			if ((IsValid(CurrentThrowableItem) && GetAmmoCurrentThrowableItem() > 0) || !IsValid(CurrentThrowableItem))
+			bIsEquipping = true;
+			float EquipDuration = CachedBaseCharacter->PlayAnimMontage(EquipMontage);
+			GetWorld()->GetTimerManager().SetTimer(EquipTimer, this, &UCharacterEquipmentComponent::EquipAnimationFinished, EquipDuration, false);
+
+			if (CachedBaseCharacter->IsLocallyControlled())
 			{
-				bIsEquipping = true;
-				float EquipDuration = CachedBaseCharacter->PlayAnimMontage(EquipMontage);
-				GetWorld()->GetTimerManager().SetTimer(EquipTimer, this, &UCharacterEquipmentComponent::EquipAnimationFinished, EquipDuration, false);
 				CurrentEquippedItem->Equip();
 			}
 		}
 		else
 		{
-			AttachCurrentItemToEquippedSocket(); 
-			CurrentEquippedItem->Equip();
+			AttachCurrentItemToEquippedSocket();
+			if (CachedBaseCharacter->IsLocallyControlled())
+			{
+				CurrentEquippedItem->Equip();
+			}
 		}
 	}
 
@@ -164,12 +175,12 @@ void UCharacterEquipmentComponent::AttachCurrentItemToEquippedSocket()
 
 void UCharacterEquipmentComponent::LaunchCurrentThrowableItem()
 {
-	if (CurrentThrowableItem)
+	if (CurrentThrowableItem && CachedBaseCharacter->IsLocallyControlled())
 	{
 		CurrentThrowableItem->Throw();
-		bIsEquipping = false;
-		EquipItemInSlot(PreviousEquippedSlot);
 	}
+	bIsEquipping = false;
+	EquipItemInSlot(PreviousEquippedSlot);
 }
 
 void UCharacterEquipmentComponent::UnequipCurrentItem()
@@ -178,6 +189,7 @@ void UCharacterEquipmentComponent::UnequipCurrentItem()
 	{
 		CurrentEquippedItem->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurrentEquippedItem->GetUnEquippedSocketName());
 		CurrentEquippedItem->UnEquip();
+		CurrentEquippedItem = nullptr;
 	}
 	if (IsValid(CurrentEquippedWeapon))
 	{
@@ -185,8 +197,16 @@ void UCharacterEquipmentComponent::UnequipCurrentItem()
 		CurrentEquippedWeapon->EndReload(false);
 		CurrentEquippedWeapon->OnAmmoChanged.Remove(OnCurrentWeaponAmmoChangedHanlde);
 		CurrentEquippedWeapon->OnReloadComplete.Remove(OnCurrentWeaponReloadedHanlde);
+		CurrentEquippedWeapon = nullptr;
+		if (CachedBaseCharacter->IsLocallyControlled())
+		{
+			if (!CachedBaseCharacter->HasAuthority())
+			{
+				Server_SetPreviousEquippedSlot(CurrentEquippedSlot);
+			}
+			PreviousEquippedSlot = CurrentEquippedSlot;
+		}
 	}
-	PreviousEquippedSlot = CurrentEquippedSlot;
 	CurrentEquippedSlot = EEquipmentSlots::None;
 }
 
@@ -262,6 +282,11 @@ int32 UCharacterEquipmentComponent::GetAvailableAmunitionForCurrentWeapon()
 	return AmunitionArray[(uint32)GetCurrentRangeWeapon()->GetAmmoType()];
 }
 
+void UCharacterEquipmentComponent::OnRep_PreviousEquippedSlot(EEquipmentSlots PreviousEquippedSlot_Old)
+{
+	//PreviousEquippedSlot = PreviousEquippedSlot_Old;
+}
+
 void UCharacterEquipmentComponent::OnCurrentWeaponAmmoChanged(int32 Ammo)
 {
 	if (OnCurrentWeaponAmmoChangedEvent.IsBound())
@@ -284,7 +309,9 @@ void UCharacterEquipmentComponent::EquipAnimationFinished()
 
 void UCharacterEquipmentComponent::CreateLoadout()
 {
-	if (GetOwner()->GetLocalRole() < ROLE_Authority)
+	AActor* Owner = GetOwner();
+	ENetRole NetRole = Owner->GetLocalRole();
+	if (!GetOwner()->HasAuthority())
 	{
 		return;
 	}
@@ -304,12 +331,13 @@ void UCharacterEquipmentComponent::CreateLoadout()
 		}
 		AEquipableItem* Item = GetWorld()->SpawnActor<AEquipableItem>(ItemPair.Value);
 		Item->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, Item->GetUnEquippedSocketName());
-		Item->SetOwner(CachedBaseCharacter.Get());
+		Item->SetOwner(GetOwner());
 		Item->UnEquip();
 		ItemsArray[(uint32)ItemPair.Key] = Item;
 		if (Item->IsA<AThrowableItem>())
 		{
 			AThrowableItem* ThrowableItem = StaticCast<AThrowableItem*>(Item);
+			ThrowableItem->Initialize();
 			if (OnCurrentThrowableItemAmmoChanged.IsBound())
 			{
 				OnCurrentThrowableItemAmmoChanged.Broadcast(AmunitionArray[(uint32)ThrowableItem->GetAmmoType()]);
@@ -334,6 +362,11 @@ void UCharacterEquipmentComponent::Server_EquipItemInSlot_Implementation(EEquipm
 void UCharacterEquipmentComponent::Server_ReloadCurrentWeapon_Implementation()
 {
 	ReloadCurrentWeapon();
+}
+
+void UCharacterEquipmentComponent::Server_SetPreviousEquippedSlot_Implementation(EEquipmentSlots NewPreviousEquippedSlot)
+{
+	PreviousEquippedSlot = NewPreviousEquippedSlot;
 }
 
 uint32 UCharacterEquipmentComponent::NextItemsArraySlotIndex(uint32 CurrentSlotIndex)

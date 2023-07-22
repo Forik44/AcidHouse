@@ -25,10 +25,10 @@ struct FShotInfo
 		Direction(Direction){};
 
 	UPROPERTY()
-	FVector Location_Mul_10;
+	FVector_NetQuantize100 Location_Mul_10;
 
 	UPROPERTY()
-	FVector Direction;
+	FVector_NetQuantizeNormal Direction;
 
 	FVector GetLocation() const { return Location_Mul_10 * 0.1f; }
 	FVector GetDirection() const { return Direction; }
