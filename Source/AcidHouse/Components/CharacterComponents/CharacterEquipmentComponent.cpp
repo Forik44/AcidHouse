@@ -207,6 +207,18 @@ void UCharacterEquipmentComponent::UnequipCurrentItem()
 			PreviousEquippedSlot = CurrentEquippedSlot;
 		}
 	}
+	if (IsValid(CurrentMeleeWeapon))
+	{
+		if (CachedBaseCharacter->IsLocallyControlled())
+		{
+			if (!CachedBaseCharacter->HasAuthority())
+			{
+				Server_SetPreviousEquippedSlot(CurrentEquippedSlot);
+			}
+			PreviousEquippedSlot = CurrentEquippedSlot;
+		}
+		CurrentMeleeWeapon = nullptr;
+	}
 	CurrentEquippedSlot = EEquipmentSlots::None;
 }
 

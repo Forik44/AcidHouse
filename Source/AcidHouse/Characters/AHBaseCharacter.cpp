@@ -46,7 +46,7 @@ void AAHBaseCharacter::BeginPlay()
 
 void AAHBaseCharacter::TryJump()
 {
-	if (CanJump())
+	if (CanJump() && !IsMeleeAttacking())
 	{
 		Jump();
 		return;
@@ -314,6 +314,8 @@ void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 
 		MantlingParametrs.InitialAimationLocation = MantlingParametrs.TargetLocation - MantlingSettings.AnimationCorrectionZ * FVector::UpVector + MantlingSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
 
+
+		CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::None);
 		if (GetLocalRole() > ROLE_SimulatedProxy)
 		{
 			GetBaseCharacterMovementComponent()->StartMantle(MantlingParametrs);
@@ -374,7 +376,7 @@ void AAHBaseCharacter::EquipPrimaryItem()
 
 void AAHBaseCharacter::PrimaryMeleeAttack()
 {
-	if (bIsMeleeAttacking && GetLocalRole() == ROLE_AutonomousProxy)
+	if (IsMeleeAttacking())
 	{
 		return;
 	}
@@ -386,11 +388,14 @@ void AAHBaseCharacter::PrimaryMeleeAttack()
 		{
 			CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::PrimaryAttack);
 			CurrentMeleeWeapon->OnAttackEnded.AddUFunction(this, FName("OnMeleeAttackEnded"));
-			if (GetLocalRole() == ROLE_AutonomousProxy)
+			if (IsLocallyControlled())
 			{
 				CurrentMeleeAttackType = EMeleeAttackTypes::PrimaryAttack;
-				Server_SetCurrentMeleeAttackType(EMeleeAttackTypes::PrimaryAttack);
-				Server_StartMeleeAttack(EMeleeAttackTypes::PrimaryAttack);
+				if (!HasAuthority())
+				{
+					Server_SetCurrentMeleeAttackType(EMeleeAttackTypes::PrimaryAttack);
+					Server_StartMeleeAttack(EMeleeAttackTypes::PrimaryAttack); 
+				}
 			}
 			bIsMeleeAttacking = true;
 		}
@@ -399,7 +404,7 @@ void AAHBaseCharacter::PrimaryMeleeAttack()
 
 void AAHBaseCharacter::SecondaryMeleeAttack()
 {
-	if (bIsMeleeAttacking && GetLocalRole() == ROLE_AutonomousProxy)
+	if (IsMeleeAttacking())
 	{
 		return;
 	}
@@ -411,15 +416,23 @@ void AAHBaseCharacter::SecondaryMeleeAttack()
 		{
 			CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::SecondaryAttack);
 			CurrentMeleeWeapon->OnAttackEnded.AddUFunction(this, FName("OnMeleeAttackEnded"));
-			if (GetLocalRole() == ROLE_AutonomousProxy)
+			if (IsLocallyControlled())
 			{
 				CurrentMeleeAttackType = EMeleeAttackTypes::SecondaryAttack;
-				Server_SetCurrentMeleeAttackType(EMeleeAttackTypes::SecondaryAttack);
-				Server_StartMeleeAttack(EMeleeAttackTypes::SecondaryAttack);
+				if (!HasAuthority())
+				{
+					Server_SetCurrentMeleeAttackType(EMeleeAttackTypes::SecondaryAttack);
+					Server_StartMeleeAttack(EMeleeAttackTypes::SecondaryAttack);
+				}
 			}
 			bIsMeleeAttacking = true;
 		}
 	}
+}
+
+bool AAHBaseCharacter::IsMeleeAttacking()
+{
+	return bIsMeleeAttacking && IsLocallyControlled();
 }
 
 void AAHBaseCharacter::RegisterInteractiveActor(AInteractiveActor* IntaractiveActor)
@@ -493,7 +506,11 @@ void AAHBaseCharacter::OnFastSwimEnd_Implementation()
 
 bool AAHBaseCharacter::CanSprint()
 {
-	return GetBaseCharacterMovementComponent()->CanEverSprint() && (GetBaseCharacterMovementComponent()->MovementMode != MOVE_Swimming) && !GetBaseCharacterMovementComponent()->IsOnLadder();
+	return GetBaseCharacterMovementComponent()->CanEverSprint() 
+		&& (GetBaseCharacterMovementComponent()->MovementMode != MOVE_Swimming) 
+		&& !GetBaseCharacterMovementComponent()->IsOnLadder()
+		&& !GetBaseCharacterMovementComponent()->IsOnZipline()
+		&& !IsMeleeAttacking();
 }
 
 bool AAHBaseCharacter::CanFastSwim()
@@ -565,22 +582,7 @@ void AAHBaseCharacter::Server_StopAiming_Implementation()
 
 void AAHBaseCharacter::Server_StartMeleeAttack_Implementation(EMeleeAttackTypes MeleeAttackType)
 {
-	switch (MeleeAttackType)
-	{
-		case EMeleeAttackTypes::PrimaryAttack:
-		{
-			PrimaryMeleeAttack();
-			break;
-		}
-		case EMeleeAttackTypes::SecondaryAttack:
-		{
-			SecondaryMeleeAttack();
-			break;
-		}
-
-	default:
-		break;
-	}
+	StartMeleeAttackByType(MeleeAttackType);
 }
 
 void AAHBaseCharacter::Server_EndMeleeAttack_Implementation()
@@ -661,6 +663,26 @@ void AAHBaseCharacter::EnableRagdoll()
 {
 	GetMesh()->SetCollisionProfileName(CollisionProfileRagdoll);
 	GetMesh()->SetSimulatePhysics(true);
+}
+
+void AAHBaseCharacter::StartMeleeAttackByType(EMeleeAttackTypes MeleeAttackType)
+{
+	switch (MeleeAttackType)
+	{
+	case EMeleeAttackTypes::PrimaryAttack:
+	{
+		PrimaryMeleeAttack();
+		break;
+	}
+	case EMeleeAttackTypes::SecondaryAttack:
+	{
+		SecondaryMeleeAttack();
+		break;
+	}
+
+	default:
+		break;
+	}
 }
 
 void AAHBaseCharacter::ClimbLadderUp(float Value)

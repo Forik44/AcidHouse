@@ -108,7 +108,7 @@ public:
 
 	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
 	bool IsProning() const;
-	FORCEINLINE bool CanEverProne() { return bCanEverProne; }
+	FORCEINLINE bool CanEverProne() const { return bCanEverProne; }
 	FORCEINLINE bool IsFastSwimming() const { return bIsFastSwimming; }
 	FORCEINLINE bool IsOutOfStamina() const { return bIsOutOfStamina; }
 

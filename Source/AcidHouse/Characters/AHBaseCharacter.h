@@ -153,6 +153,7 @@ public:
 
 	void PrimaryMeleeAttack();
 	void SecondaryMeleeAttack();
+	bool IsMeleeAttacking();
 
 	void RegisterInteractiveActor(AInteractiveActor* IntaractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* IntaractiveActor);
@@ -324,4 +325,8 @@ private:
 	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
 
 	void EnableRagdoll();
+
+	void StartMeleeAttackByType(EMeleeAttackTypes MeleeAttackType);
+	
+
 };
