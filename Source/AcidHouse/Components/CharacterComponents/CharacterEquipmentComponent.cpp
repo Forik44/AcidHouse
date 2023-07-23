@@ -101,9 +101,9 @@ void UCharacterEquipmentComponent::ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo 
 	}
 }
 
-void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
+void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot, bool bForce /*= false*/)
 {
-	if (bIsEquipping)
+	if (bIsEquipping && !bForce)
 	{
 		return;
 	}
@@ -200,22 +200,28 @@ void UCharacterEquipmentComponent::UnequipCurrentItem()
 		CurrentEquippedWeapon = nullptr;
 		if (CachedBaseCharacter->IsLocallyControlled())
 		{
-			if (!CachedBaseCharacter->HasAuthority())
+			if (PreviousEquippedSlot != CurrentEquippedSlot)
 			{
-				Server_SetPreviousEquippedSlot(CurrentEquippedSlot);
+				if (!CachedBaseCharacter->HasAuthority())
+				{
+					Server_SetPreviousEquippedSlot(CurrentEquippedSlot);
+				}
+				PreviousEquippedSlot = CurrentEquippedSlot;
 			}
-			PreviousEquippedSlot = CurrentEquippedSlot;
 		}
 	}
 	if (IsValid(CurrentMeleeWeapon))
 	{
 		if (CachedBaseCharacter->IsLocallyControlled())
 		{
-			if (!CachedBaseCharacter->HasAuthority())
+			if (PreviousEquippedSlot != CurrentEquippedSlot)
 			{
-				Server_SetPreviousEquippedSlot(CurrentEquippedSlot);
+				if (!CachedBaseCharacter->HasAuthority())
+				{
+					Server_SetPreviousEquippedSlot(CurrentEquippedSlot);
+				}
+				PreviousEquippedSlot = CurrentEquippedSlot;
 			}
-			PreviousEquippedSlot = CurrentEquippedSlot;
 		}
 		CurrentMeleeWeapon = nullptr;
 	}

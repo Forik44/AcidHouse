@@ -245,6 +245,17 @@ void AAHBaseCharacter::OnRep_IsMantling(bool bWasMantling)
 	}
 }
 
+void AAHBaseCharacter::OnRep_IsOnLadder(bool bWasOnLadder)
+{
+	if (GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		if (bWasOnLadder != bIsOnLadder)
+		{
+			InteractWithLadder();
+		}
+	}
+}
+
 void AAHBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -271,6 +282,7 @@ void AAHBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AAHBaseCharacter, bIsMantling);
+	DOREPLIFETIME(AAHBaseCharacter, bIsOnLadder);
 	DOREPLIFETIME(AAHBaseCharacter, bIsAiming);
 	DOREPLIFETIME(AAHBaseCharacter, bIsMeleeAttacking);
 	DOREPLIFETIME(AAHBaseCharacter, CurrentMeleeAttackType);
@@ -315,7 +327,7 @@ void AAHBaseCharacter::Mantle(bool bForce /*= false*/)
 		MantlingParametrs.InitialAimationLocation = MantlingParametrs.TargetLocation - MantlingSettings.AnimationCorrectionZ * FVector::UpVector + MantlingSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
 
 
-		CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::None);
+		CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::None, true);
 		if (GetLocalRole() > ROLE_SimulatedProxy)
 		{
 			GetBaseCharacterMovementComponent()->StartMantle(MantlingParametrs);
@@ -698,6 +710,8 @@ void AAHBaseCharacter::InteractWithLadder()
 {
 	if (GetBaseCharacterMovementComponent()->IsOnLadder())
 	{
+		bIsOnLadder = false;
+		CharacterEquipmentComponent->EquipItemInSlot(CharacterEquipmentComponent->GetPreviousEquipmentSlot());
 		GetBaseCharacterMovementComponent()->DetachFromLadder(EDetachFromLadderMethod::JumpOff);
 	}
 	else
@@ -709,6 +723,8 @@ void AAHBaseCharacter::InteractWithLadder()
 			{
 				PlayAnimMontage(AvailableLadder->GetAttachFromTopAnimMontage());
 			}
+			bIsOnLadder = true;
+			CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::None);
 			GetBaseCharacterMovementComponent()->AttachToLadder(AvailableLadder);
 		}
 	}

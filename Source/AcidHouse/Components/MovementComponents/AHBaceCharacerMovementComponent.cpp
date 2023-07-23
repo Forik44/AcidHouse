@@ -44,18 +44,25 @@ void UAHBaseCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 	//	// Remaining bit masks are available for custom flags.
 	//	FLAG_Custom_0 = 0x10, - Sprinting flag
 	//	FLAG_Custom_1 = 0x20, - Mantling flag
-	//	FLAG_Custom_2 = 0x40,
+	//	FLAG_Custom_2 = 0x40, - OnLadder flag
 	//	FLAG_Custom_3 = 0x80,
 
 	bool bWasMantling = GetBaseCharacterOwner()->bIsMantling;
+	bool bWasOnLadder = GetBaseCharacterOwner()->bIsOnLadder;
 	bIsSprinting = (Flags & FSavedMove_Character::FLAG_Custom_0) != 0;
 	bool bIsMantling = (Flags & FSavedMove_Character::FLAG_Custom_1) != 0;
+	bool bIsOnLadder = (Flags & FSavedMove_Character::FLAG_Custom_2) != 0;
 
 	if (GetBaseCharacterOwner()->GetLocalRole() == ROLE_Authority)
 	{
 		if (!bWasMantling && bIsMantling)
 		{
 			GetBaseCharacterOwner()->Mantle(true);
+		}
+
+		if (bWasOnLadder != bIsOnLadder)
+		{
+			GetBaseCharacterOwner()->InteractWithLadder();
 		}
 	}
 }
@@ -756,6 +763,7 @@ void FSavedMove_AH::Clear()
 	Super::Clear();
 	bSavedIsSprinting = 0;
 	bSavedIsMantling = 0;
+	bSavedIsOnLadder = 0;
 }
 
 uint8 FSavedMove_AH::GetCompressedFlags() const
@@ -767,7 +775,7 @@ uint8 FSavedMove_AH::GetCompressedFlags() const
 	//	// Remaining bit masks are available for custom flags.
 	//	FLAG_Custom_0 = 0x10, - Sprinting flag
 	//	FLAG_Custom_1 = 0x20, - Mantling flag
-	//	FLAG_Custom_2 = 0x40,
+	//	FLAG_Custom_2 = 0x40, - OnLadder flag
 	//	FLAG_Custom_3 = 0x80,
 
 	if (bSavedIsSprinting)
@@ -781,6 +789,12 @@ uint8 FSavedMove_AH::GetCompressedFlags() const
 		Result |= FLAG_Custom_1;
 	}
 
+	if (bSavedIsOnLadder)
+	{
+		Result &= ~FLAG_JumpPressed;
+		Result |= FLAG_Custom_2;
+	}
+
 	return Result;
 }
 
@@ -788,7 +802,7 @@ bool FSavedMove_AH::CanCombineWith(const FSavedMovePtr& NewMovePtr, ACharacter* 
 {
 	const FSavedMove_AH* NewMove = StaticCast<const FSavedMove_AH*>(NewMovePtr.Get());
 
-	if (bSavedIsSprinting != NewMove->bSavedIsSprinting || bSavedIsMantling != NewMove->bSavedIsMantling)
+	if (bSavedIsSprinting != NewMove->bSavedIsSprinting || bSavedIsMantling != NewMove->bSavedIsMantling || bSavedIsOnLadder != NewMove->bSavedIsOnLadder)
 	{
 		return false;
 	}
@@ -806,6 +820,7 @@ void FSavedMove_AH::SetMoveFor(ACharacter* C, float InDeltaTime, FVector const& 
 
 	bSavedIsSprinting = MovementComponent->bIsSprinting;
 	bSavedIsMantling = InBaseCharacter->bIsMantling;
+	bSavedIsOnLadder = InBaseCharacter->bIsOnLadder;
 }
 
 void FSavedMove_AH::PrepMoveFor(ACharacter* C)
