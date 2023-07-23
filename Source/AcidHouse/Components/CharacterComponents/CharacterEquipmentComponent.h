@@ -40,7 +40,7 @@ public:
 	void ReloadCurrentWeapon();
 	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);
 
-	void EquipItemInSlot(EEquipmentSlots Slot);
+	void EquipItemInSlot(EEquipmentSlots Slot, bool bForce = false);
 
 	void AttachCurrentItemToEquippedSocket();
 

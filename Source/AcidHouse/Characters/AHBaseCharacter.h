@@ -113,8 +113,14 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_IsMantling)
 	bool bIsMantling;
 
+	UPROPERTY(ReplicatedUsing = OnRep_IsOnLadder)
+	bool bIsOnLadder;
+
 	UFUNCTION()
 	void OnRep_IsMantling(bool bWasMantling);
+
+	UFUNCTION()
+	void OnRep_IsOnLadder(bool bWasOnLadder);
 
 	void ClimbLadderUp(float Value);
 	void InteractWithLadder();
