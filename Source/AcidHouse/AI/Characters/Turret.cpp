@@ -171,7 +171,7 @@ void ATurret::SetCurrentTurretState(ETurretState NewState)
 	bool bIsStateChanged = NewState != CurrentTurretState;
 	CurrentTurretState = NewState;
 
-	if (!bIsStateChanged)
+	if (!bIsStateChanged || !bIsAlive)
 	{
 		return;
 	}
@@ -195,6 +195,11 @@ void ATurret::SetCurrentTurretState(ETurretState NewState)
 
 void ATurret::MakeShot()
 {
+	if (!bIsAlive)
+	{
+		return;
+	}
+
 	FVector ShotLocation = WeaponBarell->GetComponentLocation();
 	FVector ShotDirection = WeaponBarell->GetComponentRotation().RotateVector(FVector::ForwardVector);
 	float SpreadAngle = FMath::DegreesToRadians(BulletSpreadAngle);
