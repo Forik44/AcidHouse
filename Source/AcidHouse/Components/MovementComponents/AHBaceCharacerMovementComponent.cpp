@@ -11,6 +11,7 @@
 #include "Actors/Interactive/Enviroment/Ladder.h"
 #include "Actors/Interactive/Enviroment/Zipline.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "../CharacterComponents/CharacterEquipmentComponent.h"
 
 void UAHBaseCharacterMovementComponent::BeginPlay()
 {
@@ -224,7 +225,7 @@ void UAHBaseCharacterMovementComponent::SetIsOutOfStamina(bool bIsOutOfStamina_I
 
 bool UAHBaseCharacterMovementComponent::CanProneInCurrentState() const
 {
-	if (!CanEverCrouch())
+	if (!CanEverProne())
 	{
 		return false;
 	}
@@ -406,6 +407,7 @@ void UAHBaseCharacterMovementComponent::EndMantle()
 {
 	GetBaseCharacterOwner()->bIsMantling = false;
 	SetMovementMode(MOVE_Walking);
+	GetBaseCharacterOwner()->GetCharacterEquipmentComponent_Mutable()->EquipItemInSlot(GetBaseCharacterOwner()->GetCharacterEquipmentComponent_Mutable()->GetPreviousEquipmentSlot());
 }
 
 bool UAHBaseCharacterMovementComponent::CanAttemptMantle() const

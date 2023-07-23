@@ -53,6 +53,8 @@ public:
 
 	FORCEINLINE bool IsEquipping() const { return bIsEquipping; }
 
+	EEquipmentSlots GetPreviousEquipmentSlot() const { return PreviousEquippedSlot; }
+
 	int32 GetAmmoCurrentThrowableItem();
 	void SetAmmoCurrentThrowableItem(int32 Ammo);
 
