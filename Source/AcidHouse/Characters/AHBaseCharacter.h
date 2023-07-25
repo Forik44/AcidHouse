@@ -60,6 +60,12 @@ public:
 
 	bool bIsProning = false;
 
+	FRotator GetAimOffset();
+
+	FOnAimingStateChanged OnAimingStateChanged;
+
+	virtual void StopJumping() override;
+
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void PossessedBy(AController* NewController) override;
@@ -116,17 +122,26 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_IsOnLadder)
 	bool bIsOnLadder;
 
+	UPROPERTY(ReplicatedUsing = OnRep_IsOnZipline)
+	bool bIsOnZipline;
+
+	UPROPERTY(Replicated)
+	bool bIsOutOfStamina = false;
+
 	UFUNCTION()
 	void OnRep_IsMantling(bool bWasMantling);
 
 	UFUNCTION()
 	void OnRep_IsOnLadder(bool bWasOnLadder);
 
+	UFUNCTION()
+	void OnRep_IsOnZipline(bool bWasOnZipline);
+
 	void ClimbLadderUp(float Value);
 	void InteractWithLadder();
 	const class ALadder* GetAvailableLadder() const;
 
-	void InteractWithZipline() const;
+	void InteractWithZipline();
 	const class AZipline* GetAvailableZipline() const;
 
 	void StartFire();
@@ -139,10 +154,6 @@ public:
 	void StopAiming();
 	bool IsAiming() const { return bIsAiming; }
 	float GetAimingMovementSpeed() const;
-
-	FRotator GetAimOffset();
-
-	FOnAimingStateChanged OnAimingStateChanged;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStartAiming();

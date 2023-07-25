@@ -196,6 +196,9 @@ private:
 	bool bIsOutOfStamina = false;
 	bool bIsFastSwimming = false;
 
+	bool bIsDetachingFromLadder = false;
+	bool bIsDetachingFromZipline = false;
+
 	class AAHBaseCharacter* CachedAHBaseCharacter;
 
 	FMantlingMovementParameters CurrentMantlingParametrs;
@@ -229,6 +232,8 @@ private:
 	uint8 bSavedIsSprinting : 1;
 	uint8 bSavedIsMantling : 1;
 	uint8 bSavedIsOnLadder : 1;
+	uint8 bSavedIsOnZipline : 1;
+	uint8 bSavedIsOutOfStamina : 1;
 };
 
 class FNetworkPredictionData_Client_Character_AH : public FNetworkPredictionData_Client_Character

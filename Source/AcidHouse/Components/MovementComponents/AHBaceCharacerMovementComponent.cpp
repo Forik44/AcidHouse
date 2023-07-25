@@ -40,21 +40,26 @@ void UAHBaseCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 	Super::UpdateFromCompressedFlags(Flags);
 
 	//	FLAG_Reserved_1 = 0x04,	// Reserved for future use
-	//	FLAG_Reserved_2 = 0x08,	// Reserved for future use
+	//	FLAG_Reserved_2 = 0x08,	// Reserved for future use - OutOfStamina flag
 	//	// Remaining bit masks are available for custom flags.
 	//	FLAG_Custom_0 = 0x10, - Sprinting flag
 	//	FLAG_Custom_1 = 0x20, - Mantling flag
 	//	FLAG_Custom_2 = 0x40, - OnLadder flag
-	//	FLAG_Custom_3 = 0x80,
+	//	FLAG_Custom_3 = 0x80, - OnZipline flag
 
 	bool bWasMantling = GetBaseCharacterOwner()->bIsMantling;
 	bool bWasOnLadder = GetBaseCharacterOwner()->bIsOnLadder;
+	bool bWasOnZipline = GetBaseCharacterOwner()->bIsOnZipline;
 	bIsSprinting = (Flags & FSavedMove_Character::FLAG_Custom_0) != 0;
+	bool bWasOutOfStamina = bIsOutOfStamina;
+	bIsOutOfStamina = (Flags & FSavedMove_Character::FLAG_Reserved_2) != 0;
 	bool bIsMantling = (Flags & FSavedMove_Character::FLAG_Custom_1) != 0;
 	bool bIsOnLadder = (Flags & FSavedMove_Character::FLAG_Custom_2) != 0;
+	bool bIsOnZipline = (Flags & FSavedMove_Character::FLAG_Custom_3) != 0;
 
 	if (GetBaseCharacterOwner()->GetLocalRole() == ROLE_Authority)
 	{
+
 		if (!bWasMantling && bIsMantling)
 		{
 			GetBaseCharacterOwner()->Mantle(true);
@@ -64,6 +69,20 @@ void UAHBaseCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 		{
 			GetBaseCharacterOwner()->InteractWithLadder();
 		}
+
+		if (!bWasOutOfStamina && bIsOutOfStamina)
+		{
+			GetBaseCharacterOwner()->bIsOutOfStamina = true;
+		}
+		if (bWasOutOfStamina && !bIsOutOfStamina)
+		{
+			GetBaseCharacterOwner()->bIsOutOfStamina = false;
+		}
+
+// 		if (bWasOnZipline != bIsOnZipline)
+// 		{
+// 			GetBaseCharacterOwner()->InteractWithZipline();
+// 		}
 	}
 }
 
@@ -94,7 +113,7 @@ void UAHBaseCharacterMovementComponent::PhysicsRotation(float DeltaTime)
 				DesiredRotation.Yaw = FMath::FixedTurn(CurrentRotation.Yaw, DesiredRotation.Yaw, DeltaRot.Yaw);
 			}
 
-			// ROLL
+			// ROLLRoa
 			if (!FMath::IsNearlyEqual(CurrentRotation.Roll, DesiredRotation.Roll, AngleTolerance))
 			{
 				DesiredRotation.Roll = FMath::FixedTurn(CurrentRotation.Roll, DesiredRotation.Roll, DeltaRot.Roll);
@@ -429,12 +448,15 @@ bool UAHBaseCharacterMovementComponent::IsMantling() const
 
 bool UAHBaseCharacterMovementComponent::IsOnLadder() const
 {
-	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Ladder;
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Ladder && !bIsDetachingFromLadder;
 }
 
 float UAHBaseCharacterMovementComponent::GetLadderSpeedRation() const
 {
-	checkf(IsValid(CurrentLadder), TEXT("UAHBaseCharacterMovementComponent::GetLadderSpeedRation() cannot be invoked when current ladder is null"))
+	if (!IsValid(CurrentLadder))
+	{
+		return 0;
+	}
 
 	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
 	return FVector::DotProduct(LadderUpVector, Velocity) / ClimbingOnLadderMaxSpeed;
@@ -442,7 +464,7 @@ float UAHBaseCharacterMovementComponent::GetLadderSpeedRation() const
 
 bool UAHBaseCharacterMovementComponent::IsOnZipline() const
 {
-	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Zipline;
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Zipline && !bIsDetachingFromZipline;
 }
 
 void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
@@ -463,7 +485,8 @@ void UAHBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 		NewCharacterLocation = CurrentLadder->GetAttachFromTopAnimMontageStartingLocation();
 	}
 
-	GetOwner()->SetActorLocation(NewCharacterLocation);
+	GetOwner()->SetActorLocation(NewCharacterLocation, false, nullptr, ETeleportType::TeleportPhysics);
+	ForceTargetRotation = TargetOrientationRotation;
 	GetOwner()->SetActorRotation(TargetOrientationRotation);
 
 	GetBaseCharacterOwner()->bUseControllerRotationYaw = false;
@@ -490,45 +513,47 @@ float UAHBaseCharacterMovementComponent::GetActorToCurrentZiplineProjection(cons
 
 void UAHBaseCharacterMovementComponent::DetachFromLadder(EDetachFromLadderMethod DetachFromLadderMethod /*= EDetachFromLadderMethod::Fall*/)
 {
+	bIsDetachingFromLadder = true;
 	GetBaseCharacterOwner()->bUseControllerRotationYaw = true;
 
 	switch (DetachFromLadderMethod)
 	{
-	case EDetachFromLadderMethod::Fall:
-	{
-		SetMovementMode(MOVE_Falling);
-		break;
-	}
-	case EDetachFromLadderMethod::ReachingTheTop:
-	{
-		GetBaseCharacterOwner()->Mantle(true);
-		break;
-	}
-	case EDetachFromLadderMethod::ReachingTheBottom:
-	{
-		SetMovementMode(MOVE_Walking);
-		break;
-	}
-	case EDetachFromLadderMethod::JumpOff:
-	{
-		FVector JumpDirection = CurrentLadder->GetActorForwardVector();
+		case EDetachFromLadderMethod::Fall:
+		{
+			SetMovementMode(MOVE_Falling);
+			break;
+		}
+		case EDetachFromLadderMethod::ReachingTheTop:
+		{
+			GetBaseCharacterOwner()->Mantle(true);
+			break;
+		}
+		case EDetachFromLadderMethod::ReachingTheBottom:
+		{
+			SetMovementMode(MOVE_Walking);
+			break;
+		}
+		case EDetachFromLadderMethod::JumpOff:
+		{
+			FVector JumpDirection = CurrentLadder->GetActorForwardVector();
 
-		SetMovementMode(MOVE_Falling);
+			SetMovementMode(MOVE_Falling);
 
-		FVector JumpVelocity = JumpDirection * JumpOffFromLadderSpeed;
+			FVector JumpVelocity = JumpDirection * JumpOffFromLadderSpeed;
 
-		ForceTargetRotation = JumpDirection.ToOrientationRotator();
-		bForceRotation = true;
+			//ForceTargetRotation = JumpDirection.ToOrientationRotator();
+			//bForceRotation = true;
 
-		Launch(JumpVelocity);
-		break;
+			Launch(JumpVelocity);
+			break;
+		}
+		default:
+		{
+			SetMovementMode(MOVE_Falling);
+			break;
+		}
 	}
-	default:
-	{
-		SetMovementMode(MOVE_Falling);
-		break;
-	}
-	}
+	bIsDetachingFromLadder = false;
 }
 
 void UAHBaseCharacterMovementComponent::AttachToZipline(const AZipline* Zipline)
@@ -547,14 +572,17 @@ void UAHBaseCharacterMovementComponent::AttachToZipline(const AZipline* Zipline)
 
 	FVector NewCharacterLocation = CurrentZipline->GetActorLocation() + CurrentZipline->GetHeight() * FVector::UpVector + Projection * ZiplineDirection - ZiplineToCharacterOffset * ZiplineUpVector;
 
-	GetOwner()->SetActorLocation(NewCharacterLocation);
+	GetOwner()->SetActorLocation(NewCharacterLocation, false, nullptr, ETeleportType::TeleportPhysics);
 	GetOwner()->SetActorRotation(TargetOrientationRotation);
 
+	GetBaseCharacterOwner()->bUseControllerRotationYaw = false;
 	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Zipline);
 }
 
 void UAHBaseCharacterMovementComponent::DetachFromZipline()
 {
+	bIsDetachingFromZipline = true;
+	GetBaseCharacterOwner()->bUseControllerRotationYaw = true;
 	SetMovementMode(MOVE_Falling);
 }
 
@@ -562,6 +590,21 @@ void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 {
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviusCustomMode);
 
+ 	if (PreviousMovementMode == MOVE_Custom && PreviusCustomMode == (uint8)ECustomMovementMode::CMOVE_Ladder && CustomMovementMode != (uint8)ECustomMovementMode::CMOVE_Ladder && !bIsDetachingFromLadder)
+ 	{
+ 		if (GetOwnerRole() == ROLE_AutonomousProxy)
+ 		{
+ 			return;
+ 		}
+ 	}
+ 
+ 	if (PreviousMovementMode == MOVE_Custom && PreviusCustomMode == (uint8)ECustomMovementMode::CMOVE_Zipline && CustomMovementMode != (uint8)ECustomMovementMode::CMOVE_Zipline && !bIsDetachingFromZipline)
+ 	{
+ 		if (GetOwnerRole() == ROLE_AutonomousProxy)
+ 		{
+ 			return;
+ 		}
+ 	}
 	StopSprint();
 	if (PreviousMovementMode != MOVE_Falling && MovementMode == MOVE_Falling)
 	{
@@ -586,12 +629,36 @@ void UAHBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 
 	if (PreviousMovementMode == MOVE_Custom && PreviusCustomMode == (uint8)ECustomMovementMode::CMOVE_Ladder)
 	{
-		CurrentLadder = nullptr;
+		/*GetBaseCharacterOwner()->bUseControllerRotationYaw = true;
+		if (!bIsDetachingFromLadder)
+		{
+			DetachFromLadder();
+		}
+		bIsDetachingFromLadder = false;*/
+
+		if (bIsDetachingFromLadder)
+		{
+			GetBaseCharacterOwner()->bUseControllerRotationYaw = true;
+			CurrentLadder = nullptr;
+		}
+		bIsDetachingFromLadder = false;
 	}
 
 	if (PreviousMovementMode == MOVE_Custom && PreviusCustomMode == (uint8)ECustomMovementMode::CMOVE_Zipline)
 	{
-		CurrentZipline = nullptr;
+		/*GetBaseCharacterOwner()->bUseControllerRotationYaw = true;
+		if (!bIsDetachingFromZipline)
+		{
+			DetachFromZipline();
+		}
+		bIsDetachingFromZipline = false;*/
+		
+		if (bIsDetachingFromZipline)
+		{
+			GetBaseCharacterOwner()->bUseControllerRotationYaw = true;
+			CurrentZipline = nullptr;
+		}
+		bIsDetachingFromZipline = false;
 	}
 
 	if (MovementMode == MOVE_Custom)
@@ -671,6 +738,11 @@ void UAHBaseCharacterMovementComponent::PhysMantling(float DeltaTime, int32 Iter
 
 void UAHBaseCharacterMovementComponent::PhysLadder(float DeltaTime, int32 Iterations)
 {
+	if (!CurrentLadder)
+	{
+		return;
+	}
+
 	CalcVelocity(DeltaTime, 1.0f, false, ClimbingOnLadderBreakingDecelaration);
 	FVector Delta = Velocity * DeltaTime;
 
@@ -764,6 +836,8 @@ void FSavedMove_AH::Clear()
 	bSavedIsSprinting = 0;
 	bSavedIsMantling = 0;
 	bSavedIsOnLadder = 0;
+	bSavedIsOnZipline = 0;
+	bSavedIsOutOfStamina = 0;
 }
 
 uint8 FSavedMove_AH::GetCompressedFlags() const
@@ -771,16 +845,21 @@ uint8 FSavedMove_AH::GetCompressedFlags() const
 	uint8 Result = Super::GetCompressedFlags();
 
 	//	FLAG_Reserved_1 = 0x04,	// Reserved for future use
-	//	FLAG_Reserved_2 = 0x08,	// Reserved for future use
+	//	FLAG_Reserved_2 = 0x08,	// Reserved for future use - OutOfStamina flag
 	//	// Remaining bit masks are available for custom flags.
 	//	FLAG_Custom_0 = 0x10, - Sprinting flag
 	//	FLAG_Custom_1 = 0x20, - Mantling flag
 	//	FLAG_Custom_2 = 0x40, - OnLadder flag
-	//	FLAG_Custom_3 = 0x80,
+	//	FLAG_Custom_3 = 0x80, - OnZipline flag
 
 	if (bSavedIsSprinting)
 	{
 		Result |= FLAG_Custom_0;
+	}
+
+	if (bSavedIsOutOfStamina)
+	{
+		Result |= FLAG_Reserved_2;
 	}
 
 	if (bSavedIsMantling)
@@ -794,6 +873,12 @@ uint8 FSavedMove_AH::GetCompressedFlags() const
 		Result &= ~FLAG_JumpPressed;
 		Result |= FLAG_Custom_2;
 	}
+ 
+ 	if (bSavedIsOnZipline)
+ 	{
+ 		Result &= ~FLAG_JumpPressed;
+ 		Result |= FLAG_Custom_3;
+ 	}
 
 	return Result;
 }
@@ -802,10 +887,10 @@ bool FSavedMove_AH::CanCombineWith(const FSavedMovePtr& NewMovePtr, ACharacter* 
 {
 	const FSavedMove_AH* NewMove = StaticCast<const FSavedMove_AH*>(NewMovePtr.Get());
 
-	if (bSavedIsSprinting != NewMove->bSavedIsSprinting || bSavedIsMantling != NewMove->bSavedIsMantling || bSavedIsOnLadder != NewMove->bSavedIsOnLadder)
-	{
-		return false;
-	}
+ 	if (bSavedIsSprinting != NewMove->bSavedIsSprinting || bSavedIsOutOfStamina != NewMove->bSavedIsOutOfStamina || bSavedIsMantling != NewMove->bSavedIsMantling || bSavedIsOnLadder != NewMove->bSavedIsOnLadder ||bSavedIsOnZipline != NewMove->bSavedIsOnZipline)
+ 	{
+ 		return false;
+ 	}
 
 	return Super::CanCombineWith(NewMovePtr, InCharacter, MaxDelta);
 }
@@ -819,8 +904,10 @@ void FSavedMove_AH::SetMoveFor(ACharacter* C, float InDeltaTime, FVector const& 
 	UAHBaseCharacterMovementComponent* MovementComponent = InBaseCharacter->GetBaseCharacterMovementComponent();
 
 	bSavedIsSprinting = MovementComponent->bIsSprinting;
+	bSavedIsOutOfStamina = MovementComponent->bIsOutOfStamina;
 	bSavedIsMantling = InBaseCharacter->bIsMantling;
 	bSavedIsOnLadder = InBaseCharacter->bIsOnLadder;
+	bSavedIsOnZipline = InBaseCharacter->bIsOnZipline;
 }
 
 void FSavedMove_AH::PrepMoveFor(ACharacter* C)
@@ -830,6 +917,7 @@ void FSavedMove_AH::PrepMoveFor(ACharacter* C)
 	UAHBaseCharacterMovementComponent* MovementComponent = StaticCast<UAHBaseCharacterMovementComponent*>(C->GetMovementComponent());
 
 	MovementComponent->bIsSprinting = bSavedIsSprinting;
+	MovementComponent->bIsOutOfStamina = bSavedIsOutOfStamina;
 }
 
 FNetworkPredictionData_Client_Character_AH::FNetworkPredictionData_Client_Character_AH(const UAHBaseCharacterMovementComponent& ClientMovement) 
