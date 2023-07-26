@@ -192,13 +192,13 @@ void AAHBaseCharacter::OnMantle(const FMantlingSettings& MantlingSettings, float
 
 void AAHBaseCharacter::OnDeath()
 {
-	GetCharacterMovement()->DisableMovement();
-	float Duration = PlayAnimMontage(OnDeathAnimMontage);
-	if (Duration == 0)
-	{
-		EnableRagdoll();
-	}
-
+// 	GetCharacterMovement()->DisableMovement();
+// 	float Duration = PlayAnimMontage(OnDeathAnimMontage);
+// 	if (Duration == 0)
+// 	{
+// 		EnableRagdoll();
+// 	}
+	CharacterAttributeComponent->SetHealth(100);
 }
 
 void AAHBaseCharacter::OnOutOfStamina(bool IsOutOfStamina)
@@ -256,6 +256,22 @@ void AAHBaseCharacter::OnRep_IsOnLadder(bool bWasOnLadder)
 	}
 }
 
+void AAHBaseCharacter::OnRep_IsOnZipline(bool bWasOnZipline)
+{
+	if (GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		if (bWasOnZipline != bIsOnZipline)
+		{
+			InteractWithZipline();
+		}
+	}
+}
+
+void AAHBaseCharacter::StopJumping()
+{
+	Super::StopJumping();
+}
+
 void AAHBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -283,6 +299,8 @@ void AAHBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AAHBaseCharacter, bIsMantling);
 	DOREPLIFETIME(AAHBaseCharacter, bIsOnLadder);
+	DOREPLIFETIME(AAHBaseCharacter, bIsOnZipline);
+	DOREPLIFETIME(AAHBaseCharacter, bIsOutOfStamina);
 	DOREPLIFETIME(AAHBaseCharacter, bIsAiming);
 	DOREPLIFETIME(AAHBaseCharacter, bIsMeleeAttacking);
 	DOREPLIFETIME(AAHBaseCharacter, CurrentMeleeAttackType);
@@ -491,9 +509,43 @@ bool AAHBaseCharacter::CanMantle()
 
 bool AAHBaseCharacter::CanJumpInternal_Implementation() const
 {
+	bool a = Super::CanJumpInternal_Implementation();
+	bool aa = JumpIsAllowedInternal();
+
+	bool bJumpIsAllowed = GetBaseCharacterMovementComponent()->CanAttemptJump();
+
+	if (bJumpIsAllowed)
+	{
+		// Ensure JumpHoldTime and JumpCount are valid.
+		if (!bWasJumping || GetJumpMaxHoldTime() <= 0.0f)
+		{
+			if (JumpCurrentCount == 0 && GetBaseCharacterMovementComponent()->IsFalling())
+			{
+				bJumpIsAllowed = JumpCurrentCount + 1 < JumpMaxCount;
+			}
+			else
+			{
+				bJumpIsAllowed = JumpCurrentCount < JumpMaxCount;
+			}
+		}
+		else
+		{
+			// Only consider JumpKeyHoldTime as long as:
+			// A) The jump limit hasn't been met OR
+			// B) The jump limit has been met AND we were already jumping
+			const bool bJumpKeyHeld = (bPressedJump && JumpKeyHoldTime < GetJumpMaxHoldTime());
+			bJumpIsAllowed = bJumpKeyHeld &&
+				((JumpCurrentCount < JumpMaxCount) || (bWasJumping && JumpCurrentCount == JumpMaxCount));
+		}
+	}
+
+	bool c = !GetBaseCharacterMovementComponent()->IsMantling();
+	bool d = !GetBaseCharacterMovementComponent()->IsProning();
+	bool e = !GetBaseCharacterMovementComponent()->IsSwimming();
 	return Super::CanJumpInternal_Implementation() && GetBaseCharacterMovementComponent() 
-		&& !GetBaseCharacterMovementComponent()->IsMantling() && !GetBaseCharacterMovementComponent()->IsProning() 
-		&& !GetBaseCharacterMovementComponent()->IsFalling() && !GetBaseCharacterMovementComponent()->IsSwimming();
+		&& !GetBaseCharacterMovementComponent()->IsMantling() 
+		&& !GetBaseCharacterMovementComponent()->IsProning() 
+		&& !GetBaseCharacterMovementComponent()->IsSwimming();
 }
 
 void AAHBaseCharacter::OnSprintStart_Implementation()
@@ -617,7 +669,7 @@ void AAHBaseCharacter::TryChangeSprintState(float DeltaTime)
 		OnSprintStart();
 	}
 
-	if ((!bIsSprintRequested && GetBaseCharacterMovementComponent()->IsSprinting()) || !CanSprint())
+	if ((!bIsSprintRequested && GetBaseCharacterMovementComponent()->IsSprinting()) || !CanSprint() || GetBaseCharacterMovementComponent()->IsFalling())
 	{
 		GetBaseCharacterMovementComponent()->StopSprint();
 		OnSprintEnd();
@@ -699,7 +751,7 @@ void AAHBaseCharacter::StartMeleeAttackByType(EMeleeAttackTypes MeleeAttackType)
 
 void AAHBaseCharacter::ClimbLadderUp(float Value)
 {
-	if (!FMath::IsNearlyZero(Value) && GetBaseCharacterMovementComponent()->IsOnLadder())
+	if (!FMath::IsNearlyZero(Value) && GetBaseCharacterMovementComponent()->IsOnLadder() && GetBaseCharacterMovementComponent()->GetCurrentLadder())
 	{
 		FVector LadderUpVector = GetBaseCharacterMovementComponent()->GetCurrentLadder()->GetActorUpVector();
 		AddMovementInput(LadderUpVector, Value);
@@ -711,7 +763,7 @@ void AAHBaseCharacter::InteractWithLadder()
 	if (GetBaseCharacterMovementComponent()->IsOnLadder())
 	{
 		bIsOnLadder = false;
-		CharacterEquipmentComponent->EquipItemInSlot(CharacterEquipmentComponent->GetPreviousEquipmentSlot());
+		CharacterEquipmentComponent->EquipItemInSlot(CharacterEquipmentComponent->GetPreviousEquipmentSlot(), true);
 		GetBaseCharacterMovementComponent()->DetachFromLadder(EDetachFromLadderMethod::JumpOff);
 	}
 	else
@@ -724,7 +776,7 @@ void AAHBaseCharacter::InteractWithLadder()
 				PlayAnimMontage(AvailableLadder->GetAttachFromTopAnimMontage());
 			}
 			bIsOnLadder = true;
-			CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::None);
+			CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::None, true);
 			GetBaseCharacterMovementComponent()->AttachToLadder(AvailableLadder);
 		}
 	}
@@ -746,10 +798,12 @@ const class ALadder* AAHBaseCharacter::GetAvailableLadder() const
 	return Result;
 }
 
-void AAHBaseCharacter::InteractWithZipline() const
+void AAHBaseCharacter::InteractWithZipline()
 {
 	if (GetBaseCharacterMovementComponent()->IsOnZipline())
 	{
+		bIsOnZipline = false;
+		CharacterEquipmentComponent->EquipItemInSlot(CharacterEquipmentComponent->GetPreviousEquipmentSlot(), true);
 		GetBaseCharacterMovementComponent()->DetachFromZipline();
 	}
 	else
@@ -757,6 +811,8 @@ void AAHBaseCharacter::InteractWithZipline() const
 		const AZipline* AvailableZipline = GetAvailableZipline();
 		if (IsValid(AvailableZipline))
 		{
+			bIsOnZipline = true;
+			CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::None, true);
 			GetBaseCharacterMovementComponent()->AttachToZipline(AvailableZipline);
 
 			FVector ZiplineDirection = AvailableZipline->GetZiplineDirection();

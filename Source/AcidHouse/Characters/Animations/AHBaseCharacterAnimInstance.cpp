@@ -24,7 +24,7 @@ void UAHBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsFalling = CharacterMovement->IsFalling();
 	bIsCrouching = CharacterMovement->IsCrouching();
 	bIsSprinting = CharacterMovement->IsSprinting();
-	bIsOutOfStamina = CharacterMovement->IsOutOfStamina();
+	bIsOutOfStamina = CachedBaseCharacter->bIsOutOfStamina;
 	bIsProning = CharacterMovement->IsProning();
 	bIsSwimming = CharacterMovement->IsSwimming();
 	bIsOnLadder = CharacterMovement->IsOnLadder();

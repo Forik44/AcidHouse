@@ -84,7 +84,7 @@ private:
 	float AimingFOV;
 	float DefaultFOV;
 
-	class APlayerController* PlayerController;
+	class AAHBasePlayerController* PlayerController;
 	class APlayerCameraManager* PlayerCameraManager;
 	class ARangeWeapon* CurrentRangeWeapon;
 
