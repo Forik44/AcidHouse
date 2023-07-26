@@ -15,6 +15,7 @@ void AAHBasePlayerController::SetPawn(APawn* InPawn)
 
 	if (IsLocalController())
 	{
+		PlayerCameraManager->DefaultFOV = DefaultPlayerFOV;
 		CreateAndInitializeWidgets();
 	}
 }

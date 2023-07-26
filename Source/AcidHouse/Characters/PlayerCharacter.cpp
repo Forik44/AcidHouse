@@ -9,6 +9,7 @@
 #include "Curves/CurveFloat.h"
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
 #include "Components/CharacterComponents/CharacterEquipmentComponent.h"
+#include "Controllers/AHBasePlayerController.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: 
@@ -38,7 +39,7 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 	DefaultSpringArmDistance = SpringArmComponent->TargetArmLength;
 
-	PlayerController = GetController<APlayerController>();
+	PlayerController = GetController<AAHBasePlayerController>();
 	if (!IsValid(PlayerController))
 	{
 		return;
@@ -233,6 +234,7 @@ float APlayerCharacter::GetCurveValue(UCurveFloat* Curve, float Time)
 void APlayerCharacter::OnStartAimingInternal()
 {
 	Super::OnStartAimingInternal();
+
 	if (!IsValid(PlayerController))
 	{
 		return;
@@ -243,7 +245,7 @@ void APlayerCharacter::OnStartAimingInternal()
 	{
 		CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
 		AimingFOV = CurrentRangeWeapon->GetAimFOV();
-		DefaultFOV = PlayerCameraManager->GetFOVAngle();
+		DefaultFOV = PlayerCameraManager->DefaultFOV;
 	}
 	bIsAimingStarted = true;
 }

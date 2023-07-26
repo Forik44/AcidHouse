@@ -17,6 +17,9 @@ public:
 	void SetIgnoreCameraPitch(bool bIgnoreCameraPitch_In);
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FOV")
+	float DefaultPlayerFOV = 90.0f;
+
 	virtual void SetupInputComponent() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
