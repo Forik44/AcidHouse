@@ -7,6 +7,7 @@
 #include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 #include "Components/CharacterComponents/CharacterAttributeComponent.h"
 #include "UI/Widgets/CharacterAttributesWidget.h"
+#include "AcidHouseTypes.h"
 
 void AAHBasePlayerController::SetPawn(APawn* InPawn)
 {
@@ -62,7 +63,7 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("PrimaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PrimaryMeleeAttack);
 	InputComponent->BindAction("SecondaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::SecondaryMeleeAttack);
 	FInputActionBinding& ToggleMenuBinding = InputComponent->BindAction("ToggleMainMenu", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::ToggleMainMenu);
-	InputComponent->BindAction("Interact", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Interact);
+	InputComponent->BindAction(ActionInteract, EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Interact);
 	ToggleMenuBinding.bExecuteWhenPaused = true;
 }
 
