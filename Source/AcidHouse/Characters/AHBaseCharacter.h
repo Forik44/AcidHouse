@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AcidHouseTypes.h"
 #include "GenericTeamAgentInterface.h"
+#include "UObject/ScriptInterface.h"
 #include "AHBaseCharacter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -47,6 +48,7 @@ class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
 class UCharacterEquipmentComponent;
 class UCharacterAttributeComponent;
+class IInteractable;
 
 typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
 
@@ -179,6 +181,8 @@ public:
 	virtual void NotifyJumpApex() override;
 	virtual void Landed(const FHitResult& Hit) override;
 
+	void Interact();
+
 	/** IGenericTeamAgentInterface */
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	/** ~IGenericTeamAgentInterface */
@@ -247,6 +251,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Team")
 	ETeams Team = ETeams::Enemy;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | LineTrace")
+	float LineTraceSightDistance = 500.0f;
+
+	UPROPERTY()
+	TScriptInterface<IInteractable> LineOfSightObject;
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Character | Movement")
 	void OnSprintStart();
 	virtual void OnSprintStart_Implementation();
@@ -282,6 +292,9 @@ protected:
 
 	virtual void OnStartAimingInternal();
 	virtual void OnStopAimingInternal();
+
+	void TraceLineOfSight();
+
 private:
 	bool bIsSprintRequested = false;
 	bool bIsFastSwimRequested = false;

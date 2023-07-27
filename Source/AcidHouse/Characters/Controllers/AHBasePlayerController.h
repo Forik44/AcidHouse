@@ -79,5 +79,7 @@ private:
 
 	void ToggleMainMenu();
 
+	void Interact();
+
 	bool bIgnoreCameraPitch = false;
 };

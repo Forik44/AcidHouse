@@ -62,6 +62,7 @@ void AAHBasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("PrimaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::PrimaryMeleeAttack);
 	InputComponent->BindAction("SecondaryMeleeAttack", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::SecondaryMeleeAttack);
 	FInputActionBinding& ToggleMenuBinding = InputComponent->BindAction("ToggleMainMenu", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::ToggleMainMenu);
+	InputComponent->BindAction("Interact", EInputEvent::IE_Pressed, this, &AAHBasePlayerController::Interact);
 	ToggleMenuBinding.bExecuteWhenPaused = true;
 }
 
@@ -364,5 +365,13 @@ void AAHBasePlayerController::ToggleMainMenu()
 		SetInputMode(FInputModeGameAndUI{});
 		SetPause(true);
 		bShowMouseCursor = true;
+	}
+}
+
+void AAHBasePlayerController::Interact()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Interact();
 	}
 }
