@@ -8,7 +8,7 @@
 #include "AcidHouseTypes.h"
 #include "Controllers/AHBasePlayerController.h"
 #include "AHBaseCharacter.h"
-#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
+#include "Components/MovementComponents/AHBaseCharacterMovementComponent.h"
 
 
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer)

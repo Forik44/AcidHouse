@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/LedgeDetectorComponent.h"
-#include "AHBaceCharacerMovementComponent.generated.h"
+#include "AHBaseCharacterMovementComponent.generated.h"
 
 struct FMantlingMovementParameters
 {

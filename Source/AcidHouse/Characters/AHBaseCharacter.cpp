@@ -1,6 +1,6 @@
 #include "AHBaseCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
+#include "Components/MovementComponents/AHBaseCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/LedgeDetectorComponent.h"

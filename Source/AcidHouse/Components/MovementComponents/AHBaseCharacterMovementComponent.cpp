@@ -1,7 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "AHBaceCharacerMovementComponent.h"
+#include "AHBaseCharacterMovementComponent.h"
 #include "Characters/AHBaseCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/LedgeDetectorComponent.h"
@@ -11,7 +8,7 @@
 #include "Actors/Interactive/Enviroment/Ladder.h"
 #include "Actors/Interactive/Enviroment/Zipline.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "../CharacterComponents/CharacterEquipmentComponent.h"
+#include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 
 void UAHBaseCharacterMovementComponent::BeginPlay()
 {
