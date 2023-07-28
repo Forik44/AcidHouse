@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Actors/Interactive/Interface/IInteractable.h"
+#include "Components/TimelineComponent.h"
 #include "Door.generated.h"
 
 UCLASS()
@@ -25,19 +26,19 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interactive | Door")
 	USceneComponent* DoorPivot;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interactive | Door")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactive | Door")
 	float AngleClosed = 0.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interactive | Door")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactive | Door")
 	float AngleOpened = 90.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interactive | Door")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactive | Door")
 	UCurveFloat* DoorAnimationCurve;
 
 	virtual void BeginPlay() override;
 
 private:
-	class FTimeline DoorOpenAnimTimeline;
+	FTimeline DoorOpenAnimTimeline;
 
 	bool bIsOpened = false;
 

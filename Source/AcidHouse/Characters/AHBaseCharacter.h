@@ -43,6 +43,7 @@ struct FMantlingSettings
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAimingStateChanged, bool)
+DECLARE_DELEGATE_OneParam(FOnInteractableObjectFound, FName)
 
 class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
@@ -65,6 +66,7 @@ public:
 	FRotator GetAimOffset();
 
 	FOnAimingStateChanged OnAimingStateChanged;
+	FOnInteractableObjectFound OnInteractableObjectFound;
 
 	virtual void StopJumping() override;
 
@@ -205,6 +207,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Movement")
 	float SprintSpeed = 800.0f;

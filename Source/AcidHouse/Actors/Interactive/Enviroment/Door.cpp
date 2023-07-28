@@ -43,7 +43,7 @@ void ADoor::Tick(float DeltaTime)
 void ADoor::Interact(AAHBaseCharacter* Character)
 {
 
-	ensure(IsValid(DoorAnimationCurve), TEXT("DoorAnimationCurve is not set"));
+	checkf(IsValid(DoorAnimationCurve), TEXT("DoorAnimationCurve is not set"));
 	InteractWithDoor();
 }
 
@@ -54,7 +54,7 @@ FName ADoor::GetActionEventName() const
 
 void ADoor::UpdateDoorAnimation(float Alpha)
 {
-	float YawAngle = FMath::(AngleClosed, AngleOpened, FMath::Clamp(Alpha, 0.0f, 1.0f));
+	float YawAngle = FMath::Lerp(AngleClosed, AngleOpened, FMath::Clamp(Alpha, 0.0f, 1.0f));
 	DoorPivot->SetRelativeRotation(FRotator(0.0f, YawAngle, 0.0f));
 }
 

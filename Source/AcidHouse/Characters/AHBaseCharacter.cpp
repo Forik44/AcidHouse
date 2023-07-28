@@ -45,6 +45,16 @@ void AAHBaseCharacter::BeginPlay()
 	CharacterAttributeComponent->OnOutOfOxygenEvent.AddDynamic(this, &AAHBaseCharacter::OnOutOfOxygen);
 }
 
+void AAHBaseCharacter::EndPlay(const EEndPlayReason::Type Reason)
+{
+	if (OnInteractableObjectFound.IsBound())
+	{
+		OnInteractableObjectFound.Unbind();
+	}
+
+	Super::EndPlay(Reason);
+}
+
 void AAHBaseCharacter::TryJump()
 {
 	if (CanJump() && !IsMeleeAttacking())
@@ -266,8 +276,8 @@ void AAHBaseCharacter::TraceLineOfSight()
 		{
 			ActionName = NAME_None;
 		}
+		OnInteractableObjectFound.ExecuteIfBound(ActionName);
 	}
-
 }
 
 void AAHBaseCharacter::OnRep_IsMantling(bool bWasMantling)

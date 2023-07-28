@@ -5,6 +5,7 @@
 #include "UI/Widgets/AmmoWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "UI/Widgets/CharacterAttributesWidget.h"
+#include "HighlightInteractableWidget.h"
 
 class UReticleWidget* UPlayerHUDWidget::GetReticleWidget()
 {
@@ -19,4 +20,31 @@ class UAmmoWidget* UPlayerHUDWidget::GetAmmoWidget()
 UCharacterAttributesWidget* UPlayerHUDWidget::GetCharacterAttributesWidget()
 {
 	return WidgetTree->FindWidget<UCharacterAttributesWidget>(CharacterAttributesName);
+}
+
+void UPlayerHUDWidget::SetHighlightInteractableVisability(bool bIsVisible)
+{
+	if (!IsValid(InteractableKey))
+	{
+		return;
+	}
+
+	if (bIsVisible)
+	{
+		InteractableKey->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		InteractableKey->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UPlayerHUDWidget::SetHighlightInteractableActionText(FName KeyName)
+{
+	if (!IsValid(InteractableKey))
+	{
+		return;
+	}
+
+	InteractableKey->SetActionText(KeyName);
 }

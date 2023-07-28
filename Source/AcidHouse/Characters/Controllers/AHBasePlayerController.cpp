@@ -8,16 +8,18 @@
 #include "Components/CharacterComponents/CharacterAttributeComponent.h"
 #include "UI/Widgets/CharacterAttributesWidget.h"
 #include "AcidHouseTypes.h"
+#include "GameFramework/PlayerInput.h"
 
 void AAHBasePlayerController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);
 	CachedBaseCharacter = Cast<AAHBaseCharacter>(InPawn); 
 
-	if (IsLocalController())
+	if (CachedBaseCharacter.IsValid() && IsLocalController())
 	{
 		PlayerCameraManager->DefaultFOV = DefaultPlayerFOV;
 		CreateAndInitializeWidgets();
+		CachedBaseCharacter->OnInteractableObjectFound.BindUObject(this, &AAHBasePlayerController::OnInteractableObjectFound);
 	}
 }
 
@@ -375,4 +377,21 @@ void AAHBasePlayerController::Interact()
 	{
 		CachedBaseCharacter->Interact();
 	}
+}
+
+void AAHBasePlayerController::OnInteractableObjectFound(FName ActionName)
+{
+	if (!IsValid(PlayerHUDWidget))
+	{
+		return;
+	}
+
+	TArray<FInputActionKeyMapping> ActionKeys = PlayerInput->GetKeysForAction(ActionName);
+	const bool HasAnyKeys = ActionKeys.Num() != 0;
+	if (HasAnyKeys)
+	{
+		FName ActionKey = ActionKeys[0].Key.GetFName();
+		PlayerHUDWidget->SetHighlightInteractableActionText(ActionKey);
+	}
+	PlayerHUDWidget->SetHighlightInteractableVisability(HasAnyKeys);
 }
