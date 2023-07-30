@@ -5,7 +5,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
+#include "Components/MovementComponents/AHBaseCharacterMovementComponent.h"
 #include "Curves/CurveFloat.h"
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
 #include "Components/CharacterComponents/CharacterEquipmentComponent.h"

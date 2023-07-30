@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
-#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
+#include "Components/MovementComponents/AHBaseCharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
 UCharacterAttributeComponent::UCharacterAttributeComponent()

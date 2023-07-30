@@ -23,10 +23,13 @@ protected:
 	float TargetReachRadius = 100.0f;
 
 	virtual void BeginPlay() override;
+
 private:
 	TWeakObjectPtr<AAHAICharacter> CachedAICharacter;
 
 	bool bIsPatrolling = false;
+
+	void SetupPatrolling();
 
 	void TryMoveToNextTarget();
 	bool IsTargetReached(FVector TargetLocation) const;

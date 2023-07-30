@@ -79,5 +79,8 @@ private:
 
 	void ToggleMainMenu();
 
+	void Interact();
+	void OnInteractableObjectFound(FName ActionName);
+
 	bool bIgnoreCameraPitch = false;
 };

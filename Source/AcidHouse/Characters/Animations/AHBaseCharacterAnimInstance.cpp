@@ -1,6 +1,6 @@
 #include "AHBaseCharacterAnimInstance.h"
 #include "Characters/AHBaseCharacter.h"
-#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h" 
+#include "Components/MovementComponents/AHBaseCharacterMovementComponent.h" 
 #include "Components/CharacterComponents/CharacterEquipmentComponent.h"
 #include "Actors/Equipment/Weapon/RangeWeapon.h"
 

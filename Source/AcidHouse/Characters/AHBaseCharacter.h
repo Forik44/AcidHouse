@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AcidHouseTypes.h"
 #include "GenericTeamAgentInterface.h"
+#include "UObject/ScriptInterface.h"
 #include "AHBaseCharacter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -42,11 +43,13 @@ struct FMantlingSettings
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAimingStateChanged, bool)
+DECLARE_DELEGATE_OneParam(FOnInteractableObjectFound, FName)
 
 class AInteractiveActor;
 class UAHBaseCharacterMovementComponent;
 class UCharacterEquipmentComponent;
 class UCharacterAttributeComponent;
+class IInteractable;
 
 typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
 
@@ -63,6 +66,7 @@ public:
 	FRotator GetAimOffset();
 
 	FOnAimingStateChanged OnAimingStateChanged;
+	FOnInteractableObjectFound OnInteractableObjectFound;
 
 	virtual void StopJumping() override;
 
@@ -179,6 +183,8 @@ public:
 	virtual void NotifyJumpApex() override;
 	virtual void Landed(const FHitResult& Hit) override;
 
+	void Interact();
+
 	/** IGenericTeamAgentInterface */
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	/** ~IGenericTeamAgentInterface */
@@ -201,6 +207,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Movement")
 	float SprintSpeed = 800.0f;
@@ -247,6 +254,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Team")
 	ETeams Team = ETeams::Enemy;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | LineTrace")
+	float LineTraceSightDistance = 500.0f;
+
+	UPROPERTY()
+	TScriptInterface<IInteractable> LineOfSightObject;
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Character | Movement")
 	void OnSprintStart();
 	virtual void OnSprintStart_Implementation();
@@ -282,6 +295,9 @@ protected:
 
 	virtual void OnStartAimingInternal();
 	virtual void OnStopAimingInternal();
+
+	void TraceLineOfSight();
+
 private:
 	bool bIsSprintRequested = false;
 	bool bIsFastSwimRequested = false;

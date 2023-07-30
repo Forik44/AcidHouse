@@ -4,7 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerHUDWidget.generated.h"
 
-
+class UHighlightInteractableWidget;
 UCLASS()
 class ACIDHOUSE_API UPlayerHUDWidget : public UUserWidget
 {
@@ -17,6 +17,9 @@ public:
 	
 	class UCharacterAttributesWidget* GetCharacterAttributesWidget();
 
+	void SetHighlightInteractableVisability(bool bIsVisible);
+	void SetHighlightInteractableActionText(FName KeyName);
+
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
@@ -27,4 +30,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
 	FName CharacterAttributesName;
+
+	UPROPERTY(meta = (BindWidget))
+	UHighlightInteractableWidget* InteractableKey;
 };

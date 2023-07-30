@@ -1,6 +1,6 @@
 #include "AHBaseCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Components/MovementComponents/AHBaceCharacerMovementComponent.h"
+#include "Components/MovementComponents/AHBaseCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/LedgeDetectorComponent.h"
@@ -16,6 +16,7 @@
 #include "Actors/Equipment/Weapon/MeleeWeapon.h"
 #include "AIController.h"
 #include "Net/UnrealNetwork.h"
+#include "Actors/Interactive/Interface/IInteractable.h"
 
 
 AAHBaseCharacter::AAHBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -42,6 +43,16 @@ void AAHBaseCharacter::BeginPlay()
 	CharacterAttributeComponent->OnDeathEvent.AddUObject(this, &AAHBaseCharacter::OnDeath);
 	CharacterAttributeComponent->OnOutOfStaminaEvent.AddDynamic(this, &AAHBaseCharacter::OnOutOfStamina);
 	CharacterAttributeComponent->OnOutOfOxygenEvent.AddDynamic(this, &AAHBaseCharacter::OnOutOfOxygen);
+}
+
+void AAHBaseCharacter::EndPlay(const EEndPlayReason::Type Reason)
+{
+	if (OnInteractableObjectFound.IsBound())
+	{
+		OnInteractableObjectFound.Unbind();
+	}
+
+	Super::EndPlay(Reason);
 }
 
 void AAHBaseCharacter::TryJump()
@@ -234,6 +245,41 @@ void AAHBaseCharacter::OnStopAimingInternal()
 	}
 }
 
+void AAHBaseCharacter::TraceLineOfSight()
+{
+	if (!IsPlayerControlled())
+	{
+		return;
+	}
+
+	FVector ViewLocation;
+	FRotator ViewRotation;
+
+	APlayerController* PlayerController = GetController<APlayerController>();
+	PlayerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
+
+	FVector ViewDirection = ViewRotation.Vector();
+	FVector TraceEnd = ViewLocation + ViewDirection * LineTraceSightDistance;
+
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByChannel(HitResult, ViewLocation, TraceEnd, ECC_Visibility);
+	if (LineOfSightObject.GetObject() != HitResult.GetActor())
+	{
+		LineOfSightObject = HitResult.GetActor();
+
+		FName ActionName;
+		if (LineOfSightObject.GetInterface())
+		{
+			ActionName = LineOfSightObject->GetActionEventName();
+		}
+		else
+		{
+			ActionName = NAME_None;
+		}
+		OnInteractableObjectFound.ExecuteIfBound(ActionName);
+	}
+}
+
 void AAHBaseCharacter::OnRep_IsMantling(bool bWasMantling)
 {
 	if (GetLocalRole() == ROLE_SimulatedProxy)
@@ -281,6 +327,8 @@ void AAHBaseCharacter::Tick(float DeltaTime)
 
 	TryChangeSprintState(DeltaTime);
 	TryChangeFastSwimState(DeltaTime);
+
+	TraceLineOfSight();
 }
 
 void AAHBaseCharacter::PossessedBy(AController* NewController)
@@ -494,6 +542,14 @@ void AAHBaseCharacter::Landed(const FHitResult& Hit)
 	{
 		float DamageAmount = FallDamageCurve->GetFloatValue(FallHeight);
 		TakeDamage(DamageAmount, FDamageEvent(), GetController(), Hit.GetActor());
+	}
+}
+
+void AAHBaseCharacter::Interact()
+{
+	if (LineOfSightObject.GetInterface())
+	{
+		LineOfSightObject->Interact(this);
 	}
 }
 
