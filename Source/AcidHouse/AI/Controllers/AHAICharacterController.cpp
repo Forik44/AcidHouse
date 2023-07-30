@@ -13,6 +13,7 @@ void AAHAICharacterController::SetPawn(APawn* InPawn)
 		checkf(InPawn->IsA<AAHAICharacter>(), TEXT("AAHAICharacterController::SetPawn AHAICharacterController can posses only AHAICharacter"));
 		CachedAICharacter = StaticCast<AAHAICharacter*>(InPawn);
 		RunBehaviorTree(CachedAICharacter->GetBehaviorTree());
+		SetupPatrolling();
 	}
 	else
 	{
@@ -43,7 +44,11 @@ void AAHAICharacterController::OnMoveCompleted(FAIRequestID RequestID, const FPa
 void AAHAICharacterController::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+}
+
+void AAHAICharacterController::SetupPatrolling()
+{
 	UAIPatrollingComponent* PatrollingComponent = CachedAICharacter->GetPatrollingComponent();
 	if (PatrollingComponent->CanPatrol())
 	{

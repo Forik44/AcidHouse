@@ -45,11 +45,30 @@ void ADoor::Interact(AAHBaseCharacter* Character)
 
 	checkf(IsValid(DoorAnimationCurve), TEXT("DoorAnimationCurve is not set"));
 	InteractWithDoor();
+	if (OnInteractionEvent.IsBound())
+	{
+		OnInteractionEvent.Broadcast();
+	}
 }
 
 FName ADoor::GetActionEventName() const
 {
 	return ActionInteract;
+}
+
+bool ADoor::HasOnInteractionCallback() const
+{
+	return true;
+}
+
+FDelegateHandle ADoor::AddOnInteractionUFunction(UObject* Object, const FName& FunctionName)
+{
+	return OnInteractionEvent.AddUFunction(Object, FunctionName);
+}
+
+void ADoor::RemoveOnInteractionDelegate(FDelegateHandle DelegationHandle)
+{
+	OnInteractionEvent.Remove(DelegationHandle);
 }
 
 void ADoor::UpdateDoorAnimation(float Alpha)
