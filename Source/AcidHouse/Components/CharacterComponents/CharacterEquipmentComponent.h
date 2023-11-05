@@ -40,6 +40,7 @@ public:
 	void ReloadCurrentWeapon();
 	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);
 
+	UFUNCTION(BlueprintCallable)
 	void EquipItemInSlot(EEquipmentSlots Slot, bool bForce = false);
 
 	void AttachCurrentItemToEquippedSocket();
