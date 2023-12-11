@@ -148,6 +148,7 @@ public:
 	void InteractWithZipline();
 	const class AZipline* GetAvailableZipline() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Character")
 	void StartFire();
 
 	bool CanFire();
@@ -172,7 +173,10 @@ public:
 
 	void EquipPrimaryItem();
 
+	UFUNCTION(BlueprintCallable, Category = "Character")
 	void PrimaryMeleeAttack();
+
+	UFUNCTION(BlueprintCallable, Category = "Character")
 	void SecondaryMeleeAttack();
 	bool IsMeleeAttacking();
 

@@ -42,6 +42,5 @@ def set_sio_link(link_sio, link_app):
 # wrap around callbacks
 def run_on_gt(callback, param=None):
 	#called directly
-	print("run_on_gt callback: " + str(param))
 	if(callback != None):
 		callback(param)
