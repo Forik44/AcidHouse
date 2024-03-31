@@ -201,6 +201,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool GetIsFire() const { return bIsFiring || bIsMeleeAttacking; }
+
 	FORCEINLINE  UCharacterAttributeComponent* GetCharacterAttributeComponent_Mutable() const { return CharacterAttributeComponent; }
 
 	FORCEINLINE const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent; }
@@ -305,6 +308,8 @@ protected:
 private:
 	bool bIsSprintRequested = false;
 	bool bIsFastSwimRequested = false;
+
+	bool bIsFiring = false;
 
 	UPROPERTY(ReplicatedUsing=OnRep_bIsAiming)
 	bool bIsAiming = false;

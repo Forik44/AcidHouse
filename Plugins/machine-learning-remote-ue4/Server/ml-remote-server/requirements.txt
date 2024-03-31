@@ -3,3 +3,4 @@ aiohttp>=3.8.3
 tensorflow>=2.10.0
 pandas>=2.1.1
 tf-agents[reverb]
+cPickle

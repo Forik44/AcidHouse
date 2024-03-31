@@ -47,6 +47,7 @@ public:
 	float GetAimTurnModifier() const { return AimTurnModifier; }
 	float GetAimLookUpModifier() const { return AimLookUpModifier; }
 
+	UFUNCTION(BlueprintCallable)
 	int32 GetAmmo() const { return Ammo; }
 	int32 GetMaxAmmo() const { return MaxAmmo; }
 	void SetAmmo(int32 NewAmmo);

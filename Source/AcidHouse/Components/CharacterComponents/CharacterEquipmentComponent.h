@@ -28,8 +28,11 @@ public:
 
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
+	UFUNCTION(BlueprintCallable)
 	ARangeWeapon* GetCurrentRangeWeapon() const { return CurrentEquippedWeapon; }
+	UFUNCTION(BlueprintCallable)
 	AThrowableItem* GetCurrentThrowableItem() const { return CurrentThrowableItem; }
+	UFUNCTION(BlueprintCallable)
 	AMeleeWeapon* GetCurrentMeleeWeapon() const { return CurrentMeleeWeapon; }
 
 	FOnCurrentWeaponAmmoChanged OnCurrentWeaponAmmoChangedEvent;

@@ -141,25 +141,25 @@ void ARangeWeapon::StartReload()
 		return;
 	}
 
-	bIsReloading = true;
-	if (IsValid(CharacterReloadMontage))
-	{
-		float MontageDuration = CharacterOwner->PlayAnimMontage(CharacterReloadMontage);
-		PlayAnimMontage(WeaponReloadMontage);
-		if (ReloadType == EReloadType::FullClip)
-		{
-			GetWorld()->GetTimerManager().SetTimer(ReloadTimer, [this]() { EndReload(true); }, MontageDuration, false);
-		}
-	}
-	else 
-	{
+	//bIsReloading = true;
+	//if (IsValid(CharacterReloadMontage))
+	//{
+		//float MontageDuration = CharacterOwner->PlayAnimMontage(CharacterReloadMontage);
+		//PlayAnimMontage(WeaponReloadMontage);
+		//if (ReloadType == EReloadType::FullClip)
+		//{
+			//GetWorld()->GetTimerManager().SetTimer(ReloadTimer, [this]() { EndReload(true); }, MontageDuration, false);
+		//}
+	//}
+	//else 
+	//{
 		EndReload(true);
-	}
+	//}
 }
 
 void ARangeWeapon::EndReload(bool bIsSuccess)
 {
-	if (!bIsReloading)
+	if (false)//bIsReloading)
 	{
 		return;
 	}

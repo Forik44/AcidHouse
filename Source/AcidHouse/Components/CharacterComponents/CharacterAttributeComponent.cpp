@@ -66,6 +66,7 @@ void UCharacterAttributeComponent::OnTakeAnyDamage(AActor* DamagedActor, float D
 {
 	if (!IsAlive())
 	{
+		Health = MaxHealth;
 		return;
 	}
 

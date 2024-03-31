@@ -903,6 +903,7 @@ void AAHBaseCharacter::StartFire()
 	ARangeWeapon* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
 	if (IsValid(CurrentRangeWeapon))
 	{
+		bIsFiring = true;
 		CurrentRangeWeapon->StartFire();
 	}
 }
@@ -922,6 +923,7 @@ void AAHBaseCharacter::StopFire()
 	ARangeWeapon* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
 	if (IsValid(CurrentRangeWeapon))
 	{
+		bIsFiring = false;
 		CurrentRangeWeapon->StopFire(); 
 	}
 }

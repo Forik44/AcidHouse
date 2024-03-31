@@ -1,3 +1,5 @@
+import base64
+import pickle
 
 import unreal_engine as ue
 from mlpluginapi import MLPluginAPI
@@ -44,12 +46,12 @@ batch_size = 64  # @param {type:"integer"}
 learning_rate = 1e-3  # @param {type:"number"}
 log_interval = 10  # @param {type:"integer"}
 
-num_eval_episodes = 300  # @param {type:"integer"}
+num_eval_episodes = 100  # @param {type:"integer"}
 eval_interval = 500  # @param {type:"integer"}
 
 num_iterations = 10000 # @param {type:"integer"}
 
-initial_collect_steps = 500  # @param {type:"integer"} 
+initial_collect_steps = 2  # @param {type:"integer"} 
 
 replay_buffer_capacity = 100000  # @param {type:"integer"}
 
@@ -61,6 +63,14 @@ num_atoms = 51  # @param {type:"integer"}
 min_q_value = 0  # @param {type:"integer"}
 max_q_value = 10000  # @param {type:"integer"}
 n_step_update = 2  # @param {type:"integer"}
+
+train_checkpoint_interval=100,
+policy_checkpoint_interval=50,
+rb_checkpoint_interval=200,
+
+root_dir = "D:/Unreal/Projects/AcidHouse/Plugins/machine-learning-remote-ue4/Server/ml-remote-server/scripts/Saved/"
+train_dir = os.path.join(root_dir, 'train')
+eval_dir = os.path.join(root_dir, 'eval')
 
 #MLPluginAPI
 class DQN(MLPluginAPI):
@@ -132,8 +142,14 @@ class DQN(MLPluginAPI):
 	#optional api: start training your network
 	def on_begin_training(self):
 		ue.log('hello on_begin_training')
+
+
 		agent = self.agent
 		agent.initialize()
+
+		ue.log("agent at begin")
+		ue.log(str(agent))
+
 		random_policy = random_tf_policy.RandomTFPolicy(self.env.time_step_spec(),self.env.action_spec())
 
 		replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
@@ -145,7 +161,7 @@ class DQN(MLPluginAPI):
 
 		def collect_step(environment, policy):
 			time_step = self.env.current_time_step()
-			#ue.log(self.env)
+			#ue.log(time_step)
 			action_step = policy.action(time_step)
 			#ue.log('Env collect_step' + str(self.env))
 			#ue.log(action_step)
@@ -158,12 +174,13 @@ class DQN(MLPluginAPI):
 		
 		def compute_avg_return(environment, policy, num_episodes):
 			total_return = 0.0
+			ue.log('compute_avg_return num_episodes = {0}'.format(num_episodes))
 			for _ in range(num_episodes):
 				episode_return = 0.0
 				time_step = self.env.current_time_step()
 				#while not time_step.is_last():
 				action_step = policy.action(time_step)
-				ue.log(policy.action(time_step))
+				#ue.log(policy.action(time_step))
 				next_time_step = self.env.step(action_step.action)
 				episode_return += next_time_step.reward
 				total_return += episode_return
@@ -193,21 +210,35 @@ class DQN(MLPluginAPI):
 
 		# Reset the train step
 		agent.train_step_counter.assign(0)
-		checkpoint_dir = os.path.join(tempdir, 'checkpoint')
-		policy_checkpointer = common.Checkpointer(ckpt_dir=checkpoint_dir,
-                                          policy=agent.policy)
-		
-		ue.log('Checkpointer created')
-		# Evaluate the agent's policy once before training.
-		avg_return = compute_avg_return(self.env, agent.policy, num_eval_episodes)
-		returns = [avg_return]
-		policy_checkpointer.save(global_step=0)
-		ue.log('Checkpointer saved global_step=0')
-
-		file = open('D:/Unreal/Projects/AcidHouse/Plugins/machine-learning-remote-ue4/Server/ml-remote-server/scripts/Saved/Losses.txt', 'w')
 
 		eval_policy = agent.policy
 		collect_policy = agent.collect_policy
+
+		train_checkpointer = common.Checkpointer(
+			ckpt_dir=train_dir,
+			agent=agent,
+		)	
+		policy_checkpointer = common.Checkpointer(
+			ckpt_dir=os.path.join(train_dir, 'policy'),
+			policy=eval_policy,
+		)
+		rb_checkpointer = common.Checkpointer(
+			ckpt_dir=os.path.join(train_dir, 'replay_buffer'),
+			max_to_keep=1,
+			replay_buffer=replay_buffer,
+		)
+
+		train_checkpointer.initialize_or_restore()
+		policy_checkpointer.initialize_or_restore()
+		rb_checkpointer.initialize_or_restore()
+
+		ue.log('Checkpointer created')
+		# Evaluate the agent's policy once before training.
+		
+		avg_return = compute_avg_return(self.env, agent.policy, num_eval_episodes)
+		returns = [avg_return]
+
+		file = open('D:/Unreal/Projects/AcidHouse/Plugins/machine-learning-remote-ue4/Server/ml-remote-server/scripts/Saved/Losses.txt', 'w')
 
 		for _ in range(num_iterations):
 			# Collect a few steps using collect_policy and save to the replay buffer.
@@ -231,6 +262,15 @@ class DQN(MLPluginAPI):
 				#policy_checkpointer.save((global_step=step/eval_interval).numpy())
 				returns.append(avg_return)
 
+			if step % train_checkpoint_interval == 0:
+				train_checkpointer.save(step)
+
+			if step % policy_checkpoint_interval == 0:
+				policy_checkpointer.save(step)
+
+			if step % rb_checkpoint_interval == 0:
+				rb_checkpointer.save(step)
+
 		file.write(str(returns))
 		pass
 
@@ -240,8 +280,18 @@ class DQN(MLPluginAPI):
 		return {}
 
 	def set_state(self, input):
-		self.ShEnv._state = input['state']
-		#ue.log(str(self.env._state))
+		self.ShEnv._state = np.array([input['ammo'],input['distance'],input['hp'],input['speed']])
+		#ue.log(str(self.ShEnv._state))
+		return {}
+
+	def set_num_eval_episodes(self, input):
+		num_eval_episodes = input['numevalepisodesvalue']
+		#ue.log(str(self.ShEnv._state))
+		return {}
+
+	def set_is_fire(self, input):
+		self.ShEnv._isfire = input['isfire']
+		#ue.log(str(self.ShEnv._state))
 		return {}
 
 
@@ -257,10 +307,11 @@ class ShooterEnv(py_environment.PyEnvironment):
 
 	def __init__(self):
 		self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=4, name='action')
-		self._observation_spec = array_spec.BoundedArraySpec(shape=(1,), dtype=np.int32, minimum=0, name='observation')
+		self._observation_spec = array_spec.BoundedArraySpec(shape=(4,), dtype=np.float64, minimum=0, name='observation')
 		self._state = 0
 		self._reward = 1
 		self._current = 0
+		self._isfire = False
 
 	def action_spec(self):
 		return self._action_spec
@@ -269,7 +320,7 @@ class ShooterEnv(py_environment.PyEnvironment):
 		return self._observation_spec
 
 	def _reset(self):
-		return ts.restart(np.array([self._state], dtype=np.int32))
+		return ts.restart(self._state)
 
 	def SetReward(self, NewReward):
 		self._reward = NewReward
@@ -286,4 +337,8 @@ class ShooterEnv(py_environment.PyEnvironment):
 		#ue.log('Reward:' + str(self._reward))
 		#ue.log('State' + str(self._state))
 		#ue.log('Env step' + str(self))
-		return ts.termination(np.array([self._state], dtype=np.int32), self._reward)
+		if(self._isfire):
+			ue.log('isfire working')
+			return ts.termination(self._state, self._reward)
+		else:
+			return self._step(action)

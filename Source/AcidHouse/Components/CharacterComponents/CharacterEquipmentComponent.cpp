@@ -63,7 +63,7 @@ void UCharacterEquipmentComponent::ReloadCurrentWeapon()
 
 	if (GetOwner()->GetLocalRole() == ROLE_Authority)
 	{
-		bIsReloading = true;
+		//bIsReloading = true;
 	}
 
 	if (GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)

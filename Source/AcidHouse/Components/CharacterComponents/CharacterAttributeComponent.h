@@ -41,6 +41,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetCurrentStamina() const { return Stamina; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE float GetCurrentHealth() const { return Health; }
 	FORCEINLINE float GetOutOfOxygenDamageRate() const { return OutOfOxygenDamageRate;  }
 	FORCEINLINE float GetOutOfOxygenDamageAmount() const { return OutOfOxygenDamageAmount; }
 protected:
